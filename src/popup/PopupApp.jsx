@@ -1,67 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import { saveLink } from '../lib/storage';
 import { BookmarkPlus, Check } from 'lucide-react';
-import './PopupApp.css';
 
 function PopupApp() {
   const [saved, setSaved] = useState(false);
   const [tabInfo, setTabInfo] = useState(null);
 
   useEffect(() => {
-    // Get current tab info
-    if (chrome && chrome.tabs) {
+    if (typeof chrome !== 'undefined' && chrome.tabs) {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const tab = tabs[0];
         if (tab) {
-          setTabInfo({
-            url: tab.url,
-            title: tab.title,
-            favicon: tab.favIconUrl || ''
-          });
+          setTabInfo({ url: tab.url, title: tab.title, favicon: tab.favIconUrl || '' });
         }
       });
     } else {
-      // Fallback for local testing outside extension
-      setTabInfo({
-        url: 'https://example.com',
-        title: 'Example Site',
-        favicon: ''
-      });
+      setTabInfo({ url: 'https://www.google.com', title: 'Example Site', favicon: '' });
     }
   }, []);
 
   const handleSave = async () => {
-    if (tabInfo) {
-      await saveLink({
-        type: 'link',
-        url: tabInfo.url,
-        title: tabInfo.title,
-        favicon: tabInfo.favicon,
-        viewMode: 'icon+text', // default mode
-      });
-      setSaved(true);
-      setTimeout(() => window.close(), 1500);
-    }
+    if (!tabInfo) return;
+    await saveLink({ type: 'link', url: tabInfo.url, title: tabInfo.title, favicon: tabInfo.favicon, viewMode: 'icon+text' });
+    setSaved(true);
+    setTimeout(() => window.close(), 1500);
   };
 
   return (
-    <div className="popup-container">
-      <h3>Save to Dashboard</h3>
+    <div className="w-[280px] bg-bg-primary font-sans p-4 flex flex-col gap-3">
+      <h3 className="m-0 text-sm font-semibold text-ink">Save to Dashboard</h3>
+
       {tabInfo && (
-        <div className="tab-preview">
-          {tabInfo.favicon && <img src={tabInfo.favicon} alt="" className="favicon" />}
-          <span className="tab-title">{tabInfo.title}</span>
+        <div className="flex items-center gap-2 p-2 rounded-md bg-bg-hover border border-border overflow-hidden">
+          {tabInfo.favicon && (
+            <img src={tabInfo.favicon} alt="" className="w-4 h-4 rounded flex-shrink-0" />
+          )}
+          <span className="text-sm text-ink truncate">{tabInfo.title}</span>
         </div>
       )}
-      <button 
-        className={`save-btn ${saved ? 'saved' : ''}`} 
+
+      <button
         onClick={handleSave}
         disabled={saved}
+        className={`btn-primary w-full ${saved ? 'success' : ''}`}
       >
         {saved ? (
-          <><Check size={16} /> Saved!</>
+          <><Check size={15} /> Saved!</>
         ) : (
-          <><BookmarkPlus size={16} /> Save Link</>
+          <><BookmarkPlus size={15} /> Save Link</>
         )}
       </button>
     </div>

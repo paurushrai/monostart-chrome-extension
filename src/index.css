@@ -1,63 +1,89 @@
-:root {
-  --bg-color: #ffffff;
-  --text-color: #37352f;
-  --text-secondary: rgba(55, 53, 47, 0.65);
-  --border-color: rgba(55, 53, 47, 0.16);
-  --hover-bg: rgba(55, 53, 47, 0.08);
-  --accent-color: #2eaadc;
-  --card-bg: #ffffff;
-  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-color: #191919;
-    --text-color: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.65);
-    --border-color: rgba(255, 255, 255, 0.16);
-    --hover-bg: rgba(255, 255, 255, 0.08);
-    --card-bg: #202020;
-    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3);
+/* ─── Base Layer ──────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-bg-primary text-ink min-h-screen overflow-x-hidden m-0 p-0;
+  }
+
+  /* Dark mode body */
+  html.dark body {
+    @apply bg-dark-bg-primary text-ink-dark;
+  }
+
+  * {
+    @apply box-border;
   }
 }
 
-* {
-  box-sizing: border-box;
+/* ─── Component Layer ─────────────────────────────────────────────────────── */
+@layer components {
+  /* Card base shared across LinkCard & IframeWidget */
+  .card-base {
+    @apply bg-bg-card rounded-card border border-border shadow-card
+           transition-all duration-normal hover:-translate-y-0.5 hover:shadow-card-hover;
+  }
+
+  html.dark .card-base {
+    @apply bg-dark-bg-card border-border-dark shadow-card-dark hover:shadow-card-hover-dark;
+  }
+
+  /* Action icon button */
+  .icon-btn {
+    @apply flex items-center justify-center w-6 h-6 rounded bg-bg-primary border border-border
+           text-ink-secondary cursor-pointer transition-all duration-fast
+           hover:text-ink hover:bg-bg-hover;
+  }
+
+  html.dark .icon-btn {
+    @apply bg-dark-bg-primary border-border-dark text-ink-dark-secondary hover:text-ink-dark hover:bg-dark-bg-hover;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply flex items-center justify-center gap-2 px-4 py-2 rounded-md
+           bg-accent text-white text-sm font-medium cursor-pointer border-0
+           transition-all duration-normal hover:bg-accent-hover;
+  }
+
+  .btn-primary.success {
+    @apply bg-accent-success;
+  }
+
+  /* Secondary button */
+  .btn-secondary {
+    @apply flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium
+           bg-bg-hover border border-border text-ink cursor-pointer
+           transition-all duration-normal hover:bg-bg-secondary;
+  }
+
+  html.dark .btn-secondary {
+    @apply bg-dark-bg-hover border-border-dark text-ink-dark hover:bg-dark-bg-secondary;
+  }
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* React Grid Layout Overrides */
+/* ─── React Grid Layout Overrides ─────────────────────────────────────────── */
 .react-grid-layout {
   position: relative;
   transition: height 200ms ease;
 }
+
 .react-grid-item {
   transition: all 200ms ease;
-  transition-property: left, top;
-}
-.react-grid-item.cssTransforms {
-  transition-property: transform;
-}
-.react-grid-item.resizing {
-  z-index: 1;
-  will-change: width, height;
+  transition-property: left, top, transform;
 }
 
 .react-grid-item.react-draggable-dragging {
   transition: none;
-  z-index: 3;
-  will-change: transform;
-  opacity: 0.9;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  z-index: 30;
+  opacity: 0.92;
+  cursor: grabbing;
 }
 
 .react-grid-item.dropping {
@@ -65,14 +91,19 @@ body {
 }
 
 .react-grid-item.react-grid-placeholder {
-  background: var(--accent-color);
-  opacity: 0.2;
+  background: theme('colors.accent.DEFAULT');
+  opacity: 0.18;
+  border-radius: theme('borderRadius.card');
   transition-duration: 100ms;
   z-index: 2;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -o-user-select: none;
   user-select: none;
-  border-radius: 8px;
+}
+
+.react-resizable-handle {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.react-grid-item:hover .react-resizable-handle {
+  opacity: 1;
 }

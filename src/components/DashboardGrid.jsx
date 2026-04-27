@@ -10,14 +10,14 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange }) => {
   const layouts = {
     lg: links.map(link => ({
-      i: link.id,
-      x: link.x || 0,
-      y: link.y || Infinity,
-      w: link.w || 2,
-      h: link.h || 2,
+      i:    link.id,
+      x:    link.x ?? 0,
+      y:    link.y ?? Infinity,
+      w:    link.w ?? 2,
+      h:    link.h ?? 2,
       minW: 1,
-      minH: 1
-    }))
+      minH: 1,
+    })),
   };
 
   return (
@@ -27,13 +27,13 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange }) =>
       breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
       cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
       rowHeight={60}
-      onLayoutChange={(currentLayout) => onLayoutChange(currentLayout)}
-      isDraggable={true}
-      isResizable={true}
       margin={[16, 16]}
+      isDraggable
+      isResizable
+      onLayoutChange={(layout) => onLayoutChange(layout)}
     >
       {links.map((item) => (
-        <div key={item.id} className="grid-item-container">
+        <div key={item.id} className="rounded-card overflow-hidden">
           {item.type === 'iframe' ? (
             <IframeWidget item={item} onDelete={onDelete} />
           ) : (
