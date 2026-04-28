@@ -13,8 +13,8 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange }) =>
       i:    link.id,
       x:    link.x ?? 0,
       y:    link.y ?? Infinity,
-      w:    link.w ?? 2,
-      h:    link.h ?? 2,
+      w:    link.w ?? (link.viewMode === 'icon' ? 1 : 2),
+      h:    link.h ?? 1,
       minW: 1,
       minH: 1,
     })),
@@ -33,7 +33,7 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange }) =>
       onLayoutChange={(layout) => onLayoutChange(layout)}
     >
       {links.map((item) => (
-        <div key={item.id} className="rounded-card overflow-hidden">
+        <div key={item.id} className="rounded-card">
           {item.type === 'iframe' ? (
             <IframeWidget item={item} onDelete={onDelete} />
           ) : (

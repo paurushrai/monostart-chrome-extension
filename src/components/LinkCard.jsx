@@ -6,17 +6,24 @@ const VIEW_MODES = ['icon', 'icon+text'];
 const LinkCard = ({ item, onDelete, onViewModeChange }) => {
   const { url, title, favicon, viewMode = 'icon+text' } = item;
 
-  const getDomain = (url) => {
-    try { return new URL(url).hostname; }
-    catch { return url; }
-  };
-
   const nextViewMode = () => {
     const next = VIEW_MODES[(VIEW_MODES.indexOf(viewMode) + 1) % VIEW_MODES.length];
     onViewModeChange(item.id, next);
   };
 
-  const isIconOnly = viewMode === 'icon';
+  const getSiteName = (urlString) => {
+    try {
+      const hostname = new URL(urlString).hostname.replace(/^www\./, '');
+      const name = hostname.split('.')[0];
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    } catch {
+      return title ? title.split(' - ')[0] : 'Link';
+    }
+  };
+
+  const siteName = getSiteName(url);
+  const isIconOnly = viewMode === 'icon' || item.w === 1;
+  const isLarge = (item.w && item.w > 2) || (item.h && item.h > 1);
 
   return (
     <div className="group card-base relative w-full h-full overflow-hidden">
@@ -39,7 +46,7 @@ const LinkCard = ({ item, onDelete, onViewModeChange }) => {
         className={`flex w-full h-full text-inherit no-underline
           ${isIconOnly
             ? 'items-center justify-center p-0'
-            : 'flex-col items-center justify-center gap-3 p-4'
+            : 'flex-row items-center justify-start gap-4 px-5 py-3'
           }`}
       >
         {/* Favicon */}
@@ -59,13 +66,15 @@ const LinkCard = ({ item, onDelete, onViewModeChange }) => {
 
         {/* Text content */}
         {!isIconOnly && (
-          <div className="text-center w-full min-w-0">
-            <h4 className="m-0 mb-1 text-sm font-medium text-ink dark:text-ink-dark truncate">
-              {title}
+          <div className="text-left flex flex-col justify-center flex-1 min-w-0 overflow-hidden">
+            <h4 className={`m-0 text-sm font-medium text-ink dark:text-ink-dark truncate leading-tight ${isLarge ? 'mb-1' : ''}`}>
+              {siteName}
             </h4>
-            <span className="text-2xs text-ink-secondary dark:text-ink-dark-secondary truncate block">
-              {getDomain(url)}
-            </span>
+            {isLarge && (
+              <span className="text-2xs text-ink-secondary dark:text-ink-dark-secondary truncate block">
+                {title}
+              </span>
+            )}
           </div>
         )}
       </a>
