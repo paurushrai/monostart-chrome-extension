@@ -6,8 +6,8 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
 
-  // Class-based dark mode — toggled by adding 'dark' class to <html>
-  darkMode: "class",
+  // Use media queries for dark mode to automatically follow system preference
+  darkMode: "media",
 
   theme: {
     extend: {
@@ -22,7 +22,7 @@ export default {
         },
         dark: {
           bg: {
-            primary:   "#191919",
+            primary:   "#202124",
             secondary: "#202020",
             hover:     "rgba(255,255,255,0.08)",
             card:      "#202020",
