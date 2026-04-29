@@ -42,6 +42,11 @@ function App() {
   };
 
 
+  const handleUpdateLink = async (id, updates) => {
+    const updatedLinks = links.map(l => l.id === id ? { ...l, ...updates } : l);
+    setLinks(updatedLinks);
+    await saveLinks(updatedLinks);
+  };
 
   const addDemoWidget = async () => {
     const saved = await saveLink({
@@ -91,6 +96,7 @@ function App() {
           onLayoutChange={handleLayoutChange}
           onDelete={handleDelete}
           onViewModeChange={handleViewModeChange}
+          onUpdateLink={handleUpdateLink}
           isEditing={isEditing}
         />
       </main>

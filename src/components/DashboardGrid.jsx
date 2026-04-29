@@ -7,7 +7,7 @@ import 'react-resizable/css/styles.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, isEditing }) => {
+const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUpdateLink, isEditing }) => {
   const layouts = {
     lg: links.map(link => ({
       i:    link.id,
@@ -37,7 +37,7 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, isEd
           {item.type === 'iframe' ? (
             <IframeWidget item={item} onDelete={onDelete} isEditing={isEditing} />
           ) : (
-            <LinkCard item={item} onDelete={onDelete} onViewModeChange={onViewModeChange} isEditing={isEditing} />
+            <LinkCard item={item} onDelete={onDelete} onViewModeChange={onViewModeChange} onUpdateLink={onUpdateLink} isEditing={isEditing} />
           )}
         </div>
       ))}

@@ -3,8 +3,8 @@ import { ExternalLink, X, Settings2 } from 'lucide-react';
 
 const VIEW_MODES = ['icon', 'icon+text'];
 
-const LinkCard = ({ item, onDelete, onViewModeChange, isEditing }) => {
-  const { url, title, favicon, viewMode = 'icon+text' } = item;
+const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing }) => {
+  const { url, title, favicon, viewMode = 'icon+text', customName } = item;
 
   const nextViewMode = () => {
     const next = VIEW_MODES[(VIEW_MODES.indexOf(viewMode) + 1) % VIEW_MODES.length];
@@ -14,16 +14,41 @@ const LinkCard = ({ item, onDelete, onViewModeChange, isEditing }) => {
   const getSiteName = (urlString) => {
     try {
       const hostname = new URL(urlString).hostname.replace(/^www\./, '');
-      const name = hostname.split('.')[0];
+      const parts = hostname.split('.');
+      let name = parts[0];
+      if (parts.length >= 3 && ['app', 'docs', 'blog', 'mail', 'm', 'web', 'my', 'api', 'dev', 'shop'].includes(name.toLowerCase())) {
+        name = parts[1];
+      }
       return name.charAt(0).toUpperCase() + name.slice(1);
     } catch {
       return title ? title.split(' - ')[0] : 'Link';
     }
   };
 
-  const siteName = getSiteName(url);
+  const siteName = customName || getSiteName(url);
   const isIconOnly = viewMode === 'icon' || item.w === 1;
   const isLarge = (item.w && item.w > 2) || (item.h && item.h > 1);
+
+  const handleNameBlur = (e) => {
+    const newName = e.target.innerText.trim();
+    if (newName && newName !== siteName) {
+      onUpdateLink(item.id, { customName: newName });
+    }
+  };
+
+  const handleDescBlur = (e) => {
+    const newDesc = e.target.innerText.trim();
+    if (newDesc !== title) {
+      onUpdateLink(item.id, { title: newDesc });
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.target.blur();
+    }
+  };
 
   return (
     <div className="group card-base relative w-full h-full overflow-hidden">
@@ -72,11 +97,25 @@ const LinkCard = ({ item, onDelete, onViewModeChange, isEditing }) => {
         {/* Text content */}
         {!isIconOnly && (
           <div className="text-left flex flex-col justify-center flex-1 min-w-0 overflow-hidden">
-            <h4 className={`m-0 text-sm font-medium text-ink dark:text-ink-dark truncate leading-tight ${isLarge ? 'mb-1' : ''}`}>
+            <h4
+              contentEditable={isEditing}
+              suppressContentEditableWarning
+              onBlur={handleNameBlur}
+              onKeyDown={handleKeyDown}
+              onMouseDown={(e) => isEditing && e.stopPropagation()}
+              className={`m-0 text-sm font-medium text-ink dark:text-ink-dark truncate leading-tight ${isLarge ? 'mb-1' : ''} ${isEditing ? 'cursor-text outline-none hover:bg-bg-hover dark:hover:bg-dark-bg-hover focus:bg-bg-hover dark:focus:bg-dark-bg-hover rounded px-1 -ml-1 transition-colors' : ''}`}
+            >
               {siteName}
             </h4>
             {isLarge && (
-              <span className="text-2xs text-ink-secondary dark:text-ink-dark-secondary truncate block">
+              <span
+                contentEditable={isEditing}
+                suppressContentEditableWarning
+                onBlur={handleDescBlur}
+                onKeyDown={handleKeyDown}
+                onMouseDown={(e) => isEditing && e.stopPropagation()}
+                className={`text-2xs text-ink-secondary dark:text-ink-dark-secondary truncate block ${isEditing ? 'cursor-text outline-none hover:bg-bg-hover dark:hover:bg-dark-bg-hover focus:bg-bg-hover dark:focus:bg-dark-bg-hover rounded px-1 -ml-1 mt-1 transition-colors' : ''}`}
+              >
                 {title}
               </span>
             )}
