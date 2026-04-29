@@ -28,14 +28,15 @@ export const saveLink = async (newLink) => {
   const currentLinks = await getLinks();
   
   // Default placement layout (let grid layout handle it later or append at end)
+  const id = `link-${Date.now()}`;
   const linkWithId = {
-    ...newLink,
-    id: `link-${Date.now()}`,
-    i: `link-${Date.now()}`,
-    x: (currentLinks.length * 2) % 12,
-    y: Infinity, // puts it at the bottom
     w: 2,
     h: 2,
+    ...newLink,
+    id,
+    i: id,
+    x: newLink.x ?? (currentLinks.length * 2) % 12,
+    y: newLink.y ?? Infinity,
   };
   
   const updatedLinks = [...currentLinks, linkWithId];

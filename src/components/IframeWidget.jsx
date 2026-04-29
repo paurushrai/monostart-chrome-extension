@@ -9,7 +9,7 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
       <div className={`flex items-center justify-between px-3 py-2
                       bg-bg-hover dark:bg-dark-bg-hover
                       border-b border-border dark:border-border-dark flex-shrink-0
-                      ${isEditing ? 'cursor-grab active:cursor-grabbing' : ''}`}>
+                      ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
 
         <span className="text-sm font-medium text-ink dark:text-ink-dark truncate mr-2">
           {item.title}

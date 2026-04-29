@@ -72,7 +72,7 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing })
         rel="noopener noreferrer"
         draggable={false}
         onClick={(e) => isEditing && e.preventDefault()}
-        className={`flex w-full h-full text-inherit no-underline ${isEditing ? 'cursor-grab active:cursor-grabbing' : ''}
+        className={`flex w-full h-full text-inherit no-underline ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}
           ${isIconOnly
             ? 'items-center justify-center p-0'
             : 'flex-row items-center justify-start gap-4 px-5 py-3'
