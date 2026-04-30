@@ -10,16 +10,36 @@ import 'react-resizable/css/styles.css';
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUpdateLink, isEditing }) => {
+  const maxY = links.reduce((max, link) => {
+    if (link.y !== undefined && link.y !== null) {
+      return Math.max(max, link.y + (link.h || 1));
+    }
+    return max;
+  }, 0);
+
+  let nextY = maxY;
+
   const layouts = {
-    lg: links.map(link => ({
-      i:    link.id,
-      x:    link.x ?? 0,
-      y:    link.y ?? Infinity,
-      w:    link.w ?? (link.viewMode === 'icon' ? 1 : 3),
-      h:    link.h ?? 1,
-      minW: 1,
-      minH: 1,
-    })),
+    lg: links.map(link => {
+      let x = link.x;
+      let y = link.y;
+
+      if (x === undefined || x === null || y === undefined || y === null) {
+        x = 0;
+        y = nextY;
+        nextY += (link.h || 1);
+      }
+
+      return {
+        i:    link.id,
+        x:    x,
+        y:    y,
+        w:    link.w ?? (link.viewMode === 'icon' ? 1 : 3),
+        h:    link.h ?? 1,
+        minW: 1,
+        minH: 1,
+      };
+    }),
   };
 
   const renderWidget = (item) => {
