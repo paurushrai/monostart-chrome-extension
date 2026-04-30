@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
 import LinkCard from './LinkCard';
@@ -21,6 +22,25 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUp
     })),
   };
 
+  const renderWidget = (item) => {
+    switch (item.type) {
+      case 'google-search':
+        return <GoogleSearchWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
+      case 'iframe':
+        return <IframeWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
+      default:
+        return (
+          <LinkCard
+            item={item}
+            onDelete={onDelete}
+            onViewModeChange={onViewModeChange}
+            onUpdateLink={onUpdateLink}
+            isEditing={isEditing}
+          />
+        );
+    }
+  };
+
   return (
     <ResponsiveGridLayout
       className="layout"
@@ -29,6 +49,7 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUp
       cols={{ lg: 18, md: 12, sm: 8, xs: 4, xxs: 2 }}
       rowHeight={60}
       margin={[16, 16]}
+      compactType={null}
       isDraggable={isEditing}
       isResizable={isEditing}
       draggableHandle=".drag-handle"
@@ -36,13 +57,7 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUp
     >
       {links.map((item) => (
         <div key={item.id} className="rounded-card">
-          {item.type === 'google-search' ? (
-            <GoogleSearchWidget item={item} onDelete={onDelete} isEditing={isEditing} />
-          ) : item.type === 'iframe' ? (
-            <IframeWidget item={item} onDelete={onDelete} isEditing={isEditing} />
-          ) : (
-            <LinkCard item={item} onDelete={onDelete} onViewModeChange={onViewModeChange} onUpdateLink={onUpdateLink} isEditing={isEditing} />
-          )}
+          {renderWidget(item)}
         </div>
       ))}
     </ResponsiveGridLayout>
