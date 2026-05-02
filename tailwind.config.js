@@ -5,76 +5,82 @@ export default {
     "./popup.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-
-  // Use media queries for dark mode to automatically follow system preference
   darkMode: "media",
-
   theme: {
     extend: {
-      // ─── Color Design Tokens ─────────────────────────────────────────────
       colors: {
-        // Background layers
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        // Legacy fallbacks for compatibility with current code
         bg: {
-          primary:   "#ffffff",           // page background
-          secondary: "#f7f6f3",           // sidebar / section tint
-          hover:     "rgba(55,53,47,0.08)",
-          card:      "#ffffff",
+          primary: "hsl(var(--background))",
+          secondary: "hsl(var(--secondary))",
+          hover: "hsl(var(--accent))",
+          card: "hsl(var(--card))",
         },
         dark: {
           bg: {
-            primary:   "#202124",
-            secondary: "#202020",
-            hover:     "rgba(255,255,255,0.08)",
-            card:      "#202020",
-          },
+            primary: "hsl(var(--background))",
+            secondary: "hsl(var(--secondary))",
+            hover: "hsl(var(--accent))",
+            card: "hsl(var(--card))",
+          }
         },
-
-        // Text
         ink: {
-          DEFAULT:   "#37352f",           // primary text
-          secondary: "rgba(55,53,47,0.65)",
-          disabled:  "rgba(55,53,47,0.35)",
+          DEFAULT: "hsl(var(--foreground))",
+          secondary: "hsl(var(--muted-foreground))",
+          disabled: "hsl(var(--muted-foreground))",
+          muted: "hsl(var(--muted-foreground))",
         },
         "ink-dark": {
-          DEFAULT:   "#ffffff",
-          secondary: "rgba(255,255,255,0.65)",
-          disabled:  "rgba(255,255,255,0.35)",
-        },
-
-        // Borders / Dividers
-        border: {
-          DEFAULT: "rgba(55,53,47,0.16)",
-          strong:  "rgba(55,53,47,0.35)",
+          DEFAULT: "hsl(var(--foreground))",
+          secondary: "hsl(var(--muted-foreground))",
+          disabled: "hsl(var(--muted-foreground))",
+          muted: "hsl(var(--muted-foreground))",
         },
         "border-dark": {
-          DEFAULT: "rgba(255,255,255,0.16)",
-          strong:  "rgba(255,255,255,0.35)",
-        },
-
-        // Accent / Brand
-        accent: {
-          DEFAULT: "#2eaadc",
-          hover:   "#1f82aa",
-          light:   "#e8f4fb",
-          success: "#2e7d32",
-          danger:  "#e03e3e",
-        },
-
-        // Notion palette shades (for badges, tags, etc.)
-        notion: {
-          gray:   "#9b9a97",
-          brown:  "#64473a",
-          orange: "#d9730d",
-          yellow: "#dfab01",
-          green:  "#0f7b6c",
-          blue:   "#0b6e99",
-          purple: "#6940a5",
-          pink:   "#ad1a72",
-          red:    "#e03e3e",
-        },
+          DEFAULT: "hsl(var(--border))",
+          strong: "hsl(var(--border))",
+        }
       },
-
-      // ─── Typography ──────────────────────────────────────────────────────
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+        card: "var(--radius)",
+        widget: "var(--radius)",
+      },
       fontFamily: {
         sans: [
           "-apple-system",
@@ -86,48 +92,34 @@ export default {
           "sans-serif",
         ],
       },
-
       fontSize: {
         "2xs": ["10px", { lineHeight: "14px" }],
       },
-
-      // ─── Border Radius ────────────────────────────────────────────────────
-      borderRadius: {
-        card:   "12px",
-        widget: "16px",
-        badge:  "4px",
-      },
-
-      // ─── Box Shadows ──────────────────────────────────────────────────────
-      boxShadow: {
-        card:   "0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.10)",
-        "card-dark": "0 4px 6px rgba(0,0,0,0.20), 0 1px 3px rgba(0,0,0,0.30)",
-        "card-hover": "0 8px 16px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.08)",
-        "card-hover-dark": "0 8px 16px rgba(0,0,0,0.40), 0 2px 6px rgba(0,0,0,0.30)",
-        popup:  "0 16px 48px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.12)",
-      },
-
-      // ─── Transitions ─────────────────────────────────────────────────────
-      transitionDuration: {
-        fast:   "120ms",
-        normal: "200ms",
-        slow:   "350ms",
-      },
-
-      // ─── Spacing extras ──────────────────────────────────────────────────
-      spacing: {
-        4.5: "1.125rem",
-        13:  "3.25rem",
-        15:  "3.75rem",
-        18:  "4.5rem",
-      },
-
-      // ─── Grid ────────────────────────────────────────────────────────────
       gridTemplateColumns: {
         dashboard: "repeat(12, minmax(0, 1fr))",
       },
+      boxShadow: {
+        card: "0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.10)",
+        "card-dark": "0 4px 6px rgba(0,0,0,0.20), 0 1px 3px rgba(0,0,0,0.30)",
+        "card-hover": "0 8px 16px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.08)",
+        "card-hover-dark": "0 8px 16px rgba(0,0,0,0.40), 0 2px 6px rgba(0,0,0,0.30)",
+        popup: "0 16px 48px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.12)",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
     },
   },
-
   plugins: [],
 };
