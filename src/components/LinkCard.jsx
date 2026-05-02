@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 const VIEW_MODES = ['icon', 'icon+text'];
 
-const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing }) => {
+const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing, openInNewTab }) => {
   const { url, title, favicon, viewMode = 'icon+text', customName } = item;
 
   const nextViewMode = () => {
@@ -69,7 +69,7 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing })
       {/* Link */}
       <a
         href={url}
-        target="_top"
+        target={openInNewTab ? "_blank" : "_top"}
         rel="noopener noreferrer"
         draggable={false}
         onClick={(e) => isEditing && e.preventDefault()}

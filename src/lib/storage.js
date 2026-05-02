@@ -50,3 +50,28 @@ export const deleteLink = async (id) => {
   const updatedLinks = currentLinks.filter(link => link.id !== id);
   await saveLinks(updatedLinks);
 };
+
+export const getSettings = async () => {
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(['dashboardSettings'], (result) => {
+        resolve(result.dashboardSettings || { openInNewTab: false });
+      });
+    });
+  } else {
+    const localData = localStorage.getItem('dashboardSettings');
+    return localData ? JSON.parse(localData) : { openInNewTab: false };
+  }
+};
+
+export const saveSettings = async (settings) => {
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    return new Promise((resolve) => {
+      chrome.storage.local.set({ dashboardSettings: settings }, () => {
+        resolve();
+      });
+    });
+  } else {
+    localStorage.setItem('dashboardSettings', JSON.stringify(settings));
+  }
+};
