@@ -35,9 +35,10 @@ export const saveLink = async (newLink) => {
     ...newLink,
     id,
     i: id,
-    x: newLink.x ?? (currentLinks.length * 2) % 12,
-    y: newLink.y ?? Infinity,
   };
+  
+  if (newLink.x !== undefined) linkWithId.x = newLink.x;
+  if (newLink.y !== undefined) linkWithId.y = newLink.y;
   
   const updatedLinks = [...currentLinks, linkWithId];
   await saveLinks(updatedLinks);
