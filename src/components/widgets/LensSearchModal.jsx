@@ -1,6 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { X, ImageIcon } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { ImageIcon } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const UPLOAD_ENDPOINT = 'https://www.google.com/searchbyimage/upload';
 
@@ -32,15 +39,6 @@ const LensSearchModal = ({ open, onClose }) => {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => e.key === 'Escape' && onClose();
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-
-  if (!open) return null;
-
   const handleFile = (file) => {
     if (!file || !file.type.startsWith('image/')) return;
     submitFile(file);
@@ -52,27 +50,14 @@ const LensSearchModal = ({ open, onClose }) => {
     if (url) submitUrl(url);
   };
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-xl rounded-xl bg-[#2a2a2e] text-white shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-5 py-4">
-          <h2 className="text-base font-medium flex-1 text-center">
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="sm:max-w-xl bg-[#2a2a2e] border-none text-white p-0 gap-0 overflow-hidden shadow-2xl">
+        <DialogHeader className="px-5 py-4 border-none text-center">
+          <DialogTitle className="text-base font-medium text-white flex-1 text-center leading-none">
             Search any image with Lens
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-1 rounded hover:bg-white/10 transition-colors"
-            title="Close"
-          >
-            <X size={18} />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
         <div className="px-5 pb-5">
           <div
@@ -96,7 +81,7 @@ const LensSearchModal = ({ open, onClose }) => {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-blue-400 hover:underline"
+                className="text-blue-400 hover:underline outline-none"
               >
                 upload a file
               </button>
@@ -117,25 +102,25 @@ const LensSearchModal = ({ open, onClose }) => {
           </div>
 
           <form onSubmit={handleUrlSubmit} className="flex items-center gap-2">
-            <input
+            <Input
               type="text"
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="Paste image link"
-              className="flex-1 px-4 py-2 rounded-full bg-transparent border border-white/15 text-sm outline-none focus:border-white/30 placeholder-gray-500"
+              className="flex-1 rounded-full bg-transparent border-white/15 text-white placeholder:text-gray-500 focus-visible:ring-1 focus-visible:ring-white/30 h-10 px-4"
             />
-            <button
+            <Button
               type="submit"
               disabled={!imageUrl.trim()}
-              className="px-5 py-2 rounded-full text-sm text-blue-400 hover:bg-white/5 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+              variant="ghost"
+              className="rounded-full text-blue-400 hover:bg-white/5 hover:text-blue-400 disabled:opacity-40"
             >
               Search
-            </button>
+            </Button>
           </form>
         </div>
-      </div>
-    </div>,
-    document.body
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, ExternalLink } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 const IframeWidget = ({ item, onDelete, isEditing }) => {
   return (
@@ -16,23 +17,27 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
         </span>
 
         <div className="flex items-center gap-1 flex-shrink-0">
-          <a
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            className="h-6 w-6 rounded-md hover:bg-bg-primary dark:hover:bg-dark-bg-primary"
             title="Open in new tab"
-            className="icon-btn"
           >
-            <ExternalLink size={11} />
-          </a>
+            <a href={item.url} target="_blank" rel="noopener noreferrer">
+              <ExternalLink size={12} />
+            </a>
+          </Button>
           {isEditing && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => onDelete(item.id)}
               title="Remove widget"
-              className="icon-btn hover:!text-accent-danger hover:!border-accent-danger"
+              className="h-6 w-6 rounded-md hover:text-red-500 hover:bg-bg-primary dark:hover:bg-dark-bg-primary"
             >
-              <X size={11} />
-            </button>
+              <X size={12} />
+            </Button>
           )}
         </div>
       </div>

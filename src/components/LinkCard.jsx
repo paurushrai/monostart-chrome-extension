@@ -1,5 +1,6 @@
 import React from 'react';
 import { ExternalLink, X, Settings2 } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 const VIEW_MODES = ['icon', 'icon+text'];
 
@@ -56,12 +57,12 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing })
       {/* Action buttons */}
       {isEditing && (
         <div className="absolute top-2 right-2 flex gap-1 z-20">
-          <button onClick={(e) => { e.preventDefault(); nextViewMode(); }} title="Toggle view mode" className="icon-btn shadow-sm">
-            <Settings2 size={11} />
-          </button>
-          <button onClick={(e) => { e.preventDefault(); onDelete(item.id); }} title="Remove" className="icon-btn shadow-sm hover:!text-accent-danger hover:!border-accent-danger">
-            <X size={11} />
-          </button>
+          <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); nextViewMode(); }} title="Toggle view mode" className="h-6 w-6 rounded-full bg-white/70 dark:bg-black/70 backdrop-blur-md shadow-sm border border-border dark:border-border-dark">
+            <Settings2 size={12} />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); onDelete(item.id); }} title="Remove" className="h-6 w-6 rounded-full bg-white/70 dark:bg-black/70 backdrop-blur-md shadow-sm border border-border dark:border-border-dark hover:text-red-500 hover:border-red-500">
+            <X size={12} />
+          </Button>
         </div>
       )}
 
