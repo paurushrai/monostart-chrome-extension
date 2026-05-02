@@ -85,13 +85,13 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing, o
             src={favicon}
             alt=""
             draggable={false}
-            className={`object-contain rounded-lg flex-shrink-0 pointer-events-none
-              ${isIconOnly ? 'w-12 h-12 rounded-xl' : 'w-8 h-8'}`}
+            className={`object-contain flex-shrink-0 pointer-events-none
+              ${isIconOnly ? 'w-9 h-9 rounded-lg' : 'w-8 h-8 rounded-lg'}`}
           />
         ) : (
           <div className={`flex items-center justify-center rounded-lg bg-secondary text-muted-foreground flex-shrink-0 pointer-events-none
-            ${isIconOnly ? 'w-12 h-12 rounded-xl' : 'w-8 h-8'}`}>
-            <ExternalLink size={isIconOnly ? 24 : 18} />
+            ${isIconOnly ? 'w-9 h-9' : 'w-8 h-8'}`}>
+            <ExternalLink size={isIconOnly ? 20 : 18} />
           </div>
         )}
 
@@ -126,7 +126,7 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing, o
         {/* Glassmorphism Hover Overlay for Icon Only Mode */}
         {isIconOnly && (
           <div className="absolute inset-0 bg-background/70 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center p-2 z-10 pointer-events-none">
-            <span className="text-xs font-semibold text-foreground text-center truncate w-full drop-shadow-sm">
+            <span className="text-2xs font-semibold text-foreground text-center truncate w-full drop-shadow-sm">
               {siteName}
             </span>
           </div>

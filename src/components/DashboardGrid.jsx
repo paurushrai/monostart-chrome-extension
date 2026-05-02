@@ -89,6 +89,7 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUp
         className="layout"
         layout={layout}
         cols={18}
+        maxRows={12}
         rowHeight={dims.rowHeight}
       margin={[16, 16]}
       compactType={null}

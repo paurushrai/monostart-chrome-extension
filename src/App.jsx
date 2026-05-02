@@ -64,6 +64,19 @@ function App() {
   };
 
   const handleAddWidget = async (widget) => {
+    const maxY = links.reduce((max, link) => {
+      if (link.y !== undefined && link.y !== null) {
+        return Math.max(max, link.y + (link.h || 1));
+      }
+      return max;
+    }, 0);
+
+    const widgetHeight = widget.defaults?.h || 1;
+    if (maxY + widgetHeight > 12) {
+      alert("No space left! Please remove or resize some widgets first.");
+      return;
+    }
+
     const saved = await saveLink({
       type: widget.type,
       ...widget.defaults,
