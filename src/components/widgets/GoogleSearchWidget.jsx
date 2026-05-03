@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, X } from 'lucide-react';
 import LensSearchModal from './LensSearchModal';
+import VoiceSearchOverlay from './VoiceSearchOverlay';
 
 const LensIcon = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -42,6 +43,8 @@ const isLikelyUrl = (text) => /^(https?:\/\/|[\w-]+\.[\w-]+)/.test(text.trim());
 const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
   const [query, setQuery] = useState('');
   const [lensOpen, setLensOpen] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -61,12 +64,40 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
       return;
     }
     const r = new Recognizer();
+    r.interimResults = true;
     r.lang = 'en-US';
-    r.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setQuery(transcript);
-      window.location.href = `https://www.google.com/search?q=${encodeURIComponent(transcript)}`;
+    
+    r.onstart = () => {
+      setVoiceOpen(true);
+      setVoiceTranscript('');
     };
+
+    r.onresult = (event) => {
+      let current = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        current += event.results[i][0].transcript;
+      }
+      setVoiceTranscript(current);
+
+      if (event.results[0].isFinal) {
+        setQuery(current);
+        setTimeout(() => {
+          setVoiceOpen(false);
+          window.location.href = `https://www.google.com/search?q=${encodeURIComponent(current)}`;
+        }, 800);
+      }
+    };
+    
+    r.onerror = () => {
+      setVoiceOpen(false);
+      setVoiceTranscript('');
+    };
+
+    r.onend = () => {
+      // If it ends without a final result, we can close it
+      setTimeout(() => setVoiceOpen(false), 500);
+    };
+
     r.start();
   };
 
@@ -117,6 +148,11 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
       </form>
 
       <LensSearchModal open={lensOpen} onClose={() => setLensOpen(false)} />
+      <VoiceSearchOverlay 
+        open={voiceOpen} 
+        onClose={() => setVoiceOpen(false)} 
+        transcript={voiceTranscript} 
+      />
     </div>
   );
 };
