@@ -85,7 +85,7 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background transition-colors duration-200">
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-background transition-colors duration-200">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-2 border-b border-border">
         <div className="flex items-center gap-3">
