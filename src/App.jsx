@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DashboardGrid from './components/DashboardGrid';
 import AddWidgetModal from './components/AddWidgetModal';
 import { getLinks, saveLinks, saveLink, deleteLink, getSettings, saveSettings } from './lib/storage';
-import { LayoutGrid, PlusCircle, Edit2, Check, Settings } from 'lucide-react';
+import { Command, PlusCircle, Edit2, Check, Settings } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,10 +89,23 @@ function App() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-2 border-b border-border">
         <div className="flex items-center gap-3">
-          <LayoutGrid size={22} className="text-primary" />
-          <h1 className="text-xl font-semibold text-foreground tracking-tight m-0">
-            My Dashboard
-          </h1>
+          <Command size={22} className="text-primary" />
+          <div className="flex items-baseline">
+            <h1 className="text-xl font-bold text-foreground tracking-tight m-0">
+              MonoStart
+            </h1>
+            <span className="text-xs text-muted-foreground font-medium opacity-60 ml-3">
+              Developed by{' '}
+              <a
+                href="https://www.paurushrai.in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline hover:opacity-100 transition-all"
+              >
+                Paurush Rai
+              </a>
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 relative">
@@ -180,6 +193,21 @@ function App() {
           openInNewTab={settings.openInNewTab}
         />
       </main>
+
+      {/* Footer */}
+      <footer className="w-full py-2 flex items-center justify-center border-t border-border bg-background/50 text-xs text-muted-foreground z-10">
+        <span className="opacity-70">
+          Developed by{' '}
+          <a
+            href="https://www.paurushrai.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline hover:opacity-100 font-medium transition-all"
+          >
+            Paurush Rai
+          </a>
+        </span>
+      </footer>
 
       <AddWidgetModal
         open={modalOpen}

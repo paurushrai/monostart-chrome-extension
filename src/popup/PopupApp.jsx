@@ -28,7 +28,7 @@ function PopupApp() {
 
   return (
     <div className="w-[280px] min-w-[280px] bg-bg-primary font-sans p-4 flex flex-col gap-3">
-      <h3 className="m-0 text-sm font-semibold text-ink">Save to Dashboard</h3>
+      <h3 className="m-0 text-sm font-semibold text-ink">Save to MonoStart</h3>
 
       {tabInfo && (
         <div className="flex items-center gap-3 p-3 rounded-xl bg-bg-hover border border-border overflow-hidden">
