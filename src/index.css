@@ -5,49 +5,59 @@
 @layer base {
   :root {
     /* Light Mode */
-    --background: 220 14% 94%; /* Level 0: Deepest background */
-    --foreground: 222 47% 11%;
-    --muted: 220 14% 95%;      /* Level 0.5: Inset areas, tracks */
-    --muted-foreground: 215 16% 47%;
-    --card: 220 14% 97%;       /* Level 1: Standard cards */
-    --card-foreground: 222 47% 11%;
+    --theme-hue: 220;
+    --theme-sat: 14%;
+    
+    --background: var(--theme-hue) var(--theme-sat) 94%; /* Level 0: Deepest background */
+    --foreground: var(--theme-hue) 47% 11%;
+    --muted: var(--theme-hue) var(--theme-sat) 95%;      /* Level 0.5: Inset areas, tracks */
+    --muted-foreground: var(--theme-hue) 16% 47%;
+    --card: var(--theme-hue) var(--theme-sat) 97%;       /* Level 1: Standard cards */
+    --card-foreground: var(--theme-hue) 47% 11%;
     --secondary: 0 0% 100%;    /* Level 2: Raised items on cards */
-    --secondary-foreground: 222 47% 11%;
+    --secondary-foreground: var(--theme-hue) 47% 11%;
     --popover: 0 0% 100%;      /* Level 2: Floating popovers */
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: var(--theme-hue) 47% 11%;
     --accent: 0 0% 100%;
-    --accent-foreground: 222 47% 11%;
+    --accent-foreground: var(--theme-hue) 47% 11%;
+    
     --primary: 200 73% 52%;
     --primary-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 88%;
-    --input: 214 32% 88%;
-    --ring: 200 73% 52%;
+    
+    --border: var(--theme-hue) 32% 88%;
+    --input: var(--theme-hue) 32% 88%;
+    --ring: var(--primary);
     --radius: 0.75rem;
   }
 
   .dark {
     /* Dark Mode (Dark Greyish) */
-    --background: 240 5% 10%;  /* Level 0: Deepest background */
+    --theme-hue: 240;
+    --theme-sat: 5%;
+    
+    --background: var(--theme-hue) var(--theme-sat) 10%;  /* Level 0: Deepest background */
     --foreground: 0 0% 98%;
-    --muted: 240 5% 12%;       /* Level 0.5: Inset areas, tracks */
-    --muted-foreground: 240 5% 65%;
-    --card: 240 5% 16%;        /* Level 1: Standard cards */
+    --muted: var(--theme-hue) var(--theme-sat) 12%;       /* Level 0.5: Inset areas, tracks */
+    --muted-foreground: var(--theme-hue) var(--theme-sat) 65%;
+    --card: var(--theme-hue) var(--theme-sat) 16%;        /* Level 1: Standard cards */
     --card-foreground: 0 0% 98%;
-    --secondary: 240 5% 22%;   /* Level 2: Raised items on cards */
+    --secondary: var(--theme-hue) var(--theme-sat) 22%;   /* Level 2: Raised items on cards */
     --secondary-foreground: 0 0% 98%;
-    --popover: 240 5% 22%;     /* Level 2: Floating popovers */
+    --popover: var(--theme-hue) var(--theme-sat) 22%;     /* Level 2: Floating popovers */
     --popover-foreground: 0 0% 98%;
-    --accent: 240 5% 22%;
+    --accent: var(--theme-hue) var(--theme-sat) 22%;
     --accent-foreground: 0 0% 98%;
+    
     --primary: 200 73% 52%;
     --primary-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 5% 28%;
-    --input: 240 5% 28%;
-    --ring: 200 73% 52%;
+    
+    --border: var(--theme-hue) var(--theme-sat) 28%;
+    --input: var(--theme-hue) var(--theme-sat) 28%;
+    --ring: var(--primary);
   }
 }
 

@@ -42,13 +42,28 @@ function App() {
   useEffect(() => {
     if (!settings) return;
 
-    // Apply color
+    // Apply color and blend hue
     if (settings.themeColor) {
       document.documentElement.style.setProperty('--primary', settings.themeColor);
       document.documentElement.style.setProperty('--ring', settings.themeColor);
+      
+      const parts = settings.themeColor.split(' ');
+      if (parts.length >= 2) {
+        document.documentElement.style.setProperty('--theme-hue', parts[0]);
+        const baseSat = parseInt(parts[1], 10);
+        if (baseSat === 0) {
+          document.documentElement.style.setProperty('--theme-sat', '0%');
+        } else {
+          const mode = settings.themeMode || 'device';
+          const isDark = mode === 'dark' || (mode === 'device' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.style.setProperty('--theme-sat', isDark ? '30%' : '40%');
+        }
+      }
     } else {
       document.documentElement.style.removeProperty('--primary');
       document.documentElement.style.removeProperty('--ring');
+      document.documentElement.style.removeProperty('--theme-hue');
+      document.documentElement.style.removeProperty('--theme-sat');
     }
 
     // Apply dark mode
