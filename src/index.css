@@ -28,25 +28,25 @@
   }
 
   .dark {
-    /* Dark Mode */
-    --background: 240 10% 4%;  /* Level 0: Deepest background */
+    /* Dark Mode (Dark Greyish) */
+    --background: 240 5% 10%;  /* Level 0: Deepest background */
     --foreground: 0 0% 98%;
-    --muted: 240 5% 7%;        /* Level 0.5: Inset areas, tracks */
+    --muted: 240 5% 12%;       /* Level 0.5: Inset areas, tracks */
     --muted-foreground: 240 5% 65%;
-    --card: 240 5% 10%;        /* Level 1: Standard cards */
+    --card: 240 5% 16%;        /* Level 1: Standard cards */
     --card-foreground: 0 0% 98%;
-    --secondary: 240 5% 15%;   /* Level 2: Raised items on cards */
+    --secondary: 240 5% 22%;   /* Level 2: Raised items on cards */
     --secondary-foreground: 0 0% 98%;
-    --popover: 240 5% 15%;     /* Level 2: Floating popovers */
+    --popover: 240 5% 22%;     /* Level 2: Floating popovers */
     --popover-foreground: 0 0% 98%;
-    --accent: 240 5% 15%;
+    --accent: 240 5% 22%;
     --accent-foreground: 0 0% 98%;
     --primary: 200 73% 52%;
     --primary-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 5% 20%;
-    --input: 240 5% 20%;
+    --border: 240 5% 28%;
+    --input: 240 5% 28%;
     --ring: 200 73% 52%;
   }
 }

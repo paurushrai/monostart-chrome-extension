@@ -27,18 +27,65 @@ export const saveLinks = async (links) => {
 export const saveLink = async (newLink) => {
   const currentLinks = await getLinks();
   
-  // Default placement layout (let grid layout handle it later or append at end)
   const id = `link-${Date.now()}`;
+  const w = newLink.w || 2;
+  const h = newLink.h || 2;
+  
   const linkWithId = {
-    w: 2,
-    h: 2,
+    w,
+    h,
     ...newLink,
     id,
     i: id,
   };
   
-  if (newLink.x !== undefined) linkWithId.x = newLink.x;
-  if (newLink.y !== undefined) linkWithId.y = newLink.y;
+  if (newLink.x !== undefined && newLink.y !== undefined) {
+    linkWithId.x = newLink.x;
+    linkWithId.y = newLink.y;
+  } else {
+    // Find first available slot
+    const maxCols = 18;
+    const maxRows = 12;
+    const grid = Array(maxRows).fill(null).map(() => Array(maxCols).fill(false));
+    
+    currentLinks.forEach(link => {
+      if (link.x !== undefined && link.y !== undefined) {
+        for (let r = link.y; r < link.y + (link.h || 1) && r < maxRows; r++) {
+          for (let c = link.x; c < link.x + (link.w || 1) && c < maxCols; c++) {
+            grid[r][c] = true;
+          }
+        }
+      }
+    });
+
+    let placed = false;
+    for (let r = 0; r <= maxRows - h && !placed; r++) {
+      for (let c = 0; c <= maxCols - w && !placed; c++) {
+        let canFit = true;
+        for (let i = 0; i < h; i++) {
+          for (let j = 0; j < w; j++) {
+            if (grid[r + i][c + j]) {
+              canFit = false;
+              break;
+            }
+          }
+          if (!canFit) break;
+        }
+        if (canFit) {
+          linkWithId.x = c;
+          linkWithId.y = r;
+          placed = true;
+        }
+      }
+    }
+    
+    // If no space is found within the 12 rows, just put it at bottom and let user figure it out, 
+    // or clamp it to the last row.
+    if (!placed) {
+      linkWithId.x = 0;
+      linkWithId.y = 11; 
+    }
+  }
   
   const updatedLinks = [...currentLinks, linkWithId];
   await saveLinks(updatedLinks);
