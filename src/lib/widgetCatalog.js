@@ -1,4 +1,4 @@
-import { Search, Globe } from 'lucide-react';
+import { Search, Globe, CheckSquare, Clock } from 'lucide-react';
 
 export const WIDGET_CATALOG = [
   {
@@ -6,7 +6,21 @@ export const WIDGET_CATALOG = [
     name: 'Google Search',
     description: 'Search Google or type a URL.',
     icon: Search,
-    defaults: { w: 8, h: 1, title: 'Google Search' },
+    defaults: { w: 6, h: 1, title: 'Google Search' },
+  },
+  {
+    type: 'todo',
+    name: 'Todo List',
+    description: 'Keep track of your tasks.',
+    icon: CheckSquare,
+    defaults: { w: 3, h: 3, title: 'Todos' },
+  },
+  {
+    type: 'timer',
+    name: 'Timers',
+    description: 'Manage multiple timers.',
+    icon: Clock,
+    defaults: { w: 3, h: 3, title: 'Timers' },
   },
   {
     type: 'iframe',
