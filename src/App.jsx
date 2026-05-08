@@ -3,7 +3,7 @@ import DashboardGrid from './components/DashboardGrid';
 import AddWidgetModal from './components/AddWidgetModal';
 import ThemeSettingsModal from './components/ThemeSettingsModal';
 import { getLinks, saveLinks, saveLink, deleteLink, getSettings, saveSettings } from './lib/storage';
-import { Hexagon, PlusCircle, Edit2, Check, Settings, Link as LinkIcon } from 'lucide-react';
+import { Hexagon, PlusCircle, Edit2, Check, Settings, Link as LinkIcon, Palette, ExternalLink, LayoutGrid } from 'lucide-react';
 import AddLinkModal from './components/AddLinkModal';
 import {
   DropdownMenu,
@@ -412,18 +412,20 @@ function App() {
                 <Settings size={20} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuItem
                 onClick={() => setAddLinkModalOpen(true)}
+                className="flex items-center gap-2 cursor-pointer"
               >
-                <LinkIcon className="mr-2 h-4 w-4" />
-                Add Link
+                <LinkIcon size={14} className="text-muted-foreground" />
+                <span>Add Link</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setModalOpen(true)}
+                className="flex items-center gap-2 cursor-pointer"
               >
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Widget
+                <LayoutGrid size={14} className="text-muted-foreground" />
+                <span>Add Widget</span>
               </DropdownMenuItem>
               
               {!isEditing && (
@@ -432,33 +434,44 @@ function App() {
                     setOriginalLinks([...links]);
                     setIsEditing(true);
                   }}
+                  className="flex items-center gap-2 cursor-pointer"
                 >
-                  <Edit2 className="mr-2 h-4 w-4" />
-                  Edit Dashboard
+                  <Edit2 size={14} className="text-muted-foreground" />
+                  <span>Edit Dashboard</span>
                 </DropdownMenuItem>
               )}
               
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setThemeModalOpen(true)}
+                className="flex items-center justify-between cursor-pointer"
               >
-                <div className="flex items-center">
-                  <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: 'hsl(var(--primary))' }} />
-                  Theme & Appearance
+                <div className="flex items-center gap-2">
+                  <Palette size={14} className="text-muted-foreground" />
+                  <span>Theme & Appearance</span>
                 </div>
+                <div 
+                  className="w-3.5 h-3.5 rounded-full border border-border shadow-sm" 
+                  style={{ backgroundColor: 'hsl(var(--primary))' }} 
+                />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuCheckboxItem
-                checked={settings.openInNewTab}
-                onSelect={(e) => e.preventDefault()}
-                onCheckedChange={(checked) => {
-                  const newSettings = { ...settings, openInNewTab: checked };
+              <DropdownMenuItem
+                onClick={() => {
+                  const newSettings = { ...settings, openInNewTab: !settings.openInNewTab };
                   setSettings(newSettings);
                   saveSettings(newSettings);
                 }}
+                className="flex items-center justify-between cursor-pointer"
               >
-                Open links in new tab
-              </DropdownMenuCheckboxItem>
+                <div className="flex items-center gap-2">
+                  <ExternalLink size={14} className="text-muted-foreground" />
+                  <span>Open links in new tab</span>
+                </div>
+                {settings.openInNewTab && (
+                  <Check className="h-3.5 w-3.5 text-primary" />
+                )}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
