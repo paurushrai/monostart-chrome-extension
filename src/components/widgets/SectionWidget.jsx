@@ -103,6 +103,8 @@ const SectionWidget = ({
   const [showColorPicker, setShowColorPicker] = useState(false);
   const addInputRef = useRef(null);
   const containerRef = useRef(null);
+  const isMovingOutRef = useRef(false);
+  const lastCursorCoordsRef = useRef(null);
 
   useEffect(() => {
     if (isAddingLink && addInputRef.current) {
@@ -211,9 +213,13 @@ const SectionWidget = ({
   };
 
   const handleInnerLayoutChange = (newLayout) => {
+    if (isMovingOutRef.current) {
+      isMovingOutRef.current = false;
+      return;
+    }
     const updatedLinks = links.map(l => {
       const layoutItem = newLayout.find(li => li.i === l.id);
-      return layoutItem ? { ...l, x: layoutItem.x, y: layoutItem.y, w: layoutItem.w, h: layoutItem.h } : l;
+      return layoutItem ? { ...l, x: layoutItem.x, y: layoutItem.y } : l;
     });
     onUpdateLink(item.id, { links: updatedLinks });
   };
@@ -314,7 +320,7 @@ const SectionWidget = ({
       maxW: cols,
       minH: 1,
       maxH: 1,
-      isResizable: l.id !== 'drag-placeholder' && isEditing && l.viewMode !== 'icon' && w > 1
+      isResizable: false
     };
   });
 
@@ -563,6 +569,7 @@ const SectionWidget = ({
             draggableHandle=".inner-drag-handle"
             onLayoutChange={handleInnerLayoutChange}
             onDragStart={(layout, oldItem, newItem, placeholder, e) => {
+              lastCursorCoordsRef.current = null;
               if (onInnerDragStart) {
                 const subItem = links.find(l => l.id === newItem.i);
                 if (subItem) onInnerDragStart(subItem, item.id);
@@ -575,22 +582,48 @@ const SectionWidget = ({
                   const clientX = e.clientX ?? (e.touches?.[0]?.clientX ?? e.changedTouches?.[0]?.clientX);
                   const clientY = e.clientY ?? (e.touches?.[0]?.clientY ?? e.changedTouches?.[0]?.clientY);
                   if (clientX !== undefined && clientY !== undefined) {
+                    lastCursorCoordsRef.current = { x: clientX, y: clientY };
                     onInnerDrag(subItem, item.id, clientX, clientY);
                   }
                 }
               }
             }}
             onDragStop={(layout, oldItem, newItem, placeholder, e) => {
-              if (onInnerDragStop && e) {
-                const subItem = links.find(l => l.id === newItem.i);
-                if (subItem) {
-                  const clientX = e.clientX ?? (e.touches?.[0]?.clientX ?? e.changedTouches?.[0]?.clientX);
-                  const clientY = e.clientY ?? (e.touches?.[0]?.clientY ?? e.changedTouches?.[0]?.clientY);
-                  if (clientX !== undefined && clientY !== undefined) {
-                    onInnerDragStop(subItem, item.id, clientX, clientY);
-                  }
+              let clientX = e?.clientX ?? (e?.touches?.[0]?.clientX ?? e?.changedTouches?.[0]?.clientX);
+              let clientY = e?.clientY ?? (e?.touches?.[0]?.clientY ?? e?.changedTouches?.[0]?.clientY);
+
+              if ((clientX === undefined || clientY === undefined) && lastCursorCoordsRef.current) {
+                clientX = lastCursorCoordsRef.current.x;
+                clientY = lastCursorCoordsRef.current.y;
+              }
+
+              let isOutside = false;
+              if (clientX !== undefined && clientY !== undefined && containerRef.current) {
+                const parentWidgetEl = containerRef.current.closest('[data-section-id]');
+                if (parentWidgetEl) {
+                  const parentRect = parentWidgetEl.getBoundingClientRect();
+                  isOutside = 
+                    clientX < parentRect.left ||
+                    clientX > parentRect.right ||
+                    clientY < parentRect.top ||
+                    clientY > parentRect.bottom;
                 }
               }
+
+              if (isOutside) {
+                isMovingOutRef.current = true;
+              } else {
+                isMovingOutRef.current = false;
+              }
+
+              if (onInnerDragStop && clientX !== undefined && clientY !== undefined) {
+                const subItem = links.find(l => l.id === newItem.i);
+                if (subItem) {
+                  onInnerDragStop(subItem, item.id, clientX, clientY);
+                }
+              }
+              
+              lastCursorCoordsRef.current = null;
             }}
           >
             {displayLinks.map((subItem) => (
@@ -605,17 +638,19 @@ const SectionWidget = ({
                     </span>
                   </div>
                 ) : (
-                  <LinkCard
-                    item={subItem}
-                    onDelete={handleInnerDelete}
-                    onViewModeChange={handleInnerViewModeChange}
-                    onUpdateLink={handleInnerUpdateLink}
-                    isEditing={isEditing}
-                    openInNewTab={openInNewTab}
-                    sections={sections}
-                    onMoveLink={onMoveLink}
-                    parentId={item.id}
-                  />
+                  <div className={`w-full h-full ${isEditing ? 'animate-jiggle' : ''}`}>
+                    <LinkCard
+                      item={subItem}
+                      onDelete={handleInnerDelete}
+                      onViewModeChange={handleInnerViewModeChange}
+                      onUpdateLink={handleInnerUpdateLink}
+                      isEditing={isEditing}
+                      openInNewTab={openInNewTab}
+                      sections={sections}
+                      onMoveLink={onMoveLink}
+                      parentId={item.id}
+                    />
+                  </div>
                 )}
               </div>
             ))}

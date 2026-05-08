@@ -52,6 +52,7 @@ const DashboardGrid = ({
   const [dragCursorCoords, setDragCursorCoords] = useState(null);
 
   const gridRef = useRef(null);
+  const lastInnerDragCoordsRef = useRef(null);
 
   useEffect(() => {
     const handleResize = () => setDims(getDimensions());
@@ -79,9 +80,11 @@ const DashboardGrid = ({
 
   const handleInnerDragStart = (item, parentSectionId) => {
     setActiveDragOutItem(item);
+    lastInnerDragCoordsRef.current = null;
   };
 
   const handleInnerDrag = (item, parentSectionId, clientX, clientY) => {
+    lastInnerDragCoordsRef.current = { x: clientX, y: clientY };
     const sectionEl = document.querySelector(`[data-section-id="${parentSectionId}"]`);
     if (!sectionEl) return;
 
@@ -128,45 +131,55 @@ const DashboardGrid = ({
   };
 
   const handleInnerDragStop = (item, parentSectionId, clientX, clientY) => {
-    const sectionEl = document.querySelector(`[data-section-id="${parentSectionId}"]`);
-    if (sectionEl) {
-      const rect = sectionEl.getBoundingClientRect();
-      const isOutside = 
-        clientX < rect.left ||
-        clientX > rect.right ||
-        clientY < rect.top ||
-        clientY > rect.bottom;
+    let finalX = clientX;
+    let finalY = clientY;
+    if ((finalX === undefined || finalY === undefined) && lastInnerDragCoordsRef.current) {
+      finalX = lastInnerDragCoordsRef.current.x;
+      finalY = lastInnerDragCoordsRef.current.y;
+    }
 
-      if (isOutside) {
-        const gridEl = gridRef.current;
-        if (gridEl) {
-          const gridRect = gridEl.getBoundingClientRect();
-          const colWidth = gridRect.width / 18;
-          const rowHeight = dims.rowHeight + 16;
-          
-          const scrollLeft = gridEl.scrollLeft || 0;
-          const scrollTop = gridEl.scrollTop || 0;
-          const localX = clientX - gridRect.left + scrollLeft;
-          const localY = clientY - gridRect.top + scrollTop;
-          
-          const w = item.viewMode === 'icon' ? 1 : 3;
-          const h = 1;
-          
-          let gridX = Math.floor(localX / colWidth);
-          let gridY = Math.floor(localY / rowHeight);
-          
-          gridX = Math.max(0, Math.min(18 - w, gridX));
-          gridY = Math.max(0, gridY);
-          
-          // Only drop if there is no collision
-          if (!checkCollision(gridX, gridY, w, h)) {
-            onMoveLink(item.id, null, { x: gridX, y: gridY });
+    if (finalX !== undefined && finalY !== undefined) {
+      const sectionEl = document.querySelector(`[data-section-id="${parentSectionId}"]`);
+      if (sectionEl) {
+        const rect = sectionEl.getBoundingClientRect();
+        const isOutside = 
+          finalX < rect.left ||
+          finalX > rect.right ||
+          finalY < rect.top ||
+          finalY > rect.bottom;
+
+        if (isOutside) {
+          const gridEl = gridRef.current;
+          if (gridEl) {
+            const gridRect = gridEl.getBoundingClientRect();
+            const colWidth = gridRect.width / 18;
+            const rowHeight = dims.rowHeight + 16;
+            
+            const scrollLeft = gridEl.scrollLeft || 0;
+            const scrollTop = gridEl.scrollTop || 0;
+            const localX = finalX - gridRect.left + scrollLeft;
+            const localY = finalY - gridRect.top + scrollTop;
+            
+            const w = item.viewMode === 'icon' ? 1 : 3;
+            const h = 1;
+            
+            let gridX = Math.floor(localX / colWidth);
+            let gridY = Math.floor(localY / rowHeight);
+            
+            gridX = Math.max(0, Math.min(18 - w, gridX));
+            gridY = Math.max(0, gridY);
+            
+            // Only drop if there is no collision
+            if (!checkCollision(gridX, gridY, w, h)) {
+              onMoveLink(item.id, null, { x: gridX, y: gridY });
+            }
           }
         }
       }
     }
     setActiveDragOutItem(null);
     setDragOutCoords(null);
+    lastInnerDragCoordsRef.current = null;
   };
 
   const displayLinks = [...links];
@@ -199,7 +212,7 @@ const DashboardGrid = ({
       maxW: isGoogleSearch ? 6 : undefined,
       minH: isGoogleSearch ? 1 : (isSection ? 4 : (link.type === 'todo' || link.type === 'timer' ? 3 : 1)),
       maxH: isGoogleSearch ? 1 : undefined,
-      isResizable: isPlaceholder ? false : (isGoogleSearch ? false : (link.type === 'link' && ((link.w ?? (link.viewMode === 'icon' ? 1 : 3)) === 1 || link.viewMode === 'icon') ? false : undefined))
+      isResizable: isPlaceholder ? false : (isGoogleSearch ? false : (link.type === 'link' ? false : undefined))
     };
   });
 
@@ -253,8 +266,13 @@ const DashboardGrid = ({
     if (!e) return;
 
     // Get cursor release coordinates (supports both mouse mouseup and touch touchend events)
-    const clientX = e.clientX ?? (e.touches?.[0]?.clientX ?? e.changedTouches?.[0]?.clientX);
-    const clientY = e.clientY ?? (e.touches?.[0]?.clientY ?? e.changedTouches?.[0]?.clientY);
+    let clientX = e.clientX ?? (e.touches?.[0]?.clientX ?? e.changedTouches?.[0]?.clientX);
+    let clientY = e.clientY ?? (e.touches?.[0]?.clientY ?? e.changedTouches?.[0]?.clientY);
+
+    if ((clientX === undefined || clientY === undefined) && dragCursorCoords) {
+      clientX = dragCursorCoords.x;
+      clientY = dragCursorCoords.y;
+    }
 
     if (clientX === undefined || clientY === undefined) return;
 
@@ -279,8 +297,39 @@ const DashboardGrid = ({
       // Find the dragged link item from the top-level links list
       const draggedLink = links.find(l => l.id === newItem.i && l.type === 'link');
       if (draggedLink) {
+        // Calculate target slot coordinates relative to the target section container
+        const sectionEl = document.querySelector(`[data-section-id="${targetSectionId}"]`);
+        const sectionItem = links.find(l => l.id === targetSectionId);
+        
+        let targetCoords = undefined;
+        if (sectionEl && sectionItem) {
+          const containerEl = sectionEl.querySelector('.overflow-y-auto');
+          if (containerEl) {
+            const rect = containerEl.getBoundingClientRect();
+            const scrollLeft = containerEl.scrollLeft || 0;
+            const scrollTop = containerEl.scrollTop || 0;
+            const localX = clientX - rect.left + scrollLeft;
+            const localY = clientY - rect.top + scrollTop;
+            
+            const cols = sectionItem.cols || 3;
+            const isIcon = draggedLink.viewMode === 'icon';
+            const w = Math.min(isIcon ? 1 : 3, cols);
+            
+            const colWidth = rect.width / cols;
+            const rowHeight = 58; // 50 rowHeight + 8 margin
+            
+            let placeholderX = Math.floor(localX / colWidth);
+            let placeholderY = Math.floor(localY / rowHeight);
+            
+            placeholderX = Math.max(0, Math.min(cols - w, placeholderX));
+            placeholderY = Math.max(0, placeholderY);
+            
+            targetCoords = { x: placeholderX, y: placeholderY };
+          }
+        }
+
         // Move the link into the target section
-        onMoveLink(draggedLink.id, targetSectionId);
+        onMoveLink(draggedLink.id, targetSectionId, targetCoords);
       }
     }
   };
@@ -361,7 +410,9 @@ const DashboardGrid = ({
       >
         {displayLinks.map((item) => (
           <div key={item.id} className="rounded-card">
-            {renderWidget(item)}
+            <div className={`w-full h-full ${isEditing && item.id !== 'drag-out-placeholder' ? 'animate-jiggle' : ''}`}>
+              {renderWidget(item)}
+            </div>
           </div>
         ))}
       </ReactGridLayout>

@@ -163,3 +163,50 @@
   transform: scale(1.2) !important;
   filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.6)) !important;
 }
+
+/* ─── Subtle iOS-Style Jiggle/Shake Animation for Edit Mode ────────────────── */
+@keyframes subtle-jiggle-even {
+  0% {
+    transform: rotate(-0.12deg) translate(-0.1px, -0.1px);
+  }
+  50% {
+    transform: rotate(0.12deg) translate(0.1px, 0.1px);
+  }
+  100% {
+    transform: rotate(-0.12deg) translate(-0.1px, -0.1px);
+  }
+}
+
+@keyframes subtle-jiggle-odd {
+  0% {
+    transform: rotate(0.12deg) translate(0.1px, -0.1px);
+  }
+  50% {
+    transform: rotate(-0.12deg) translate(-0.1px, 0.1px);
+  }
+  100% {
+    transform: rotate(0.12deg) translate(0.1px, -0.1px);
+  }
+}
+
+.animate-jiggle {
+  display: block;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+}
+
+.react-grid-item:nth-child(even) .animate-jiggle {
+  animation: subtle-jiggle-even 0.32s ease-in-out infinite;
+}
+
+.react-grid-item:nth-child(odd) .animate-jiggle {
+  animation: subtle-jiggle-odd 0.36s ease-in-out infinite;
+}
+
+/* Stop shaking when actively dragging to keep the drag stable and precise */
+.react-grid-item.react-draggable-dragging .animate-jiggle {
+  animation: none !important;
+  transform: none !important;
+}
+

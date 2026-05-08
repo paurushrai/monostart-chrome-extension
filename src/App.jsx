@@ -94,7 +94,14 @@ function App() {
     setLinks(prevLinks => {
       const updatedLinks = prevLinks.map(link => {
         const item = layout.find(l => l.i === link.id);
-        return item ? { ...link, x: item.x, y: item.y, w: item.w, h: item.h } : link;
+        if (!item) return link;
+        const isResizableType = ['section', 'todo', 'timer', 'iframe'].includes(link.type);
+        return {
+          ...link,
+          x: item.x,
+          y: item.y,
+          ...(isResizableType ? { w: item.w, h: item.h } : {})
+        };
       });
       saveLinks(updatedLinks);
       return updatedLinks;
@@ -118,42 +125,46 @@ function App() {
 
   const handleViewModeChange = async (id, newMode) => {
     const isIconOnly = newMode === 'icon';
-    const updateNested = (items) => {
-      return items.map(l => {
-        if (l.id === id) {
-          return {
-            ...l,
-            viewMode: newMode,
-            w: isIconOnly ? 1 : 3,
-            h: isIconOnly ? 1 : 1
-          };
-        }
-        if (l.type === 'section' && l.links) {
-          return { ...l, links: updateNested(l.links) };
-        }
-        return l;
-      });
-    };
-    const updatedLinks = updateNested(links);
-    setLinks(updatedLinks);
-    await saveLinks(updatedLinks);
+    setLinks(prevLinks => {
+      const updateNested = (items) => {
+        return items.map(l => {
+          if (l.id === id) {
+            return {
+              ...l,
+              viewMode: newMode,
+              w: isIconOnly ? 1 : 3,
+              h: isIconOnly ? 1 : 1
+            };
+          }
+          if (l.type === 'section' && l.links) {
+            return { ...l, links: updateNested(l.links) };
+          }
+          return l;
+        });
+      };
+      const updatedLinks = updateNested(prevLinks);
+      saveLinks(updatedLinks);
+      return updatedLinks;
+    });
   };
 
   const handleUpdateLink = async (id, updates) => {
-    const updateNested = (items) => {
-      return items.map(l => {
-        if (l.id === id) {
-          return { ...l, ...updates };
-        }
-        if (l.type === 'section' && l.links) {
-          return { ...l, links: updateNested(l.links) };
-        }
-        return l;
-      });
-    };
-    const updatedLinks = updateNested(links);
-    setLinks(updatedLinks);
-    await saveLinks(updatedLinks);
+    setLinks(prevLinks => {
+      const updateNested = (items) => {
+        return items.map(l => {
+          if (l.id === id) {
+            return { ...l, ...updates };
+          }
+          if (l.type === 'section' && l.links) {
+            return { ...l, links: updateNested(l.links) };
+          }
+          return l;
+        });
+      };
+      const updatedLinks = updateNested(prevLinks);
+      saveLinks(updatedLinks);
+      return updatedLinks;
+    });
   };
 
   const handleMoveLink = async (linkId, targetSectionId, targetCoords) => {

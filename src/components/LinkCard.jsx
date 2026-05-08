@@ -71,197 +71,98 @@ const LinkCard = ({
 
       {/* Action buttons */}
       {isEditing && (
-        <>
-          {isIconOnly ? (
-            /* Icon-Only Mode: Full Glass Overlay with Centered Settings Trigger on Hover */
-            <div 
-              className={`absolute inset-0 bg-background/60 backdrop-blur-sm transition-all duration-200 flex items-center justify-center rounded-lg z-20
-                ${isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto'}`}
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Settings"
-                    className="h-8 w-8 rounded-full bg-background shadow-md border border-border hover:bg-secondary flex items-center justify-center transition-transform active:scale-95"
-                  >
-                    <Settings2 size={14} className="text-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-44" onMouseDown={(e) => e.stopPropagation()}>
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger className="flex items-center">
-                      Size
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                      <DropdownMenuSubContent className="w-36" onMouseDown={(e) => e.stopPropagation()}>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            onViewModeChange(item.id, 'icon');
-                            setIsMenuOpen(false);
-                          }}
-                          className="flex items-center justify-between"
-                        >
-                          <span>Small (1x1)</span>
-                          {isIconOnly && <Check className="h-3.5 w-3.5 text-primary ml-2" />}
+        <div 
+          className={`absolute top-0 right-0 z-30 -translate-y-[30%] translate-x-[30%] transition-all duration-200 flex items-center
+            ${isMenuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto'}`}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Settings"
+                className="h-6.5 w-6.5 rounded-full bg-background shadow-md border border-border hover:bg-secondary flex items-center justify-center transition-transform active:scale-95"
+              >
+                <Settings2 size={12} className="text-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44" onMouseDown={(e) => e.stopPropagation()}>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="flex items-center">
+                  Size
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent className="w-36" onMouseDown={(e) => e.stopPropagation()}>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        onViewModeChange(item.id, 'icon');
+                        setIsMenuOpen(false);
+                      }}
+                      className="flex items-center justify-between"
+                    >
+                      <span>Small (1x1)</span>
+                      {isIconOnly && <Check className="h-3.5 w-3.5 text-primary ml-2" />}
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem
+                      onClick={() => {
+                        onViewModeChange(item.id, 'icon+text');
+                        setIsMenuOpen(false);
+                      }}
+                      className="flex items-center justify-between"
+                    >
+                      <span>Medium (1x3)</span>
+                      {!isIconOnly && <Check className="h-3.5 w-3.5 text-primary ml-2" />}
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
+              
+              {onMoveLink && (sections.length > 0 || parentId) && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    Move to...
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent onMouseDown={(e) => e.stopPropagation()}>
+                      {parentId && (
+                        <DropdownMenuItem onClick={() => {
+                          onMoveLink(item.id, null);
+                          setIsMenuOpen(false);
+                        }}>
+                          Main Dashboard
                         </DropdownMenuItem>
-                        
-                        <DropdownMenuItem
-                          onClick={() => {
-                            onViewModeChange(item.id, 'icon+text');
+                      )}
+                      {sections
+                        .filter(s => s.id !== parentId)
+                        .map(s => (
+                          <DropdownMenuItem key={s.id} onClick={() => {
+                            onMoveLink(item.id, s.id);
                             setIsMenuOpen(false);
-                          }}
-                          className="flex items-center justify-between"
-                        >
-                          <span>Medium (1x3)</span>
-                          {!isIconOnly && <Check className="h-3.5 w-3.5 text-primary ml-2" />}
-                        </DropdownMenuItem>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                  </DropdownMenuSub>
-                  
-                  {onMoveLink && (sections.length > 0 || parentId) && (
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        Move to...
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent onMouseDown={(e) => e.stopPropagation()}>
-                          {parentId && (
-                            <DropdownMenuItem onClick={() => {
-                              onMoveLink(item.id, null);
-                              setIsMenuOpen(false);
-                            }}>
-                              Main Dashboard
-                            </DropdownMenuItem>
-                          )}
-                          {sections
-                            .filter(s => s.id !== parentId)
-                            .map(s => (
-                              <DropdownMenuItem key={s.id} onClick={() => {
-                                onMoveLink(item.id, s.id);
-                                setIsMenuOpen(false);
-                              }}>
-                                {s.title}
-                              </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                  )}
-                  
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuItem
-                    onClick={() => {
-                      onDelete(item.id);
-                      setIsMenuOpen(false);
-                    }}
-                    className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"
-                  >
-                    Delete Link
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ) : (
-            /* Icon+Text Mode: Vertically Centered Trailing Settings Trigger on Hover */
-            <div 
-              className={`absolute right-3 top-1/2 -translate-y-1/2 z-20 transition-all duration-200 flex items-center
-                ${isMenuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto'}`}
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Settings"
-                    className="h-6.5 w-6.5 rounded-full bg-background shadow-md border border-border hover:bg-secondary flex items-center justify-center transition-transform active:scale-95"
-                  >
-                    <Settings2 size={12} className="text-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44" onMouseDown={(e) => e.stopPropagation()}>
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger className="flex items-center">
-                      Size
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                      <DropdownMenuSubContent className="w-36" onMouseDown={(e) => e.stopPropagation()}>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            onViewModeChange(item.id, 'icon');
-                            setIsMenuOpen(false);
-                          }}
-                          className="flex items-center justify-between"
-                        >
-                          <span>Small (1x1)</span>
-                          {isIconOnly && <Check className="h-3.5 w-3.5 text-primary ml-2" />}
-                        </DropdownMenuItem>
-                        
-                        <DropdownMenuItem
-                          onClick={() => {
-                            onViewModeChange(item.id, 'icon+text');
-                            setIsMenuOpen(false);
-                          }}
-                          className="flex items-center justify-between"
-                        >
-                          <span>Medium (1x3)</span>
-                          {!isIconOnly && <Check className="h-3.5 w-3.5 text-primary ml-2" />}
-                        </DropdownMenuItem>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                  </DropdownMenuSub>
-                  
-                  {onMoveLink && (sections.length > 0 || parentId) && (
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        Move to...
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent onMouseDown={(e) => e.stopPropagation()}>
-                          {parentId && (
-                            <DropdownMenuItem onClick={() => {
-                              onMoveLink(item.id, null);
-                              setIsMenuOpen(false);
-                            }}>
-                              Main Dashboard
-                            </DropdownMenuItem>
-                          )}
-                          {sections
-                            .filter(s => s.id !== parentId)
-                            .map(s => (
-                              <DropdownMenuItem key={s.id} onClick={() => {
-                                onMoveLink(item.id, s.id);
-                                setIsMenuOpen(false);
-                              }}>
-                                {s.title}
-                              </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                  )}
-                  
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuItem
-                    onClick={() => {
-                      onDelete(item.id);
-                      setIsMenuOpen(false);
-                    }}
-                    className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"
-                  >
-                    Delete Link
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
-        </>
+                          }}>
+                            {s.title}
+                          </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+              )}
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem
+                onClick={() => {
+                  onDelete(item.id);
+                  setIsMenuOpen(false);
+                }}
+                className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"
+              >
+                Delete Link
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )}
 
       <a
