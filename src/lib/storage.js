@@ -102,7 +102,13 @@ export const saveLink = async (newLink, sectionId) => {
     return linkWithId;
   }
   
-  if (newLink.x !== undefined && newLink.y !== undefined) {
+  if (newLink.isHeaderLink) {
+    const headerLinks = currentLinks.filter(l => l.isHeaderLink);
+    const maxOrder = headerLinks.reduce((max, l) => Math.max(max, l.order || 0), -1);
+    linkWithId.order = maxOrder + 1;
+    linkWithId.x = undefined;
+    linkWithId.y = undefined;
+  } else if (newLink.x !== undefined && newLink.y !== undefined) {
     linkWithId.x = newLink.x;
     linkWithId.y = newLink.y;
   } else {

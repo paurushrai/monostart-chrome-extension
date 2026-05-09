@@ -15,4 +15,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    cors: {
+      origin: [/chrome-extension:\/\//, /^http:\/\/localhost/],
+    },
+  },
 })

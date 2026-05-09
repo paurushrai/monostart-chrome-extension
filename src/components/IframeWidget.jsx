@@ -1,8 +1,69 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { X, ExternalLink } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { sanitizeEmbed, extractEmbedSrc } from '@/lib/embedSanitizer';
+
+const EmbedContent = React.memo(function EmbedContent({ html }) {
+  return (
+    <div
+      className="w-full h-full embed-html-container"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+});
+
+const UrlContent = React.memo(function UrlContent({ url, title }) {
+  return (
+    <iframe
+      src={url}
+      title={title}
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+      allowFullScreen
+      referrerPolicy="strict-origin-when-cross-origin"
+      className="w-full h-full border-0"
+    />
+  );
+});
 
 const IframeWidget = ({ item, onDelete, isEditing }) => {
+  const isEmbed = item.mode === 'embed' && !!item.embedHtml;
+
+  const sanitizedHtml = useMemo(
+    () => (isEmbed ? sanitizeEmbed(item.embedHtml) : ''),
+    [isEmbed, item.embedHtml]
+  );
+
+  const openUrl = isEmbed ? extractEmbedSrc(sanitizedHtml) || item.url : item.url;
+
+  if (isEmbed) {
+    return (
+      <div className="group card-base relative w-full h-full overflow-hidden rounded-xl">
+        <div className="relative w-full h-full overflow-hidden rounded-xl bg-background">
+          <EmbedContent html={sanitizedHtml} />
+          {isEditing && (
+            <div className="absolute inset-0 z-10 bg-transparent drag-handle cursor-grab active:cursor-grabbing" />
+          )}
+        </div>
+
+        {isEditing && (
+          <div className="absolute top-1 right-1 z-20 flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => onDelete(item.id)}
+              title="Remove widget"
+              className="h-6 w-6 rounded-md bg-background/80 backdrop-blur-sm hover:text-red-500 shadow-sm"
+            >
+              <X size={12} />
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="group card-base flex flex-col w-full h-full overflow-hidden">
 
@@ -18,18 +79,20 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
         </span>
 
         <div className="flex items-center gap-1 flex-shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            onMouseDown={(e) => e.stopPropagation()}
-            className="h-5 w-5 rounded-md hover:bg-background"
-            title="Open in new tab"
-          >
-            <a href={item.url} target="_blank" rel="noopener noreferrer">
-              <ExternalLink size={10} />
-            </a>
-          </Button>
+          {openUrl && (
+            <Button
+              variant="ghost"
+              size="icon"
+              asChild
+              onMouseDown={(e) => e.stopPropagation()}
+              className="h-5 w-5 rounded-md hover:bg-background"
+              title="Open in new tab"
+            >
+              <a href={openUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink size={10} />
+              </a>
+            </Button>
+          )}
           {isEditing && (
             <Button
               variant="ghost"
@@ -45,17 +108,10 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
         </div>
       </div>
 
-      {/* Iframe container */}
-      <div className="relative flex-1 w-full overflow-hidden rounded-b-xl">
-        {/* Overlay to prevent iframe stealing mouse events while dragging */}
+      {/* Iframe container — iframe first, overlay after, so iframe doesn't get remounted by sibling position change */}
+      <div className="relative flex-1 w-full overflow-hidden rounded-b-xl bg-background">
+        <UrlContent url={item.url} title={item.title} />
         {isEditing && <div className="absolute inset-0 z-10 bg-transparent" />}
-        <iframe
-          src={item.url}
-          title={item.title}
-          loading="lazy"
-          sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-          className="w-full h-full border-0"
-        />
       </div>
     </div>
   );

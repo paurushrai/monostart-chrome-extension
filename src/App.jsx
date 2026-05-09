@@ -3,8 +3,9 @@ import DashboardGrid from './components/DashboardGrid';
 import AddWidgetModal from './components/AddWidgetModal';
 import ThemeSettingsModal from './components/ThemeSettingsModal';
 import { getLinks, saveLinks, saveLink, deleteLink, getSettings, saveSettings } from './lib/storage';
-import { Hexagon, PlusCircle, Edit2, Check, Settings, Link as LinkIcon, Palette, ExternalLink, LayoutGrid, Sparkles } from 'lucide-react';
+import { Hexagon, PlusCircle, Edit2, Check, Settings, Link as LinkIcon, Palette, ExternalLink, LayoutGrid } from 'lucide-react';
 import AddLinkModal from './components/AddLinkModal';
+import HeaderLink from './components/HeaderLink';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,11 +24,13 @@ function App() {
   const [originalLinks, setOriginalLinks] = useState([]);
   const [addLinkModalOpen, setAddLinkModalOpen] = useState(false);
   const [settings, setSettings] = useState({ openInNewTab: false, themeMode: 'device', themeColor: '200 73% 52%' });
+  const [draggedHeaderLinkId, setDraggedHeaderLinkId] = useState(null);
+  const [dragOverHeaderLinkId, setDragOverHeaderLinkId] = useState(null);
 
   useEffect(() => {
     getLinks().then(setLinks);
     getSettings().then((s) => setSettings({ openInNewTab: false, themeMode: 'device', themeColor: '200 73% 52%', ...s }));
-    
+
     // Auto-sync across extension components (popup -> tab)
     if (typeof chrome !== 'undefined' && chrome.storage) {
       const listener = (changes, area) => {
@@ -48,7 +51,7 @@ function App() {
     if (settings.themeColor) {
       document.documentElement.style.setProperty('--primary', settings.themeColor);
       document.documentElement.style.setProperty('--ring', settings.themeColor);
-      
+
       const parts = settings.themeColor.split(' ');
       if (parts.length >= 2) {
         document.documentElement.style.setProperty('--theme-hue', parts[0]);
@@ -105,111 +108,6 @@ function App() {
       });
       saveLinks(updatedLinks);
       return updatedLinks;
-    });
-  };
-
-  const handleAutoArrange = () => {
-    setLinks(prevLinks => {
-      const topLevelLinks = prevLinks.filter(link => !link.parentId);
-      const nestedLinks = prevLinks.filter(link => link.parentId);
-
-      const typePriority = {
-        'google-search': 1,
-        'label': 2,
-        'section': 3,
-        'todo': 4,
-        'timer': 4,
-        'note': 4,
-        'image': 4,
-        'iframe': 4,
-        'link': 5
-      };
-
-      const sorted = [...topLevelLinks].sort((a, b) => {
-        const priorityA = typePriority[a.type] || 6;
-        const priorityB = typePriority[b.type] || 6;
-        if (priorityA !== priorityB) return priorityA - priorityB;
-        const nameA = a.title || a.text || a.url || '';
-        const nameB = b.title || b.text || b.url || '';
-        return nameA.localeCompare(nameB) || a.id.localeCompare(b.id);
-      });
-
-      const maxCols = 18;
-      const grid = [];
-
-      const updatedTopLevel = sorted.map(link => {
-        let w = link.w;
-        let h = link.h;
-
-        if (link.type === 'google-search') {
-          w = 6;
-          h = 1;
-        } else if (link.type === 'section') {
-          w = w || 6;
-          h = h || 4;
-        } else if (['todo', 'timer', 'note', 'image'].includes(link.type)) {
-          w = w || 3;
-          h = h || 3;
-        } else if (link.type === 'iframe') {
-          w = w || 4;
-          h = h || 4;
-        } else if (link.type === 'label') {
-          w = w || 4;
-          h = 1;
-        } else {
-          w = w || (link.viewMode === 'icon' ? 1 : 3);
-          h = h || 1;
-        }
-
-        let foundX = 0;
-        let foundY = 0;
-        let placed = false;
-        let r = 0;
-
-        while (!placed) {
-          while (grid.length <= r + h) {
-            grid.push(Array(maxCols).fill(false));
-          }
-
-          for (let c = 0; c <= maxCols - w; c++) {
-            let canFit = true;
-            for (let i = 0; i < h; i++) {
-              for (let j = 0; j < w; j++) {
-                if (grid[r + i][c + j]) {
-                  canFit = false;
-                  break;
-                }
-              }
-              if (!canFit) break;
-            }
-
-            if (canFit) {
-              foundX = c;
-              foundY = r;
-              for (let i = 0; i < h; i++) {
-                for (let j = 0; j < w; j++) {
-                  grid[r + i][c + j] = true;
-                }
-              }
-              placed = true;
-              break;
-            }
-          }
-          r++;
-        }
-
-        return {
-          ...link,
-          x: foundX,
-          y: foundY,
-          w,
-          h
-        };
-      });
-
-      const nextLinks = [...updatedTopLevel, ...nestedLinks];
-      saveLinks(nextLinks);
-      return nextLinks;
     });
   };
 
@@ -275,7 +173,7 @@ function App() {
   const handleMoveLink = async (linkId, targetSectionId, targetCoords) => {
     setLinks(prevLinks => {
       let foundLink = null;
-      
+
       // Remove from top level or sections
       let cleanedLinks = prevLinks.filter(l => {
         if (l.id === linkId) {
@@ -302,7 +200,23 @@ function App() {
       if (!foundLink) return prevLinks;
 
       let updatedLinks = [];
-      if (targetSectionId) {
+      if (targetSectionId === 'header') {
+        const headerLinks = cleanedLinks.filter(l => l.isHeaderLink);
+        const maxOrder = headerLinks.reduce((max, l) => Math.max(max, l.order || 0), -1);
+        const nextOrder = maxOrder + 1;
+
+        updatedLinks = [
+          ...cleanedLinks,
+          {
+            ...foundLink,
+            isHeaderLink: true,
+            parentId: null,
+            order: nextOrder,
+            x: undefined,
+            y: undefined
+          }
+        ];
+      } else if (targetSectionId) {
         // Put in a section
         updatedLinks = cleanedLinks.map(item => {
           if (item.id === targetSectionId && item.type === 'section') {
@@ -367,6 +281,7 @@ function App() {
                 ...sectionLinks,
                 {
                   ...foundLink,
+                  isHeaderLink: false,
                   x: newX,
                   y: newY,
                   w,
@@ -393,7 +308,7 @@ function App() {
           const maxCols = 18;
           const maxRows = 12;
           const grid = Array(maxRows).fill(null).map(() => Array(maxCols).fill(false));
-          
+
           cleanedLinks.forEach(link => {
             if (link.x !== undefined && link.y !== undefined) {
               for (let r = link.y; r < link.y + (link.h || 1) && r < maxRows; r++) {
@@ -436,6 +351,7 @@ function App() {
           ...cleanedLinks,
           {
             ...foundLink,
+            isHeaderLink: false,
             x: newX,
             y: newY,
             w,
@@ -449,6 +365,57 @@ function App() {
     });
   };
 
+  const handleHeaderLinkReorder = (draggedId, targetId) => {
+    setLinks(prevLinks => {
+      const headerLinks = prevLinks.filter(l => l.isHeaderLink).sort((a, b) => (a.order || 0) - (b.order || 0));
+      const draggedIndex = headerLinks.findIndex(l => l.id === draggedId);
+      const targetIndex = headerLinks.findIndex(l => l.id === targetId);
+
+      if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) return prevLinks;
+
+      const updatedHeaderLinks = [...headerLinks];
+      const [draggedLink] = updatedHeaderLinks.splice(draggedIndex, 1);
+      updatedHeaderLinks.splice(targetIndex, 0, draggedLink);
+
+      const orderedHeaderLinks = updatedHeaderLinks.map((link, index) => ({
+        ...link,
+        order: index
+      }));
+
+      const updatedLinks = prevLinks.map(link => {
+        const headerMatch = orderedHeaderLinks.find(hl => hl.id === link.id);
+        return headerMatch ? headerMatch : link;
+      });
+
+      saveLinks(updatedLinks);
+      return updatedLinks;
+    });
+  };
+
+  const handleHeaderDragStart = (id) => {
+    setDraggedHeaderLinkId(id);
+  };
+
+  const handleHeaderDragOver = (e, id) => {
+    e.preventDefault();
+    if (id !== dragOverHeaderLinkId) {
+      setDragOverHeaderLinkId(id);
+    }
+  };
+
+  const handleHeaderDrop = (targetId) => {
+    if (draggedHeaderLinkId && draggedHeaderLinkId !== targetId) {
+      handleHeaderLinkReorder(draggedHeaderLinkId, targetId);
+    }
+    setDraggedHeaderLinkId(null);
+    setDragOverHeaderLinkId(null);
+  };
+
+  const handleHeaderDragEnd = () => {
+    setDraggedHeaderLinkId(null);
+    setDragOverHeaderLinkId(null);
+  };
+
   const handleAddWidget = async (widget) => {
     const saved = await saveLink({
       type: widget.type,
@@ -460,7 +427,7 @@ function App() {
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-background transition-colors duration-200">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-2 border-b border-border">
+      <header className="grid grid-cols-3 items-center px-6 py-2 border-b border-border relative">
         <div className="flex items-center gap-3">
           <Hexagon size={24} strokeWidth={2.5} className="text-primary" />
           <div className="flex items-baseline">
@@ -481,7 +448,32 @@ function App() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 relative">
+        {/* Center: Header Links */}
+        <div className="flex justify-center items-center gap-2 overflow-x-auto max-w-full no-scrollbar">
+          {links
+            .filter(l => l.isHeaderLink)
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+            .map(link => (
+              <HeaderLink
+                key={link.id}
+                item={link}
+                isEditing={isEditing}
+                openInNewTab={settings.openInNewTab}
+                sections={links.filter(l => l.type === 'section').map(s => ({ id: s.id, title: s.title }))}
+                onMoveLink={handleMoveLink}
+                onDelete={handleDelete}
+                onUpdateLink={handleUpdateLink}
+                draggedHeaderLinkId={draggedHeaderLinkId}
+                dragOverHeaderLinkId={dragOverHeaderLinkId}
+                onDragStart={handleHeaderDragStart}
+                onDragOver={handleHeaderDragOver}
+                onDrop={handleHeaderDrop}
+                onDragEnd={handleHeaderDragEnd}
+              />
+            ))}
+        </div>
+
+        <div className="flex items-center justify-end gap-3 relative">
           {isEditing && (
             <div className="flex items-center gap-2 mr-2">
               <Button
@@ -532,20 +524,7 @@ function App() {
                 <LayoutGrid size={14} className="text-muted-foreground" />
                 <span>Add Widget</span>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  if (!isEditing) {
-                    setOriginalLinks([...links]);
-                    setIsEditing(true);
-                  }
-                  handleAutoArrange();
-                }}
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <Sparkles size={14} className="text-muted-foreground" />
-                <span>Auto-Arrange Grid</span>
-              </DropdownMenuItem>
-              
+
               {!isEditing && (
                 <DropdownMenuItem
                   onClick={() => {
@@ -558,7 +537,7 @@ function App() {
                   <span>Edit Dashboard</span>
                 </DropdownMenuItem>
               )}
-              
+
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setThemeModalOpen(true)}
@@ -568,9 +547,9 @@ function App() {
                   <Palette size={14} className="text-muted-foreground" />
                   <span>Theme & Appearance</span>
                 </div>
-                <div 
-                  className="w-3.5 h-3.5 rounded-full border border-border shadow-sm" 
-                  style={{ backgroundColor: 'hsl(var(--primary))' }} 
+                <div
+                  className="w-3.5 h-3.5 rounded-full border border-border shadow-sm"
+                  style={{ backgroundColor: 'hsl(var(--primary))' }}
                 />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -596,9 +575,9 @@ function App() {
       </header>
 
       {/* Dashboard Content */}
-      <main className="flex-1 px-6 py-2">
+      <main className="flex-1 p-2">
         <DashboardGrid
-          links={links}
+          links={links.filter(l => !l.isHeaderLink)}
           onLayoutChange={handleLayoutChange}
           onDelete={handleDelete}
           onViewModeChange={handleViewModeChange}
@@ -617,7 +596,7 @@ function App() {
         onSelect={handleAddWidget}
       />
 
-      <ThemeSettingsModal 
+      <ThemeSettingsModal
         open={themeModalOpen}
         onOpenChange={setThemeModalOpen}
         settings={settings}
@@ -630,6 +609,7 @@ function App() {
       <AddLinkModal
         open={addLinkModalOpen}
         onClose={() => setAddLinkModalOpen(false)}
+        sections={links.filter(l => l.type === 'section').map(s => ({ id: s.id, title: s.title }))}
       />
     </div>
   );
