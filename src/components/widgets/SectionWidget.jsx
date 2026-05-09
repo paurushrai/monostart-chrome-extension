@@ -557,7 +557,7 @@ const SectionWidget = ({
           </div>
         ) : (
           <ReactGridLayout
-            className="layout"
+            className="layout inner-grid-layout"
             layout={layout}
             cols={cols}
             rowHeight={50}

@@ -401,7 +401,6 @@ const DashboardGrid = ({
   return (
     <div className="w-full" ref={gridRef}>
       <ReactGridLayout
-        key={isEditing ? 'edit' : 'view'}
         className="layout"
         layout={layout}
         cols={18}
