@@ -22,6 +22,7 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
             variant="ghost"
             size="icon"
             asChild
+            onMouseDown={(e) => e.stopPropagation()}
             className="h-5 w-5 rounded-md hover:bg-background"
             title="Open in new tab"
           >
@@ -33,6 +34,7 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
             <Button
               variant="ghost"
               size="icon"
+              onMouseDown={(e) => e.stopPropagation()}
               onClick={() => onDelete(item.id)}
               title="Remove widget"
               className="h-5 w-5 rounded-md hover:text-red-500 hover:bg-background"

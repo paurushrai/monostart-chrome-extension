@@ -53,6 +53,7 @@ const TodoWidget = ({ item, onDelete, isEditing }) => {
         </div>
         {isEditing && (
           <button
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
             className="flex items-center justify-center h-5 w-5 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 relative z-20"
             title="Delete Widget"

@@ -7,6 +7,9 @@ import GoogleSearchWidget from './widgets/GoogleSearchWidget';
 import TodoWidget from './widgets/TodoWidget';
 import TimerWidget from './widgets/TimerWidget';
 import SectionWidget from './widgets/SectionWidget';
+import NoteWidget from './widgets/NoteWidget';
+import ImageWidget from './widgets/ImageWidget';
+import LabelWidget from './widgets/LabelWidget';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
@@ -354,6 +357,12 @@ const DashboardGrid = ({
         return <TodoWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
       case 'timer':
         return <TimerWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
+      case 'note':
+        return <NoteWidget item={item} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
+      case 'image':
+        return <ImageWidget item={item} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
+      case 'label':
+        return <LabelWidget item={item} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
       case 'section':
         return (
           <SectionWidget
@@ -392,6 +401,7 @@ const DashboardGrid = ({
   return (
     <div className="w-full" ref={gridRef}>
       <ReactGridLayout
+        key={isEditing ? 'edit' : 'view'}
         className="layout"
         layout={layout}
         cols={18}
