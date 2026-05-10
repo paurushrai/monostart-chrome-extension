@@ -12,13 +12,33 @@ dist
 dist-ssr
 *.local
 
+# Env files (keep .env.example committed)
+.env
+.env.*
+!.env.example
+
+# Build / tool caches
+.vite/
+coverage/
+*.tsbuildinfo
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Local agent / CLI scratch
+.antigravitycli/
+.claude/settings.local.json
+.aider*
+.cursor/
+
+# Graphify outputs
+graphify-out/
