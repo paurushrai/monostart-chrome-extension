@@ -368,6 +368,8 @@ const SectionWidget = ({
         {/* Right Side: Action Controls (Visible in edit mode) */}
         {isEditing && (
           <div 
+            role="toolbar"
+            aria-label="Section actions"
             className="flex items-center gap-0.5 shrink-0"
             onMouseDown={(e) => e.stopPropagation()}
           >

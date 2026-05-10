@@ -96,6 +96,8 @@ const LinkCard = ({
       {/* Action buttons */}
       {isEditing && (
         <div 
+          role="toolbar"
+          aria-label="Link actions"
           className={`absolute top-0 right-0 z-30 -translate-y-[30%] translate-x-[30%] transition-all duration-200 flex items-center
             ${isMenuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto'}`}
           onMouseDown={(e) => e.stopPropagation()}

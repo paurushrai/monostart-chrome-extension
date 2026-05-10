@@ -113,7 +113,7 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
             )}
           </div>
 
-          <div className="flex items-center gap-1 shrink-0 relative z-25">
+          <div role="toolbar" aria-label="Image actions" className="flex items-center gap-1 shrink-0 relative z-25">
             {url && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

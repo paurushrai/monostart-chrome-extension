@@ -92,7 +92,7 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
           )}
         </div>
 
-        <div className="flex items-center gap-1 shrink-0 relative z-20">
+        <div role="toolbar" aria-label="Note actions" className="flex items-center gap-1 shrink-0 relative z-20">
           {/* Color palette selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
