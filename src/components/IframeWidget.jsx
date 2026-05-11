@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { X, ExternalLink } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { sanitizeEmbed, extractEmbedSrc } from '@/lib/embedSanitizer';
@@ -26,7 +26,7 @@ const UrlContent = React.memo(function UrlContent({ url, title }) {
   );
 });
 
-const IframeWidget = ({ item, onDelete, isEditing }) => {
+const IframeWidget = React.memo(({ item, onDelete, isEditing }) => {
   const isEmbed = item.mode === 'embed' && !!item.embedHtml;
 
   const sanitizedHtml = useMemo(
@@ -35,6 +35,16 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
   );
 
   const openUrl = isEmbed ? extractEmbedSrc(sanitizedHtml) || item.url : item.url;
+
+  const handleDeleteClick = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDelete(item.id);
+  }, [onDelete, item.id]);
+
+  const stopPointer = useCallback((e) => {
+    e.stopPropagation();
+  }, []);
 
   if (isEmbed) {
     return (
@@ -47,12 +57,19 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
         </div>
 
         {isEditing && (
-          <div className="absolute top-1 right-1 z-20 flex items-center gap-1">
+          <div
+            className="absolute top-1 right-1 z-20 flex items-center gap-1"
+            onMouseDown={stopPointer}
+            onPointerDown={stopPointer}
+            onTouchStart={stopPointer}
+          >
             <Button
               variant="ghost"
               size="icon"
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={() => onDelete(item.id)}
+              onMouseDown={stopPointer}
+              onPointerDown={stopPointer}
+              onTouchStart={stopPointer}
+              onClick={handleDeleteClick}
               title="Remove widget"
               className="h-6 w-6 rounded-md bg-background/80 backdrop-blur-sm hover:text-red-500 shadow-sm"
             >
@@ -97,8 +114,10 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
             <Button
               variant="ghost"
               size="icon"
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={() => onDelete(item.id)}
+              onMouseDown={stopPointer}
+              onPointerDown={stopPointer}
+              onTouchStart={stopPointer}
+              onClick={handleDeleteClick}
               title="Remove widget"
               className="h-5 w-5 rounded-md hover:text-red-500 hover:bg-background"
             >
@@ -115,6 +134,16 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
       </div>
     </div>
   );
-};
+}, (prev, next) => (
+  prev.isEditing === next.isEditing &&
+  prev.onDelete === next.onDelete &&
+  prev.item.id === next.item.id &&
+  prev.item.mode === next.item.mode &&
+  prev.item.embedHtml === next.item.embedHtml &&
+  prev.item.url === next.item.url &&
+  prev.item.title === next.item.title
+));
+
+IframeWidget.displayName = 'IframeWidget';
 
 export default IframeWidget;

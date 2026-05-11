@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DashboardGrid from './components/DashboardGrid';
 import AddWidgetModal from './components/AddWidgetModal';
 import ThemeSettingsModal from './components/ThemeSettingsModal';
-import { getLinks, saveLinks, saveLink, deleteLink, getSettings, saveSettings } from './lib/storage';
+import { getLinks, saveLinks, saveLink, getSettings, saveSettings } from './lib/storage';
 import { Hexagon, PlusCircle, Edit2, Check, Settings, Link as LinkIcon, Palette, ExternalLink, LayoutGrid } from 'lucide-react';
 import AddLinkModal from './components/AddLinkModal';
 import HeaderLink from './components/HeaderLink';
@@ -111,8 +111,7 @@ function App() {
     });
   };
 
-  const handleDelete = async (id) => {
-    await deleteLink(id);
+  const handleDelete = (id) => {
     const deleteNested = (items) => {
       return items
         .filter(item => item.id !== id)
@@ -123,7 +122,11 @@ function App() {
           return item;
         });
     };
-    setLinks(prev => deleteNested(prev));
+    setLinks(prev => {
+      const next = deleteNested(prev);
+      saveLinks(next);
+      return next;
+    });
   };
 
   const handleViewModeChange = async (id, newMode) => {

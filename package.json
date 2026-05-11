@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "watch": "vite build --watch",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -26,7 +27,6 @@
     "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
-    "@crxjs/vite-plugin": "^2.4.0",
     "@eslint/js": "^10.0.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
