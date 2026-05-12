@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import PopupApp from './popup/PopupApp.jsx'
 import './index.css'
+import PopupApp from './popup/PopupApp.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

@@ -1,39 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import DashboardGrid from './components/DashboardGrid';
 import { getLinks, saveLinks, saveLink, deleteLink } from './lib/storage';
-import { Moon, Sun, LayoutGrid } from 'lucide-react';
-import './App.css';
+import { Moon, Sun, LayoutGrid, PlusCircle } from 'lucide-react';
 
 function App() {
   const [links, setLinks] = useState([]);
-  const [theme, setTheme] = useState('system'); // 'light', 'dark', 'system'
+  const [theme, setTheme] = useState('system');
 
   useEffect(() => {
-    // Load links
     getLinks().then(setLinks);
-    
-    // Load theme preference
     const savedTheme = localStorage.getItem('dashboardTheme') || 'system';
     setTheme(savedTheme);
+    applyTheme(savedTheme);
   }, []);
 
-  useEffect(() => {
-    // Apply theme
-    const root = document.documentElement;
-    if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      root.classList.add('dark-mode');
-    } else {
-      root.classList.remove('dark-mode');
-    }
-  }, [theme]);
+  const applyTheme = (mode) => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = mode === 'dark' || (mode === 'system' && prefersDark);
+    document.documentElement.classList.toggle('dark', isDark);
+  };
 
   const handleLayoutChange = (layout) => {
     const updatedLinks = links.map(link => {
-      const layoutItem = layout.find(l => l.i === link.id);
-      if (layoutItem) {
-        return { ...link, x: layoutItem.x, y: layoutItem.y, w: layoutItem.w, h: layoutItem.h };
-      }
-      return link;
+      const item = layout.find(l => l.i === link.id);
+      return item ? { ...link, x: item.x, y: item.y, w: item.w, h: item.h } : link;
     });
     setLinks(updatedLinks);
     saveLinks(updatedLinks);
@@ -41,7 +31,7 @@ function App() {
 
   const handleDelete = async (id) => {
     await deleteLink(id);
-    setLinks(links.filter(l => l.id !== id));
+    setLinks(prev => prev.filter(l => l.id !== id));
   };
 
   const handleViewModeChange = async (id, newMode) => {
@@ -52,38 +42,62 @@ function App() {
 
   const cycleTheme = () => {
     const modes = ['system', 'light', 'dark'];
-    const nextMode = modes[(modes.indexOf(theme) + 1) % modes.length];
-    setTheme(nextMode);
-    localStorage.setItem('dashboardTheme', nextMode);
+    const next = modes[(modes.indexOf(theme) + 1) % modes.length];
+    setTheme(next);
+    localStorage.setItem('dashboardTheme', next);
+    applyTheme(next);
   };
-  
-  // For demo/testing: add an iframe widget
+
   const addDemoWidget = async () => {
-    const newWidget = {
+    const saved = await saveLink({
       type: 'iframe',
-      url: 'https://example.com',
-      title: 'Tech News Demo',
-    };
-    const saved = await saveLink(newWidget);
-    setLinks([...links, saved]);
+      url: 'https://www.google.com',
+      title: 'Google',
+      favicon: '',
+    });
+    setLinks(prev => [...prev, saved]);
   };
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <h1><LayoutGrid size={24} /> My Dashboard</h1>
-        <div className="header-actions">
-          <button onClick={addDemoWidget} className="btn-secondary">Add Widget</button>
-          <button onClick={cycleTheme} className="theme-toggle" title={`Theme: ${theme}`}>
-            {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+    <div className="flex flex-col min-h-screen bg-bg-primary dark:bg-dark-bg-primary transition-colors duration-normal">
+      {/* Header */}
+      <header className="flex items-center justify-between px-12 py-6 border-b border-border dark:border-border-dark">
+        <div className="flex items-center gap-3">
+          <LayoutGrid size={22} className="text-accent" />
+          <h1 className="text-xl font-semibold text-ink dark:text-ink-dark tracking-tight m-0">
+            My Dashboard
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={addDemoWidget}
+            className="btn-secondary"
+            title="Add iframe widget"
+          >
+            <PlusCircle size={16} />
+            Add Widget
+          </button>
+
+          <button
+            onClick={cycleTheme}
+            title={`Theme: ${theme}`}
+            className="flex items-center justify-center w-9 h-9 rounded-md
+                       text-ink-secondary dark:text-ink-dark-secondary
+                       hover:bg-bg-hover dark:hover:bg-dark-bg-hover
+                       hover:text-ink dark:hover:text-ink-dark
+                       transition-all duration-fast"
+          >
+            {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
         </div>
       </header>
-      
-      <main className="dashboard-content">
-        <DashboardGrid 
-          links={links} 
-          onLayoutChange={handleLayoutChange} 
+
+      {/* Dashboard Content */}
+      <main className="flex-1 px-8 py-6">
+        <DashboardGrid
+          links={links}
+          onLayoutChange={handleLayoutChange}
           onDelete={handleDelete}
           onViewModeChange={handleViewModeChange}
         />
