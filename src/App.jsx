@@ -26,6 +26,13 @@ function App() {
   const [settings, setSettings] = useState({ openInNewTab: false, themeMode: 'device', themeColor: '200 73% 52%' });
   const [draggedHeaderLinkId, setDraggedHeaderLinkId] = useState(null);
   const [dragOverHeaderLinkId, setDragOverHeaderLinkId] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3500);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   useEffect(() => {
     getLinks().then(setLinks);
@@ -424,6 +431,10 @@ function App() {
       type: widget.type,
       ...widget.defaults,
     });
+    if (!saved) {
+      setToast('No room for this widget. Resize or remove something to make space.');
+      return;
+    }
     setLinks(prev => [...prev, saved]);
   };
 
@@ -614,6 +625,17 @@ function App() {
         onClose={() => setAddLinkModalOpen(false)}
         sections={links.filter(l => l.type === 'section').map(s => ({ id: s.id, title: s.title }))}
       />
+
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          onClick={() => setToast(null)}
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 px-5 py-3 bg-card border border-border rounded-lg shadow-2xl text-foreground max-w-sm text-center text-sm cursor-pointer backdrop-blur-sm"
+        >
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
