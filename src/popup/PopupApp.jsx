@@ -21,7 +21,7 @@ function PopupApp() {
 
   const handleSave = async () => {
     if (!tabInfo) return;
-    await saveLink({ type: 'link', url: tabInfo.url, title: tabInfo.title, favicon: tabInfo.favicon, viewMode: 'icon+text' });
+    await saveLink({ type: 'link', url: tabInfo.url, title: tabInfo.title, favicon: tabInfo.favicon, viewMode: 'icon+text', w: 2, h: 1 });
     setSaved(true);
     setTimeout(() => window.close(), 1500);
   };

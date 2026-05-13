@@ -12,10 +12,7 @@
     @apply bg-bg-primary text-ink min-h-screen overflow-x-hidden m-0 p-0;
   }
 
-  /* Dark mode body */
-  html.dark body {
-    @apply bg-dark-bg-primary text-ink-dark;
-  }
+  /* Dark mode body handled in media query below */
 
   * {
     @apply box-border;
@@ -30,19 +27,11 @@
            transition-all duration-normal hover:-translate-y-0.5 hover:shadow-card-hover;
   }
 
-  html.dark .card-base {
-    @apply bg-dark-bg-card border-border-dark shadow-card-dark hover:shadow-card-hover-dark;
-  }
-
   /* Action icon button */
   .icon-btn {
     @apply flex items-center justify-center w-6 h-6 rounded bg-bg-primary border border-border
            text-ink-secondary cursor-pointer transition-all duration-fast
            hover:text-ink hover:bg-bg-hover;
-  }
-
-  html.dark .icon-btn {
-    @apply bg-dark-bg-primary border-border-dark text-ink-dark-secondary hover:text-ink-dark hover:bg-dark-bg-hover;
   }
 
   /* Primary button */
@@ -63,8 +52,20 @@
            transition-all duration-normal hover:bg-bg-secondary;
   }
 
-  html.dark .btn-secondary {
-    @apply bg-dark-bg-hover border-border-dark text-ink-dark hover:bg-dark-bg-secondary;
+  /* Dark mode variants */
+  @media (prefers-color-scheme: dark) {
+    body {
+      @apply bg-dark-bg-primary text-ink-dark;
+    }
+    .card-base {
+      @apply bg-dark-bg-card border-border-dark shadow-card-dark hover:shadow-card-hover-dark;
+    }
+    .icon-btn {
+      @apply bg-dark-bg-primary border-border-dark text-ink-dark-secondary hover:text-ink-dark hover:bg-dark-bg-hover;
+    }
+    .btn-secondary {
+      @apply bg-dark-bg-hover border-border-dark text-ink-dark hover:bg-dark-bg-secondary;
+    }
   }
 }
 

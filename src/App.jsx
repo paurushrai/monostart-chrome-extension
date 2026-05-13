@@ -24,7 +24,18 @@ function App() {
   };
 
   const handleViewModeChange = async (id, newMode) => {
-    const updatedLinks = links.map(l => l.id === id ? { ...l, viewMode: newMode } : l);
+    const isIconOnly = newMode === 'icon';
+    const updatedLinks = links.map(l => {
+      if (l.id === id) {
+        return {
+          ...l,
+          viewMode: newMode,
+          w: isIconOnly ? 1 : 2,
+          h: isIconOnly ? 1 : 1
+        };
+      }
+      return l;
+    });
     setLinks(updatedLinks);
     await saveLinks(updatedLinks);
   };
