@@ -2,7 +2,7 @@
 // then persists via the storage adapter. Pure orchestration — no UI concerns.
 
 import { getLinks, saveLinks } from './storage';
-import { getMinSize, findFreeSlot, findSlotInSection } from './grid';
+import { getMinSize, findFreeSlot, findSlotInSection, SECTION_DEFAULT_COLS } from './grid';
 
 /**
  * Save a new link/widget. Returns the saved item, or null if there's no room
@@ -28,7 +28,7 @@ export const saveLink = async (newLink, sectionId) => {
     const updatedLinks = currentLinks.map(item => {
       if (item.id === sectionId && item.type === 'section') {
         const innerLinks = item.links || [];
-        const slot = findSlotInSection(innerLinks, w, h, item.cols);
+        const slot = findSlotInSection(innerLinks, w, h, item.cols ?? SECTION_DEFAULT_COLS);
         return {
           ...item,
           links: [
