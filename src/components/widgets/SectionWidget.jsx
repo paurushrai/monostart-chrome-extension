@@ -146,15 +146,14 @@ const SectionWidget = ({
     }
 
     const currentCols = cols;
-    const defaultW = Math.min(3, currentCols);
     const newLinkItem = {
       id: `link-${Date.now()}`,
       type: 'link',
       url,
       title: linkTitle,
       favicon,
-      viewMode: 'icon+text',
-      w: defaultW,
+      viewMode: 'icon',
+      w: 1,
       h: 1,
     };
 
@@ -219,7 +218,8 @@ const SectionWidget = ({
     }
     const updatedLinks = links.map(l => {
       const layoutItem = newLayout.find(li => li.i === l.id);
-      return layoutItem ? { ...l, x: layoutItem.x, y: layoutItem.y } : l;
+      if (!layoutItem) return l;
+      return { ...l, x: layoutItem.x, y: layoutItem.y, w: layoutItem.w, h: layoutItem.h };
     });
     onUpdateLink(item.id, { links: updatedLinks });
   };
@@ -267,9 +267,9 @@ const SectionWidget = ({
 
   const displayLinks = [...links];
   if (isDraggedOver) {
-    const isIcon = draggedItem?.viewMode === 'icon';
-    const w = Math.min(isIcon ? 1 : 3, cols);
-    const h = 1;
+    const draggedW = draggedItem?.w ?? (draggedItem?.viewMode === 'icon' ? 1 : 3);
+    const w = Math.min(draggedW, cols);
+    const h = draggedItem?.h ?? 1;
     let placeholderX = 0;
     let placeholderY = 0;
 
@@ -303,7 +303,7 @@ const SectionWidget = ({
       h,
       x: placeholderX,
       y: placeholderY,
-      viewMode: isIcon ? 'icon' : 'card'
+      viewMode: w === 1 ? 'icon' : 'card'
     });
   }
 
@@ -319,8 +319,8 @@ const SectionWidget = ({
       minW: 1,
       maxW: cols,
       minH: 1,
-      maxH: 1,
-      isResizable: false
+      maxH: 2,
+      isResizable: l.id !== 'drag-placeholder'
     };
   });
 

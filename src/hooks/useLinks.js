@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getLinks, saveLinks, saveLink } from '../lib/storage';
 
-const RESIZABLE_TYPES = ['section', 'todo', 'timer', 'iframe', 'note', 'image', 'label'];
+const RESIZABLE_TYPES = ['section', 'todo', 'timer', 'iframe', 'note', 'image', 'label', 'link'];
 
 export function useLinks() {
   const [links, setLinks] = useState([]);
@@ -156,8 +156,9 @@ export function useLinks() {
         updatedLinks = cleanedLinks.map(item => {
           if (item.id === targetSectionId && item.type === 'section') {
             const sectionLinks = item.links || [];
-            const w = foundLink.viewMode === 'icon' ? 1 : 3;
-            const h = 1;
+            const sectionCols = item.cols || 3;
+            const w = Math.min(foundLink.w ?? (foundLink.viewMode === 'icon' ? 1 : 3), sectionCols);
+            const h = foundLink.h ?? 1;
 
             let newX = 0;
             let newY = 0;
@@ -228,8 +229,8 @@ export function useLinks() {
         });
       } else {
         // Put back in main dashboard grid
-        const w = foundLink.viewMode === 'icon' ? 1 : 3;
-        const h = 1;
+        const w = foundLink.w ?? (foundLink.viewMode === 'icon' ? 1 : 3);
+        const h = foundLink.h ?? 1;
 
         let newX = 0;
         let newY = 0;
