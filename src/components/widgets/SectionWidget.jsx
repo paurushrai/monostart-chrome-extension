@@ -515,13 +515,13 @@ const SectionWidget = ({
       )}
 
       {/* Nested Grid Layout Container */}
-      <div 
+      <div
         ref={containerRef}
         className="relative flex-1 overflow-x-hidden overflow-y-auto px-1.5 pt-0 pb-1.5 select-none custom-scrollbar min-h-0 z-0 isolate"
         onMouseDown={(e) => {
           if (!isEditing) return;
 
-          // If clicked on the scrollbar track (clientX is on the right scrollbar track), stop propagation
+          // If clicked on the scrollbar track, stop propagation
           const rect = e.currentTarget.getBoundingClientRect();
           const isClickOnScrollbar = e.clientX >= rect.left + e.currentTarget.clientWidth;
           if (isClickOnScrollbar) {
@@ -529,13 +529,17 @@ const SectionWidget = ({
             return;
           }
 
-          // Stop propagation only for clicks inside card elements, inputs, forms, and menus 
-          // to let empty spaces bubble up and trigger section widget dragging!
-          const isCardOrInteractive = e.target.closest('.rounded-card') || 
-                                     e.target.closest('button') || 
-                                     e.target.closest('form') || 
-                                     e.target.closest('input') || 
-                                     e.target.closest('[role="menuitem"]') || 
+          // Only treat as "inner card" if the matched .rounded-card is inside THIS section body.
+          // (The section itself is wrapped in .rounded-card by DashboardGrid, so naive
+          // closest('.rounded-card') would always match and block body drag.)
+          const closestCard = e.target.closest('.rounded-card');
+          const isInnerCard = closestCard && containerRef.current?.contains(closestCard);
+
+          const isCardOrInteractive = isInnerCard ||
+                                     e.target.closest('button') ||
+                                     e.target.closest('form') ||
+                                     e.target.closest('input') ||
+                                     e.target.closest('[role="menuitem"]') ||
                                      e.target.closest('[role="menu"]');
           if (isCardOrInteractive) {
             e.stopPropagation();
