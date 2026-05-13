@@ -2,6 +2,7 @@ import React from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
 import LinkCard from './LinkCard';
 import IframeWidget from './IframeWidget';
+import GoogleSearchWidget from './widgets/GoogleSearchWidget';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
@@ -30,11 +31,14 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUp
       margin={[16, 16]}
       isDraggable={isEditing}
       isResizable={isEditing}
+      draggableHandle=".drag-handle"
       onLayoutChange={(layout) => onLayoutChange(layout)}
     >
       {links.map((item) => (
         <div key={item.id} className="rounded-card">
-          {item.type === 'iframe' ? (
+          {item.type === 'google-search' ? (
+            <GoogleSearchWidget item={item} onDelete={onDelete} isEditing={isEditing} />
+          ) : item.type === 'iframe' ? (
             <IframeWidget item={item} onDelete={onDelete} isEditing={isEditing} />
           ) : (
             <LinkCard item={item} onDelete={onDelete} onViewModeChange={onViewModeChange} onUpdateLink={onUpdateLink} isEditing={isEditing} />

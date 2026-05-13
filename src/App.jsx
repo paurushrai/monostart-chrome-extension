@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import DashboardGrid from './components/DashboardGrid';
+import AddWidgetModal from './components/AddWidgetModal';
 import { getLinks, saveLinks, saveLink, deleteLink } from './lib/storage';
 import { LayoutGrid, PlusCircle, Edit2, Check } from 'lucide-react';
 
 function App() {
   const [links, setLinks] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   useEffect(() => {
     getLinks().then(setLinks);
   }, []);
@@ -48,12 +50,10 @@ function App() {
     await saveLinks(updatedLinks);
   };
 
-  const addDemoWidget = async () => {
+  const handleAddWidget = async (widget) => {
     const saved = await saveLink({
-      type: 'iframe',
-      url: 'https://www.google.com',
-      title: 'Google',
-      favicon: '',
+      type: widget.type,
+      ...widget.defaults,
     });
     setLinks(prev => [...prev, saved]);
   };
@@ -61,7 +61,7 @@ function App() {
   return (
     <div className="flex flex-col min-h-screen bg-bg-primary dark:bg-dark-bg-primary transition-colors duration-normal">
       {/* Header */}
-      <header className="flex items-center justify-between px-12 py-6 border-b border-border dark:border-border-dark">
+      <header className="flex items-center justify-between px-6 py-2 border-b border-border dark:border-border-dark">
         <div className="flex items-center gap-3">
           <LayoutGrid size={22} className="text-accent" />
           <h1 className="text-xl font-semibold text-ink dark:text-ink-dark tracking-tight m-0">
@@ -71,9 +71,9 @@ function App() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={addDemoWidget}
+            onClick={() => setModalOpen(true)}
             className="btn-secondary"
-            title="Add iframe widget"
+            title="Add a widget"
           >
             <PlusCircle size={16} />
             Add Widget
@@ -90,7 +90,7 @@ function App() {
       </header>
 
       {/* Dashboard Content */}
-      <main className="flex-1 px-8 py-6">
+      <main className="flex-1 px-6 py-2">
         <DashboardGrid
           links={links}
           onLayoutChange={handleLayoutChange}
@@ -100,6 +100,12 @@ function App() {
           isEditing={isEditing}
         />
       </main>
+
+      <AddWidgetModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSelect={handleAddWidget}
+      />
     </div>
   );
 }
