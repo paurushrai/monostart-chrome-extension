@@ -3,7 +3,7 @@ import { ExternalLink, X, Settings2 } from 'lucide-react';
 
 const VIEW_MODES = ['icon', 'icon+text'];
 
-const LinkCard = ({ item, onDelete, onViewModeChange }) => {
+const LinkCard = ({ item, onDelete, onViewModeChange, isEditing }) => {
   const { url, title, favicon, viewMode = 'icon+text' } = item;
 
   const nextViewMode = () => {
@@ -28,22 +28,25 @@ const LinkCard = ({ item, onDelete, onViewModeChange }) => {
   return (
     <div className="group card-base relative w-full h-full overflow-hidden">
 
-      {/* Action buttons — visible on hover */}
-      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-fast z-10">
-        <button onClick={nextViewMode} title="Toggle view mode" className="icon-btn">
-          <Settings2 size={11} />
-        </button>
-        <button onClick={() => onDelete(item.id)} title="Remove" className="icon-btn hover:!text-accent-danger hover:!border-accent-danger">
-          <X size={11} />
-        </button>
-      </div>
+      {/* Action buttons */}
+      {isEditing && (
+        <div className="absolute top-2 right-2 flex gap-1 z-20">
+          <button onClick={(e) => { e.preventDefault(); nextViewMode(); }} title="Toggle view mode" className="icon-btn shadow-sm">
+            <Settings2 size={11} />
+          </button>
+          <button onClick={(e) => { e.preventDefault(); onDelete(item.id); }} title="Remove" className="icon-btn shadow-sm hover:!text-accent-danger hover:!border-accent-danger">
+            <X size={11} />
+          </button>
+        </div>
+      )}
 
       {/* Link */}
       <a
         href={url}
         target="_top"
         rel="noopener noreferrer"
-        className={`flex w-full h-full text-inherit no-underline
+        onClick={(e) => isEditing && e.preventDefault()}
+        className={`flex w-full h-full text-inherit no-underline ${isEditing ? 'cursor-grab active:cursor-grabbing' : ''}
           ${isIconOnly
             ? 'items-center justify-center p-0'
             : 'flex-row items-center justify-start gap-4 px-5 py-3'
