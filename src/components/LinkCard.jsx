@@ -45,6 +45,7 @@ const LinkCard = ({ item, onDelete, onViewModeChange, isEditing }) => {
         href={url}
         target="_top"
         rel="noopener noreferrer"
+        draggable={false}
         onClick={(e) => isEditing && e.preventDefault()}
         className={`flex w-full h-full text-inherit no-underline ${isEditing ? 'cursor-grab active:cursor-grabbing' : ''}
           ${isIconOnly
@@ -57,11 +58,12 @@ const LinkCard = ({ item, onDelete, onViewModeChange, isEditing }) => {
           <img
             src={favicon}
             alt=""
-            className={`object-contain rounded-lg flex-shrink-0
+            draggable={false}
+            className={`object-contain rounded-lg flex-shrink-0 pointer-events-none
               ${isIconOnly ? 'w-12 h-12 rounded-xl' : 'w-8 h-8'}`}
           />
         ) : (
-          <div className={`flex items-center justify-center rounded-lg bg-bg-hover dark:bg-dark-bg-hover text-ink-secondary dark:text-ink-dark-secondary flex-shrink-0
+          <div className={`flex items-center justify-center rounded-lg bg-bg-hover dark:bg-dark-bg-hover text-ink-secondary dark:text-ink-dark-secondary flex-shrink-0 pointer-events-none
             ${isIconOnly ? 'w-12 h-12 rounded-xl' : 'w-8 h-8'}`}>
             <ExternalLink size={isIconOnly ? 24 : 18} />
           </div>
@@ -78,6 +80,15 @@ const LinkCard = ({ item, onDelete, onViewModeChange, isEditing }) => {
                 {title}
               </span>
             )}
+          </div>
+        )}
+
+        {/* Glassmorphism Hover Overlay for Icon Only Mode */}
+        {isIconOnly && (
+          <div className="absolute inset-0 bg-bg-card/70 dark:bg-dark-bg-card/70 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-normal flex items-center justify-center p-2 z-10 pointer-events-none">
+            <span className="text-xs font-semibold text-ink dark:text-ink-dark text-center truncate w-full drop-shadow-sm">
+              {siteName}
+            </span>
           </div>
         )}
       </a>

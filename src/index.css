@@ -76,8 +76,7 @@
 }
 
 .react-grid-item {
-  transition: all 200ms ease;
-  transition-property: left, top, transform;
+  /* Let react-grid-layout handle its own transitions */
 }
 
 .react-grid-item.react-draggable-dragging {
@@ -95,7 +94,6 @@
   background: theme('colors.accent.DEFAULT');
   opacity: 0.18;
   border-radius: theme('borderRadius.card');
-  transition-duration: 100ms;
   z-index: 2;
   user-select: none;
 }
