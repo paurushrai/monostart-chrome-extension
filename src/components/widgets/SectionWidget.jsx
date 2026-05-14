@@ -6,6 +6,7 @@ import { Input } from "../ui/input";
 import SectionHeader from './section/SectionHeader';
 import SectionInnerGrid from './section/SectionInnerGrid';
 import { useSectionDragOut } from '../../hooks/useSectionDragOut';
+import { findFirstFreeSlot } from '../../lib/grid';
 
 const PRESET_COLORS = [
   { name: 'Red', hsl: '346 87% 61%' },
@@ -105,53 +106,15 @@ const SectionWidget = ({
       h: 1,
     };
 
-    // Find next free slot using same algorithm as the inner grid placeholder.
-    const grid = [];
-    links.forEach(l => {
-      const lx = l.x ?? 0;
-      const ly = l.y ?? 0;
-      const lw = Math.min(l.w ?? (l.viewMode === 'icon' ? 1 : Math.min(3, currentCols)), currentCols);
-      const lh = l.h ?? 1;
-      for (let r = ly; r < ly + lh; r++) {
-        while (grid.length <= r) grid.push(new Array(currentCols).fill(false));
-        for (let c = lx; c < lx + lw && c < currentCols; c++) {
-          grid[r][c] = true;
-        }
-      }
-    });
-
-    let placed = false;
-    let r = 0;
-    let newX = 0;
-    let newY = 0;
-
-    while (!placed) {
-      while (grid.length <= r + newLinkItem.h) {
-        grid.push(Array(currentCols).fill(false));
-      }
-      for (let c = 0; c <= currentCols - newLinkItem.w; c++) {
-        let canFit = true;
-        for (let i = 0; i < newLinkItem.h; i++) {
-          for (let j = 0; j < newLinkItem.w; j++) {
-            if (grid[r + i][c + j]) {
-              canFit = false;
-              break;
-            }
-          }
-          if (!canFit) break;
-        }
-        if (canFit) {
-          newX = c;
-          newY = r;
-          placed = true;
-          break;
-        }
-      }
-      r++;
-    }
-
-    newLinkItem.x = newX;
-    newLinkItem.y = newY;
+    const occupied = links.map((l) => ({
+      x: l.x ?? 0,
+      y: l.y ?? 0,
+      w: Math.min(l.w ?? (l.viewMode === 'icon' ? 1 : Math.min(3, currentCols)), currentCols),
+      h: l.h ?? 1,
+    }));
+    const slot = findFirstFreeSlot(occupied, newLinkItem.w, newLinkItem.h, currentCols);
+    newLinkItem.x = slot.x;
+    newLinkItem.y = slot.y;
 
     onUpdateLink(item.id, { links: [...links, newLinkItem] });
     setNewUrl('');

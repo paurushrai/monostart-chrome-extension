@@ -3,59 +3,19 @@ import GridLayout, { WidthProvider } from 'react-grid-layout/legacy';
 import { Folder } from 'lucide-react';
 import LinkCard from '../../LinkCard';
 import { Button } from "../../ui/button";
+import { findFirstFreeSlot } from '../../../lib/grid';
 
 const ReactGridLayout = WidthProvider(GridLayout);
 
-/**
- * Find the first free slot for a placeholder of size (itemW, itemH).
- * Kept local because the placeholder-positioning logic uses a default-w
- * of 1 (vs grid.findSlotInSection which defaults to 3).
- */
+/** Slot for the drop-placeholder. Default item w=1 here (small placeholder). */
 const findPlaceholderSlot = (links, cols, itemW, itemH) => {
-  const grid = [];
-  links.forEach(l => {
-    const lx = l.x ?? 0;
-    const ly = l.y ?? 0;
-    const lw = Math.min(l.w ?? 1, cols);
-    const lh = l.h ?? 1;
-    for (let r = ly; r < ly + lh; r++) {
-      while (grid.length <= r) grid.push(new Array(cols).fill(false));
-      for (let c = lx; c < lx + lw && c < cols; c++) {
-        grid[r][c] = true;
-      }
-    }
-  });
-
-  let placed = false;
-  let r = 0;
-  let newX = 0;
-  let newY = 0;
-
-  while (!placed) {
-    while (grid.length <= r + itemH) {
-      grid.push(new Array(cols).fill(false));
-    }
-    for (let c = 0; c <= cols - itemW; c++) {
-      let canFit = true;
-      for (let i = 0; i < itemH; i++) {
-        for (let j = 0; j < itemW; j++) {
-          if (grid[r + i][c + j]) {
-            canFit = false;
-            break;
-          }
-        }
-        if (!canFit) break;
-      }
-      if (canFit) {
-        newX = c;
-        newY = r;
-        placed = true;
-        break;
-      }
-    }
-    r++;
-  }
-  return { x: newX, y: newY };
+  const occupied = links.map((l) => ({
+    x: l.x ?? 0,
+    y: l.y ?? 0,
+    w: Math.min(l.w ?? 1, cols),
+    h: l.h ?? 1,
+  }));
+  return findFirstFreeSlot(occupied, itemW, itemH, cols);
 };
 
 export default function SectionInnerGrid({

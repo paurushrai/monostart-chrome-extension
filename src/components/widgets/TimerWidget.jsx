@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Plus, Trash2, X, Play, Pause, RotateCcw } from 'lucide-react';
+import { useWidgetStorage } from '../../hooks/useWidgetStorage';
 
 // Format milliseconds to MM:SS
 const formatTime = (ms) => {
@@ -87,30 +88,9 @@ const TimerItem = ({ timer, onUpdate, onDelete }) => {
 };
 
 const TimerWidget = ({ item, onDelete, isEditing }) => {
-  const [timers, setTimers] = useState([]);
+  const [timers, saveTimers] = useWidgetStorage(`timer-widget-${item.id}`, []);
   const [newMinutes, setNewMinutes] = useState("");
   const [newLabel, setNewLabel] = useState("");
-  const storageKey = `timer-widget-${item.id}`;
-
-  useEffect(() => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.local.get([storageKey], (result) => {
-        setTimers(result[storageKey] || []);
-      });
-    } else {
-      const data = localStorage.getItem(storageKey);
-      setTimers(data ? JSON.parse(data) : []);
-    }
-  }, [storageKey]);
-
-  const saveTimers = (newTimers) => {
-    setTimers(newTimers);
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.local.set({ [storageKey]: newTimers });
-    } else {
-      localStorage.setItem(storageKey, JSON.stringify(newTimers));
-    }
-  };
 
   const handleAdd = (e) => {
     e.preventDefault();

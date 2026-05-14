@@ -55,3 +55,32 @@ export const saveSettings = async (settings) => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   } catch (e) { /* ignore */ }
 };
+
+// Generic per-widget storage: chrome.storage when available (cross-page sync),
+// localStorage fallback for dev / non-extension contexts.
+export const getStoredValue = async (key, defaultValue) => {
+  if (hasChromeStorage()) {
+    return new Promise((resolve) => {
+      chrome.storage.local.get([key], (result) => {
+        resolve(result[key] ?? defaultValue);
+      });
+    });
+  }
+  try {
+    const raw = localStorage.getItem(key);
+    return raw !== null ? JSON.parse(raw) : defaultValue;
+  } catch (e) {
+    return defaultValue;
+  }
+};
+
+export const setStoredValue = async (key, value) => {
+  if (hasChromeStorage()) {
+    return new Promise((resolve) => {
+      chrome.storage.local.set({ [key]: value }, () => resolve());
+    });
+  }
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) { /* ignore */ }
+};

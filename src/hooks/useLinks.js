@@ -1,8 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getLinks, saveLinks } from '../lib/storage';
 import { saveLink } from '../lib/linkRepository';
+import { RESIZABLE_TYPES, WidgetType } from '../lib/widgetCatalog';
+import {
+  removeLinkAnywhere,
+  placeInHeader,
+  placeInSection,
+  placeOnMain,
+} from '../lib/linkPlacement';
 
-const RESIZABLE_TYPES = ['section', 'todo', 'timer', 'iframe', 'note', 'image', 'label', 'link'];
+const HEADER_TARGET = 'header';
 
 export function useLinks() {
   const [links, setLinks] = useState([]);
@@ -32,7 +39,7 @@ export function useLinks() {
       const updatedLinks = prevLinks.map(link => {
         const item = layout.find(l => l.i === link.id);
         if (!item) return link;
-        const isResizableType = RESIZABLE_TYPES.includes(link.type);
+        const isResizableType = RESIZABLE_TYPES.has(link.type);
         return {
           ...link,
           x: item.x,
@@ -50,7 +57,7 @@ export function useLinks() {
       return items
         .filter(item => item.id !== id)
         .map(item => {
-          if (item.type === 'section' && item.links) {
+          if (item.type === WidgetType.SECTION && item.links) {
             return { ...item, links: deleteNested(item.links) };
           }
           return item;
@@ -76,7 +83,7 @@ export function useLinks() {
               h: isIconOnly ? 1 : 1
             };
           }
-          if (l.type === 'section' && l.links) {
+          if (l.type === WidgetType.SECTION && l.links) {
             return { ...l, links: updateNested(l.links) };
           }
           return l;
@@ -95,7 +102,7 @@ export function useLinks() {
           if (l.id === id) {
             return { ...l, ...updates };
           }
-          if (l.type === 'section' && l.links) {
+          if (l.type === WidgetType.SECTION && l.links) {
             return { ...l, links: updateNested(l.links) };
           }
           return l;
@@ -109,191 +116,16 @@ export function useLinks() {
 
   const handleMoveLink = useCallback((linkId, targetSectionId, targetCoords) => {
     setLinks(prevLinks => {
-      let foundLink = null;
-
-      // Remove from top level or sections
-      let cleanedLinks = prevLinks.filter(l => {
-        if (l.id === linkId) {
-          foundLink = l;
-          return false;
-        }
-        return true;
-      });
-
-      cleanedLinks = cleanedLinks.map(item => {
-        if (item.type === 'section' && item.links) {
-          const hasLink = item.links.some(l => l.id === linkId);
-          if (hasLink) {
-            foundLink = item.links.find(l => l.id === linkId);
-            return {
-              ...item,
-              links: item.links.filter(l => l.id !== linkId)
-            };
-          }
-        }
-        return item;
-      });
-
+      const { cleanedLinks, foundLink } = removeLinkAnywhere(prevLinks, linkId);
       if (!foundLink) return prevLinks;
 
-      let updatedLinks = [];
-      if (targetSectionId === 'header') {
-        const headerLinks = cleanedLinks.filter(l => l.isHeaderLink);
-        const maxOrder = headerLinks.reduce((max, l) => Math.max(max, l.order || 0), -1);
-        const nextOrder = maxOrder + 1;
-
-        updatedLinks = [
-          ...cleanedLinks,
-          {
-            ...foundLink,
-            isHeaderLink: true,
-            parentId: null,
-            order: nextOrder,
-            x: undefined,
-            y: undefined
-          }
-        ];
+      let updatedLinks;
+      if (targetSectionId === HEADER_TARGET) {
+        updatedLinks = placeInHeader(cleanedLinks, foundLink);
       } else if (targetSectionId) {
-        updatedLinks = cleanedLinks.map(item => {
-          if (item.id === targetSectionId && item.type === 'section') {
-            const sectionLinks = item.links || [];
-            const sectionCols = item.cols || 3;
-            const w = Math.min(foundLink.w ?? (foundLink.viewMode === 'icon' ? 1 : 3), sectionCols);
-            const h = foundLink.h ?? 1;
-
-            let newX = 0;
-            let newY = 0;
-
-            if (targetCoords && targetCoords.x !== undefined && targetCoords.y !== undefined) {
-              const cols = item.cols || 3;
-              newX = Math.max(0, Math.min(cols - w, targetCoords.x));
-              newY = Math.max(0, targetCoords.y);
-            } else {
-              const cols = item.cols || 3;
-              const grid = [];
-              sectionLinks.forEach(l => {
-                const lx = l.x ?? 0;
-                const ly = l.y ?? 0;
-                const lw = Math.min(l.w ?? (l.viewMode === 'icon' ? 1 : Math.min(3, cols)), cols);
-                const lh = l.h ?? 1;
-                for (let r = ly; r < ly + lh; r++) {
-                  while (grid.length <= r) grid.push(Array(cols).fill(false));
-                  for (let c = lx; c < lx + lw && c < cols; c++) {
-                    grid[r][c] = true;
-                  }
-                }
-              });
-
-              let placed = false;
-              let r = 0;
-
-              while (!placed) {
-                while (grid.length <= r + h) grid.push(Array(cols).fill(false));
-                for (let c = 0; c <= cols - w; c++) {
-                  let canFit = true;
-                  for (let i = 0; i < h; i++) {
-                    for (let j = 0; j < w; j++) {
-                      if (grid[r + i][c + j]) {
-                        canFit = false;
-                        break;
-                      }
-                    }
-                    if (!canFit) break;
-                  }
-                  if (canFit) {
-                    newX = c;
-                    newY = r;
-                    placed = true;
-                    break;
-                  }
-                }
-                r++;
-              }
-            }
-
-            return {
-              ...item,
-              links: [
-                ...sectionLinks,
-                {
-                  ...foundLink,
-                  isHeaderLink: false,
-                  x: newX,
-                  y: newY,
-                  w,
-                  h
-                }
-              ]
-            };
-          }
-          return item;
-        });
+        updatedLinks = placeInSection(cleanedLinks, foundLink, targetSectionId, targetCoords);
       } else {
-        // Put back in main dashboard grid
-        const w = foundLink.w ?? (foundLink.viewMode === 'icon' ? 1 : 3);
-        const h = foundLink.h ?? 1;
-
-        let newX = 0;
-        let newY = 0;
-
-        if (targetCoords && targetCoords.x !== undefined && targetCoords.y !== undefined) {
-          const maxCols = 18;
-          newX = Math.max(0, Math.min(maxCols - w, targetCoords.x));
-          newY = Math.max(0, targetCoords.y);
-        } else {
-          const maxCols = 18;
-          const maxRows = 12;
-          const grid = Array(maxRows).fill(null).map(() => Array(maxCols).fill(false));
-
-          cleanedLinks.forEach(link => {
-            if (link.x !== undefined && link.y !== undefined) {
-              for (let r = link.y; r < link.y + (link.h || 1) && r < maxRows; r++) {
-                for (let c = link.x; c < link.x + (link.w || 1) && c < maxCols; c++) {
-                  grid[r][c] = true;
-                }
-              }
-            }
-          });
-
-          let placed = false;
-
-          for (let r = 0; r <= maxRows - h && !placed; r++) {
-            for (let c = 0; c <= maxCols - w && !placed; c++) {
-              let canFit = true;
-              for (let i = 0; i < h; i++) {
-                for (let j = 0; j < w; j++) {
-                  if (grid[r + i][c + j]) {
-                    canFit = false;
-                    break;
-                  }
-                }
-                if (!canFit) break;
-              }
-              if (canFit) {
-                newX = c;
-                newY = r;
-                placed = true;
-              }
-            }
-          }
-
-          if (!placed) {
-            newX = 0;
-            newY = 11;
-          }
-        }
-
-        updatedLinks = [
-          ...cleanedLinks,
-          {
-            ...foundLink,
-            isHeaderLink: false,
-            x: newX,
-            y: newY,
-            w,
-            h
-          }
-        ];
+        updatedLinks = placeOnMain(cleanedLinks, foundLink, targetCoords);
       }
 
       saveLinks(updatedLinks);

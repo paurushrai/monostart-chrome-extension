@@ -8,6 +8,7 @@ import SectionWidget from './widgets/SectionWidget';
 import NoteWidget from './widgets/NoteWidget';
 import ImageWidget from './widgets/ImageWidget';
 import LabelWidget from './widgets/LabelWidget';
+import { WidgetType } from '../lib/widgetCatalog';
 
 /**
  * Renders the appropriate widget for a top-level grid item. Section widgets
@@ -40,21 +41,21 @@ export default function WidgetRenderer({
   }
 
   switch (item.type) {
-    case 'google-search':
+    case WidgetType.GOOGLE_SEARCH:
       return <GoogleSearchWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
-    case 'iframe':
+    case WidgetType.IFRAME:
       return <IframeWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
-    case 'todo':
+    case WidgetType.TODO:
       return <TodoWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
-    case 'timer':
+    case WidgetType.TIMER:
       return <TimerWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
-    case 'note':
+    case WidgetType.NOTE:
       return <NoteWidget item={item} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
-    case 'image':
+    case WidgetType.IMAGE:
       return <ImageWidget item={item} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
-    case 'label':
+    case WidgetType.LABEL:
       return <LabelWidget item={item} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
-    case 'section':
+    case WidgetType.SECTION:
       return (
         <SectionWidget
           item={item}
