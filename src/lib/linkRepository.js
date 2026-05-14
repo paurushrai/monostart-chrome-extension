@@ -2,7 +2,7 @@
 // then persists via the storage adapter. Pure orchestration — no UI concerns.
 
 import { getLinks, saveLinks } from './storage';
-import { getMinSize, findFreeSlot, findSlotInSection, SECTION_DEFAULT_COLS } from './grid';
+simport { getMinSize, findFreeSlot, findSlotInSection, SECTION_DEFAULT_COLS } from './grid';
 
 /**
  * Save a new link/widget. Returns the saved item, or null if there's no room
