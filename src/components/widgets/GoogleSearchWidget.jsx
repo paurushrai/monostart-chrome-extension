@@ -60,7 +60,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
   };
 
   return (
-    <div className="group relative flex items-center w-full h-full">
+    <div className="group relative flex items-center justify-center w-full h-full">
       {isEditing && (
         <button
           onClick={() => onDelete(item.id)}
@@ -72,7 +72,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
       )}
       <form
         onSubmit={handleSubmit}
-        className={`relative flex items-center w-full h-12 px-5 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
+        className={`relative flex items-center w-full max-w-2xl h-12 px-5 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
       >
         {/* Invisible overlay to prevent input/buttons from blocking drag */}
         {isEditing && <div className="absolute inset-0 z-10 bg-transparent rounded-full" />}
