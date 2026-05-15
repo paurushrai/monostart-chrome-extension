@@ -67,12 +67,12 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg-primary dark:bg-dark-bg-primary transition-colors duration-normal">
+    <div className="flex flex-col min-h-screen bg-background transition-colors duration-200">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-2 border-b border-border dark:border-border-dark">
+      <header className="flex items-center justify-between px-6 py-2 border-b border-border">
         <div className="flex items-center gap-3">
-          <LayoutGrid size={22} className="text-accent" />
-          <h1 className="text-xl font-semibold text-ink dark:text-ink-dark tracking-tight m-0">
+          <LayoutGrid size={22} className="text-primary" />
+          <h1 className="text-xl font-semibold text-foreground tracking-tight m-0">
             My Dashboard
           </h1>
         </div>
@@ -108,7 +108,7 @@ function App() {
                 variant="ghost"
                 size="icon"
                 title="Settings"
-                className="text-ink dark:text-ink-dark"
+                className="text-foreground"
               >
                 <Settings size={20} />
               </Button>

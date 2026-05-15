@@ -8,11 +8,11 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
 
       {/* Drag handle / header */}
       <div className={`flex items-center justify-between px-3 py-2
-                      bg-bg-hover dark:bg-dark-bg-hover
-                      border-b border-border dark:border-border-dark flex-shrink-0
+                      bg-secondary
+                      border-b border-border flex-shrink-0
                       ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
 
-        <span className="text-sm font-medium text-ink dark:text-ink-dark truncate mr-2">
+        <span className="text-sm font-medium text-foreground truncate mr-2">
           {item.title}
         </span>
 
@@ -21,7 +21,7 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
             variant="ghost"
             size="icon"
             asChild
-            className="h-6 w-6 rounded-md hover:bg-bg-primary dark:hover:bg-dark-bg-primary"
+            className="h-6 w-6 rounded-md hover:bg-background"
             title="Open in new tab"
           >
             <a href={item.url} target="_blank" rel="noopener noreferrer">
@@ -34,7 +34,7 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
               size="icon"
               onClick={() => onDelete(item.id)}
               title="Remove widget"
-              className="h-6 w-6 rounded-md hover:text-red-500 hover:bg-bg-primary dark:hover:bg-dark-bg-primary"
+              className="h-6 w-6 rounded-md hover:text-red-500 hover:bg-background"
             >
               <X size={12} />
             </Button>

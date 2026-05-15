@@ -57,10 +57,10 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing })
       {/* Action buttons */}
       {isEditing && (
         <div className="absolute top-2 right-2 flex gap-1 z-20">
-          <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); nextViewMode(); }} title="Toggle view mode" className="h-6 w-6 rounded-full bg-white/70 dark:bg-black/70 backdrop-blur-md shadow-sm border border-border dark:border-border-dark">
+          <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); nextViewMode(); }} title="Toggle view mode" className="h-6 w-6 rounded-full bg-background/70 backdrop-blur-md shadow-sm border border-border">
             <Settings2 size={12} />
           </Button>
-          <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); onDelete(item.id); }} title="Remove" className="h-6 w-6 rounded-full bg-white/70 dark:bg-black/70 backdrop-blur-md shadow-sm border border-border dark:border-border-dark hover:text-red-500 hover:border-red-500">
+          <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); onDelete(item.id); }} title="Remove" className="h-6 w-6 rounded-full bg-background/70 backdrop-blur-md shadow-sm border border-border hover:text-red-500 hover:border-red-500">
             <X size={12} />
           </Button>
         </div>
@@ -89,7 +89,7 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing })
               ${isIconOnly ? 'w-12 h-12 rounded-xl' : 'w-8 h-8'}`}
           />
         ) : (
-          <div className={`flex items-center justify-center rounded-lg bg-bg-hover dark:bg-dark-bg-hover text-ink-secondary dark:text-ink-dark-secondary flex-shrink-0 pointer-events-none
+          <div className={`flex items-center justify-center rounded-lg bg-secondary text-muted-foreground flex-shrink-0 pointer-events-none
             ${isIconOnly ? 'w-12 h-12 rounded-xl' : 'w-8 h-8'}`}>
             <ExternalLink size={isIconOnly ? 24 : 18} />
           </div>
@@ -104,7 +104,7 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing })
               onBlur={handleNameBlur}
               onKeyDown={handleKeyDown}
               onMouseDown={(e) => isEditing && e.stopPropagation()}
-              className={`m-0 text-sm font-medium text-ink dark:text-ink-dark truncate leading-tight ${isLarge ? 'mb-1' : ''} ${isEditing ? 'cursor-text outline-none hover:bg-bg-hover dark:hover:bg-dark-bg-hover focus:bg-bg-hover dark:focus:bg-dark-bg-hover rounded px-1 -ml-1 transition-colors' : ''}`}
+              className={`m-0 text-sm font-medium text-foreground truncate leading-tight ${isLarge ? 'mb-1' : ''} ${isEditing ? 'cursor-text outline-none hover:bg-secondary focus:bg-secondary rounded px-1 -ml-1 transition-colors' : ''}`}
             >
               {siteName}
             </h4>
@@ -115,7 +115,7 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing })
                 onBlur={handleDescBlur}
                 onKeyDown={handleKeyDown}
                 onMouseDown={(e) => isEditing && e.stopPropagation()}
-                className={`text-2xs text-ink-secondary dark:text-ink-dark-secondary truncate block ${isEditing ? 'cursor-text outline-none hover:bg-bg-hover dark:hover:bg-dark-bg-hover focus:bg-bg-hover dark:focus:bg-dark-bg-hover rounded px-1 -ml-1 mt-1 transition-colors' : ''}`}
+                className={`text-2xs text-muted-foreground truncate block ${isEditing ? 'cursor-text outline-none hover:bg-secondary focus:bg-secondary rounded px-1 -ml-1 mt-1 transition-colors' : ''}`}
               >
                 {title}
               </span>
@@ -125,8 +125,8 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing })
 
         {/* Glassmorphism Hover Overlay for Icon Only Mode */}
         {isIconOnly && (
-          <div className="absolute inset-0 bg-bg-card/70 dark:bg-dark-bg-card/70 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-normal flex items-center justify-center p-2 z-10 pointer-events-none">
-            <span className="text-xs font-semibold text-ink dark:text-ink-dark text-center truncate w-full drop-shadow-sm">
+          <div className="absolute inset-0 bg-background/70 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center p-2 z-10 pointer-events-none">
+            <span className="text-xs font-semibold text-foreground text-center truncate w-full drop-shadow-sm">
               {siteName}
             </span>
           </div>
