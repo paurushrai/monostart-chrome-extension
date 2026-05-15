@@ -10,19 +10,26 @@ import 'react-resizable/css/styles.css';
 const ReactGridLayout = WidthProvider(GridLayout);
 
 const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUpdateLink, isEditing }) => {
-  const getRowHeight = () => {
-    if (typeof window === 'undefined') return 60;
-    const width = document.documentElement.clientWidth;
-    const cols = 18;
-    const containerWidth = width - 48; // px-6 in App.jsx (24px * 2)
-    const colWidth = (containerWidth - (16 * (cols - 1))) / cols;
-    return Math.max(Math.floor(colWidth), 30);
+  const getDimensions = () => {
+    if (typeof window === 'undefined') return { rowHeight: 60 };
+    
+    const height = document.documentElement.clientHeight;
+    
+    const assumedMaxRows = 12; // Most standard single-screen layouts won't exceed 12 rows
+    const availableHeight = height - 100; // Account for header and padding
+    
+    // Calculate the row height needed to fit exactly into the available height
+    const rowHeight = Math.max((availableHeight - (16 * (assumedMaxRows - 1))) / assumedMaxRows, 30);
+    
+    return {
+      rowHeight: Math.floor(rowHeight)
+    };
   };
 
-  const [rowHeight, setRowHeight] = useState(getRowHeight());
+  const [dims, setDims] = useState(getDimensions());
 
   useEffect(() => {
-    const handleResize = () => setRowHeight(getRowHeight());
+    const handleResize = () => setDims(getDimensions());
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -76,24 +83,26 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUp
   };
 
   return (
-    <ReactGridLayout
-      className="layout"
-      layout={layout}
-      cols={18}
-      rowHeight={rowHeight}
+    <div className="w-full">
+      <ReactGridLayout
+        className="layout"
+        layout={layout}
+        cols={18}
+        rowHeight={dims.rowHeight}
       margin={[16, 16]}
       compactType={null}
       isDraggable={isEditing}
       isResizable={isEditing}
       draggableHandle=".drag-handle"
       onLayoutChange={(newLayout) => onLayoutChange(newLayout)}
-    >
-      {links.map((item) => (
-        <div key={item.id} className="rounded-card">
-          {renderWidget(item)}
-        </div>
-      ))}
-    </ReactGridLayout>
+      >
+        {links.map((item) => (
+          <div key={item.id} className="rounded-card">
+            {renderWidget(item)}
+          </div>
+        ))}
+      </ReactGridLayout>
+    </div>
   );
 };
 
