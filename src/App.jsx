@@ -3,12 +3,18 @@ import DashboardGrid from './components/DashboardGrid';
 import AddWidgetModal from './components/AddWidgetModal';
 import { getLinks, saveLinks, saveLink, deleteLink } from './lib/storage';
 import { LayoutGrid, PlusCircle, Edit2, Check, Settings } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 function App() {
   const [links, setLinks] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [originalLinks, setOriginalLinks] = useState([]);
   useEffect(() => {
     getLinks().then(setLinks);
@@ -74,68 +80,60 @@ function App() {
         <div className="flex items-center gap-3 relative">
           {isEditing && (
             <div className="flex items-center gap-2 mr-2">
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   setLinks(originalLinks);
-                  saveLinks(originalLinks); // Revert back to original layout in DB
+                  saveLinks(originalLinks);
                   setIsEditing(false);
                 }}
-                className="btn-secondary text-sm px-4 py-1.5 min-h-0 h-auto"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                size="sm"
                 onClick={() => setIsEditing(false)}
-                className="btn-primary success text-sm px-4 py-1.5 min-h-0 h-auto"
+                className="bg-green-600 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-white"
               >
-                <Check size={16} />
+                <Check size={16} className="mr-1.5" />
                 Save
-              </button>
+              </Button>
             </div>
           )}
 
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="p-2 rounded-md hover:bg-bg-hover dark:hover:bg-dark-bg-hover transition-colors"
-            title="Settings"
-          >
-            <Settings size={20} className="text-ink dark:text-ink-dark" />
-          </button>
-
-          {menuOpen && (
-            <>
-              <div 
-                className="fixed inset-0 z-40"
-                onClick={() => setMenuOpen(false)}
-              />
-              <div className="absolute top-full right-0 mt-2 p-1.5 w-48 bg-white dark:bg-dark-bg-primary rounded-xl shadow-lg border border-border dark:border-border-dark flex flex-col gap-1 z-50">
-                <button
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Settings"
+                className="text-ink dark:text-ink-dark"
+              >
+                <Settings size={20} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                onClick={() => setModalOpen(true)}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Widget
+              </DropdownMenuItem>
+              
+              {!isEditing && (
+                <DropdownMenuItem
                   onClick={() => {
-                    setMenuOpen(false);
-                    setModalOpen(true);
+                    setOriginalLinks([...links]);
+                    setIsEditing(true);
                   }}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left text-ink dark:text-ink-dark hover:bg-bg-hover dark:hover:bg-dark-bg-hover rounded-lg transition-colors"
                 >
-                  <PlusCircle size={16} />
-                  Add Widget
-                </button>
-                
-                {!isEditing && (
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setOriginalLinks([...links]); // Snapshot state
-                      setIsEditing(true);
-                    }}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left text-ink dark:text-ink-dark hover:bg-bg-hover dark:hover:bg-dark-bg-hover rounded-lg transition-colors"
-                  >
-                    <Edit2 size={16} />
-                    <span>Edit Dashboard</span>
-                  </button>
-                )}
-              </div>
-            </>
-          )}
+                  <Edit2 className="mr-2 h-4 w-4" />
+                  Edit Dashboard
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
