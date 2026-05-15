@@ -1,24 +1,31 @@
-import React, { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { CheckSquare, Plus, Trash2, X } from 'lucide-react';
 import { useWidgetStorage } from '../../hooks/useWidgetStorage';
+import type { TodoWidget as TodoWidgetItem, TodoEntry } from '../../types';
 
-const TodoWidget = ({ item, onDelete, isEditing }) => {
-  const [todos, saveTodos] = useWidgetStorage(`todo-widget-${item.id}`, []);
+interface Props {
+  item: TodoWidgetItem;
+  onDelete: (id: string) => void;
+  isEditing: boolean;
+}
+
+const TodoWidget = ({ item, onDelete, isEditing }: Props) => {
+  const [todos, saveTodos] = useWidgetStorage<TodoEntry[]>(`todo-widget-${item.id}`, []);
   const [newTask, setNewTask] = useState("");
 
-  const handleAdd = (e) => {
+  const handleAdd = (e: FormEvent) => {
     e.preventDefault();
     if (!newTask.trim()) return;
     saveTodos([...todos, { id: Date.now(), text: newTask.trim(), completed: false }]);
     setNewTask("");
   };
 
-  const toggleTodo = (id) => {
+  const toggleTodo = (id: number) => {
     const updated = todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
     saveTodos(updated);
   };
 
-  const deleteTodo = (id) => {
+  const deleteTodo = (id: number) => {
     const updated = todos.filter(t => t.id !== id);
     saveTodos(updated);
   };

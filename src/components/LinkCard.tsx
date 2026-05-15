@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
-import { 
-  ExternalLink, 
-  X, 
-  Check, 
-  MoreHorizontal, 
-  Trash2, 
-  Ruler, 
-  FolderInput, 
-  Home, 
-  Folder, 
-  Square, 
+import { useState, type FocusEvent, type KeyboardEvent } from 'react';
+import {
+  ExternalLink,
+  Check,
+  MoreHorizontal,
+  Trash2,
+  Ruler,
+  FolderInput,
+  Home,
+  Folder,
+  Square,
   RectangleHorizontal,
-  LayoutGrid
+  LayoutGrid,
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +22,26 @@ import {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
-  DropdownMenuPortal
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
+import type { RegularLink, GridSlot } from '../types';
+
+interface SectionRef {
+  id: string;
+  title: string;
+}
+
+interface Props {
+  item: RegularLink;
+  onDelete: (id: string) => void;
+  onViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
+  onUpdateLink: (id: string, updates: Partial<RegularLink>) => void;
+  isEditing: boolean;
+  openInNewTab?: boolean;
+  sections?: SectionRef[];
+  onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  parentId?: string;
+}
 
 const LinkCard = ({
   item,
@@ -35,12 +52,12 @@ const LinkCard = ({
   openInNewTab,
   sections = [],
   onMoveLink,
-  parentId
-}) => {
-  const { url, title, favicon, viewMode = 'icon+text', customName } = item;
+  parentId,
+}: Props) => {
+  const { url, title, favicon, customName } = item;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const getFaviconUrl = (linkUrl) => {
+  const getFaviconUrl = (linkUrl: string | undefined) => {
     if (!linkUrl) return '';
     try {
       return `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(linkUrl)}&size=128`;
@@ -51,7 +68,8 @@ const LinkCard = ({
 
   const crispFavicon = getFaviconUrl(url) || favicon;
 
-  const getSiteName = (urlString) => {
+  const getSiteName = (urlString: string | undefined) => {
+    if (!urlString) return title ? title.split(' - ')[0] : 'Link';
     try {
       const hostname = new URL(urlString).hostname.replace(/^www\./, '');
       const parts = hostname.split('.');
@@ -69,24 +87,24 @@ const LinkCard = ({
   const isIconOnly = item.w === 1;
   const isLarge = (item.w && item.w > 2) || (item.h && item.h > 1);
 
-  const handleNameBlur = (e) => {
+  const handleNameBlur = (e: FocusEvent<HTMLHeadingElement>) => {
     const newName = e.target.innerText.trim();
     if (newName && newName !== siteName) {
       onUpdateLink(item.id, { customName: newName });
     }
   };
 
-  const handleDescBlur = (e) => {
+  const handleDescBlur = (e: FocusEvent<HTMLSpanElement>) => {
     const newDesc = e.target.innerText.trim();
     if (newDesc !== title) {
       onUpdateLink(item.id, { title: newDesc });
     }
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      e.target.blur();
+      (e.target as HTMLElement).blur();
     }
   };
 

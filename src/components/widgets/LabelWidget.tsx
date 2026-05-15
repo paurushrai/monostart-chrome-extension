@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Type, Trash2, Settings, AlignLeft, AlignCenter, AlignRight, Check, Bold, Sparkles } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +10,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
+import type { Label as LabelItem } from '../../types';
 
 const FONT_SIZES = [
   { id: 'text-sm', name: 'Small' },
@@ -48,19 +47,26 @@ const OPACITIES = [
   { id: 'opacity-40', name: '40% (Muted)' },
 ];
 
-const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
-  const { 
-    text = 'Google', 
-    align = 'left', 
-    size = 'text-3xl', 
+interface Props {
+  item: LabelItem;
+  onDelete: (id: string) => void;
+  onUpdateLink: (id: string, updates: Partial<LabelItem>) => void;
+  isEditing: boolean;
+}
+
+const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
+  const {
+    text = 'Google',
+    align = 'left',
+    size = 'text-3xl',
     fontWeight = 'font-bold',
     opacity = 'opacity-100',
-    cardStyle = false
+    cardStyle = false,
   } = item;
 
   const [isEditingText, setIsEditingText] = useState(false);
   const [inputText, setInputText] = useState(text);
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setInputText(text);

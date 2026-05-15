@@ -1,5 +1,9 @@
-/* eslint-disable react/prop-types */
-export default function Toast({ message, onDismiss }) {
+interface Props {
+  message: string | null;
+  onDismiss: () => void;
+}
+
+export default function Toast({ message, onDismiss }: Props) {
   if (!message) return null;
   return (
     <div

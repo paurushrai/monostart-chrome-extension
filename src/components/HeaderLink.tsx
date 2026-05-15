@@ -1,17 +1,39 @@
-import React, { useState } from 'react';
-import { 
-  DropdownMenu, 
-  DropdownMenuTrigger, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import { useState, type DragEvent, type MouseEvent } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuPortal,
-  DropdownMenuSubContent
+  DropdownMenuSubContent,
 } from './ui/dropdown-menu';
 import { Button } from './ui/button';
 import { MoreHorizontal, Trash2, FolderInput, Home, Folder, Edit2, Link2 } from 'lucide-react';
+import type { RegularLink, GridSlot } from '../types';
+
+interface SectionRef {
+  id: string;
+  title: string;
+}
+
+interface Props {
+  item: RegularLink;
+  isEditing: boolean;
+  openInNewTab?: boolean;
+  sections?: SectionRef[];
+  onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  onDelete: (id: string) => void;
+  onUpdateLink: (id: string, updates: Partial<RegularLink>) => void;
+  draggedHeaderLinkId: string | null;
+  dragOverHeaderLinkId: string | null;
+  onDragStart: (id: string) => void;
+  onDragOver: (e: DragEvent, id: string) => void;
+  onDrop: (id: string) => void;
+  onDragEnd: () => void;
+}
 
 const HeaderLink = ({
   item,
@@ -26,14 +48,14 @@ const HeaderLink = ({
   onDragStart,
   onDragOver,
   onDrop,
-  onDragEnd
-}) => {
+  onDragEnd,
+}: Props) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const siteName = item.customName || item.title || 'Link';
   const url = item.url;
-  
-  const getFaviconUrl = (linkUrl) => {
+
+  const getFaviconUrl = (linkUrl: string | undefined) => {
     if (!linkUrl) return '';
     try {
       return `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(linkUrl)}&size=128`;
@@ -44,7 +66,7 @@ const HeaderLink = ({
 
   const favicon = getFaviconUrl(url) || item.favicon;
 
-  const handleRename = (e) => {
+  const handleRename = (e: MouseEvent) => {
     e.stopPropagation();
     const newName = prompt('Rename link:', siteName);
     if (newName !== null) {
@@ -56,7 +78,7 @@ const HeaderLink = ({
     setIsMenuOpen(false);
   };
 
-  const handleChangeUrl = (e) => {
+  const handleChangeUrl = (e: MouseEvent) => {
     e.stopPropagation();
     const newUrl = prompt('Change URL:', url);
     if (newUrl !== null) {

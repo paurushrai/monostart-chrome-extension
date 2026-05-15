@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { WIDGET_CATALOG } from '../lib/widgetCatalog';
+import type { WidgetMeta } from '../lib/widgetCatalog';
 import {
   Dialog,
   DialogContent,
@@ -9,10 +10,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { isEmbedCode, extractEmbedSrc, extractEmbedTitle, sanitizeEmbed, rewriteToEmbedUrl } from '@/lib/embedSanitizer';
+import type { LinkItem } from '../types';
 
-const AddWidgetModal = ({ open, onClose, onSelect }) => {
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  onSelect: (widget: { type: LinkItem['type']; defaults?: Partial<LinkItem> }) => void;
+}
+
+const AddWidgetModal = ({ open, onClose, onSelect }: Props) => {
   const [step, setStep] = useState(1);
-  const [selectedWidget, setSelectedWidget] = useState(null);
+  const [selectedWidget, setSelectedWidget] = useState<WidgetMeta | null>(null);
   const [input, setInput] = useState("");
 
   const handleClose = () => {
@@ -22,7 +30,7 @@ const AddWidgetModal = ({ open, onClose, onSelect }) => {
     onClose();
   };
 
-  const handleSelect = (w) => {
+  const handleSelect = (w: WidgetMeta) => {
     if (w.type === 'iframe') {
       setSelectedWidget(w);
       setStep(2);
@@ -32,12 +40,13 @@ const AddWidgetModal = ({ open, onClose, onSelect }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const trimmed = input.trim();
     if (!trimmed) return;
 
-    let defaults;
+    if (!selectedWidget) return;
+    let defaults: Partial<LinkItem>;
     if (isEmbedCode(trimmed)) {
       const sanitized = sanitizeEmbed(trimmed);
       if (!sanitized) return;
@@ -48,24 +57,24 @@ const AddWidgetModal = ({ open, onClose, onSelect }) => {
         embedHtml: sanitized,
         url: src,
         title: extractEmbedTitle(sanitized) || 'Embed',
-      };
+      } as Partial<LinkItem>;
     } else {
       const embedUrl = rewriteToEmbedUrl(trimmed);
       let hostname = 'Embed';
       try {
-        hostname = new URL(embedUrl).hostname.replace(/^www\./, '');
+        if (embedUrl) hostname = new URL(embedUrl).hostname.replace(/^www\./, '');
       } catch {
         // ignore
       }
       defaults = {
         ...selectedWidget.defaults,
         mode: 'url',
-        url: embedUrl,
+        url: embedUrl ?? undefined,
         title: hostname,
-      };
+      } as Partial<LinkItem>;
     }
 
-    onSelect({ ...selectedWidget, defaults });
+    onSelect({ type: selectedWidget.type, defaults });
     handleClose();
   };
 

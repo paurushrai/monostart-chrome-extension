@@ -1,9 +1,41 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type FormEvent, type MouseEvent } from 'react';
 import { Search, X, History } from 'lucide-react';
 import LensSearchModal from './LensSearchModal';
 import VoiceSearchOverlay from './VoiceSearchOverlay';
+import type { GoogleSearch } from '../../types';
 
-const LensIcon = ({ size = 20 }) => (
+interface Suggestion {
+  text: string;
+  type: 'history' | 'search';
+  url?: string;
+}
+
+// SpeechRecognition is a draft API — define a minimal shape we use.
+interface SpeechRecognitionResultEvent {
+  resultIndex: number;
+  results: ReadonlyArray<{ readonly isFinal: boolean; readonly [index: number]: { readonly transcript: string } }> & {
+    readonly length: number;
+  };
+}
+
+interface SpeechRecognitionLike {
+  interimResults: boolean;
+  lang: string;
+  onstart: (() => void) | null;
+  onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => SpeechRecognitionLike;
+    webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+  }
+}
+
+const LensIcon = ({ size = 20 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <path
       d="M4 11.5V8C4 5.79086 5.79086 4 8 4H9.5L11 2H14.5L16 4H17"
@@ -29,7 +61,7 @@ const LensIcon = ({ size = 20 }) => (
   </svg>
 );
 
-const GoogleMicIcon = ({ size = 20 }) => (
+const GoogleMicIcon = ({ size = 20 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <path fill="#4285F4" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
     <path fill="#34A853" d="M11 18.92h2V22h-2z" />
@@ -38,35 +70,41 @@ const GoogleMicIcon = ({ size = 20 }) => (
   </svg>
 );
 
-const isLikelyUrl = (text) => /^(https?:\/\/|[\w-]+\.[\w-]+)/.test(text.trim());
+const isLikelyUrl = (text: string) => /^(https?:\/\/|[\w-]+\.[\w-]+)/.test(text.trim());
 
-const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
+interface Props {
+  item: GoogleSearch;
+  onDelete: (id: string) => void;
+  isEditing: boolean;
+}
+
+const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [lensOpen, setLensOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
       const q = query.trim();
 
       try {
-        let historyResults = [];
+        let historyResults: Suggestion[] = [];
         if (typeof chrome !== 'undefined' && chrome.history) {
-          const historyItems = await new Promise((resolve) => {
+          const historyItems = await new Promise<chrome.history.HistoryItem[]>((resolve) => {
             chrome.history.search({ text: q, maxResults: q ? 5 : 8 }, resolve);
           });
 
           historyResults = historyItems
-            .map(h => {
+            .map((h): Suggestion => {
               let text = h.title || h.url;
               if (text && text.endsWith(' - Google Search')) {
                 text = text.replace(' - Google Search', '');
               }
-              return { text: text || h.url, type: 'history', url: h.url };
+              return { text: text || h.url || '', type: 'history', url: h.url };
             });
 
           // If there is a query, filter strictly. If empty, show recent history.
@@ -84,21 +122,21 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
         if (typeof chrome !== 'undefined' && chrome.runtime) {
           chrome.runtime.sendMessage(
             { action: 'fetchSuggestions', query: q },
-            (response) => {
-              let autoResults = [];
+            (response: { data?: [string, string[]] }) => {
+              let autoResults: Suggestion[] = [];
               if (response && response.data && response.data[1]) {
-                autoResults = response.data[1].map(text => ({ text, type: 'search' }));
+                autoResults = response.data[1].map((text): Suggestion => ({ text, type: 'search' }));
               }
 
               // Merge, deduplicate by text (case insensitive), and slice to top 8
-              const combined = [...historyResults, ...autoResults];
-              const unique = [];
-              const seen = new Set();
-              for (const item of combined) {
-                const lower = item.text.toLowerCase();
+              const combined: Suggestion[] = [...historyResults, ...autoResults];
+              const unique: Suggestion[] = [];
+              const seen = new Set<string>();
+              for (const s of combined) {
+                const lower = s.text.toLowerCase();
                 if (!seen.has(lower)) {
                   seen.add(lower);
-                  unique.push(item);
+                  unique.push(s);
                 }
               }
               setSuggestions(unique.slice(0, 8));
@@ -107,9 +145,9 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
         } else {
           // Fallback
           const res = await fetch(`https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(q)}`);
-          const data = await res.json();
+          const data = (await res.json()) as [string, string[]];
           if (data && data[1]) {
-            setSuggestions(data[1].slice(0, 8).map(text => ({ text, type: 'search' })));
+            setSuggestions(data[1].slice(0, 8).map((text): Suggestion => ({ text, type: 'search' })));
           }
         }
       } catch (e) {
@@ -122,8 +160,8 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
   }, [query]);
 
   useEffect(() => {
-    const handleClick = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
+    const handleClick = (e: globalThis.MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
       }
     };
@@ -134,7 +172,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
   // Elevate parent grid item z-index so dropdown doesn't get hidden under other widgets
   useEffect(() => {
     if (containerRef.current) {
-      const gridItem = containerRef.current.closest('.react-grid-item');
+      const gridItem = containerRef.current.closest('.react-grid-item') as HTMLElement | null;
       if (gridItem) {
         if (showSuggestions && suggestions.length > 0) {
           gridItem.style.zIndex = '100';
@@ -145,7 +183,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
     }
   }, [showSuggestions, suggestions.length]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const q = query.trim();
     if (!q) return;
@@ -171,7 +209,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
       setVoiceTranscript('');
     };
 
-    r.onresult = (event) => {
+    r.onresult = (event: SpeechRecognitionResultEvent) => {
       let current = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         current += event.results[i][0].transcript;

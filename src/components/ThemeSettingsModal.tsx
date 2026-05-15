@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Sun, Moon, Monitor, Pipette } from 'lucide-react';
+import { Sun, Moon, Monitor } from 'lucide-react';
+import type { Settings } from '../types';
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  settings: Settings;
+  updateSettings: (next: Settings) => void;
+}
+
+type ThemeMode = NonNullable<Settings['themeMode']>;
 
 const presetColors = [
   { name: 'Red', hsl: '346 87% 61%' },
@@ -18,47 +26,16 @@ const presetColors = [
   { name: 'Neutral', hsl: '0 0% 50%' },
 ];
 
-export default function ThemeSettingsModal({ open, onOpenChange, settings, updateSettings }) {
-  const currentMode = settings.themeMode || 'device';
+export default function ThemeSettingsModal({ open, onOpenChange, settings, updateSettings }: Props) {
+  const currentMode: ThemeMode = settings.themeMode || 'device';
   const currentColor = settings.themeColor || '200 73% 52%';
 
-  const setMode = (mode) => {
+  const setMode = (mode: ThemeMode) => {
     updateSettings({ ...settings, themeMode: mode });
   };
 
-  const setColor = (colorHsl) => {
+  const setColor = (colorHsl: string) => {
     updateSettings({ ...settings, themeColor: colorHsl });
-  };
-
-  // Convert hex to HSL for the custom color picker
-  const handleCustomColor = (e) => {
-    const hex = e.target.value;
-    // Simple RGB to HSL conversion
-    let r = parseInt(hex.substring(1, 3), 16) / 255;
-    let g = parseInt(hex.substring(3, 5), 16) / 255;
-    let b = parseInt(hex.substring(5, 7), 16) / 255;
-    
-    let max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
-
-    if (max === min) {
-      h = s = 0; // achromatic
-    } else {
-      let d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-      }
-      h /= 6;
-    }
-
-    const hValue = Math.round(h * 360);
-    const sValue = Math.round(s * 100);
-    const lValue = Math.round(l * 100);
-    const hslString = `${hValue} ${sValue}% ${lValue}%`;
-    setColor(hslString);
   };
 
   return (
