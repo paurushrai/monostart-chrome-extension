@@ -56,7 +56,7 @@ const AddWidgetModal = ({ open, onClose, onSelect }) => {
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-      <DialogContent className="sm:max-w-2xl bg-background border-border p-0 gap-0">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-2xl bg-background border-border p-0 gap-0">
         <DialogHeader className="px-5 py-4 border-b border-border flex flex-row items-center gap-3 space-y-0">
           {step === 2 && (
             <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2" onClick={() => setStep(1)}>

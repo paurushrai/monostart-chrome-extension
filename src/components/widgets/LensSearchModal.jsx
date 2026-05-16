@@ -52,7 +52,7 @@ const LensSearchModal = ({ open, onClose }) => {
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-xl bg-[#2a2a2e] border-none text-white p-0 gap-0 overflow-hidden shadow-2xl">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-xl bg-[#2a2a2e] border-none text-white p-0 gap-0 overflow-hidden shadow-2xl">
         <DialogHeader className="px-5 py-4 border-none text-center">
           <DialogTitle className="text-base font-medium text-white flex-1 text-center leading-none">
             Search any image with Lens
