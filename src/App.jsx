@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import DashboardGrid from './components/DashboardGrid';
 import AddWidgetModal from './components/AddWidgetModal';
-import { getLinks, saveLinks, saveLink, deleteLink } from './lib/storage';
+import { getLinks, saveLinks, saveLink, deleteLink, getSettings, saveSettings } from './lib/storage';
 import { LayoutGrid, PlusCircle, Edit2, Check, Settings } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
@@ -16,8 +18,11 @@ function App() {
   const [isEditing, setIsEditing] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [originalLinks, setOriginalLinks] = useState([]);
+  const [settings, setSettings] = useState({ openInNewTab: false });
+
   useEffect(() => {
     getLinks().then(setLinks);
+    getSettings().then(setSettings);
   }, []);
 
   const handleLayoutChange = (layout) => {
@@ -132,6 +137,19 @@ function App() {
                   Edit Dashboard
                 </DropdownMenuItem>
               )}
+              
+              <DropdownMenuSeparator />
+              <DropdownMenuCheckboxItem
+                checked={settings.openInNewTab}
+                onSelect={(e) => e.preventDefault()}
+                onCheckedChange={(checked) => {
+                  const newSettings = { ...settings, openInNewTab: checked };
+                  setSettings(newSettings);
+                  saveSettings(newSettings);
+                }}
+              >
+                Open links in new tab
+              </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -146,6 +164,7 @@ function App() {
           onViewModeChange={handleViewModeChange}
           onUpdateLink={handleUpdateLink}
           isEditing={isEditing}
+          openInNewTab={settings.openInNewTab}
         />
       </main>
 

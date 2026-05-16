@@ -9,7 +9,7 @@ import 'react-resizable/css/styles.css';
 
 const ReactGridLayout = WidthProvider(GridLayout);
 
-const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUpdateLink, isEditing }) => {
+const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUpdateLink, isEditing, openInNewTab }) => {
   const getDimensions = () => {
     if (typeof window === 'undefined') return { rowHeight: 60 };
     
@@ -77,6 +77,7 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUp
             onViewModeChange={onViewModeChange}
             onUpdateLink={onUpdateLink}
             isEditing={isEditing}
+            openInNewTab={openInNewTab}
           />
         );
     }
