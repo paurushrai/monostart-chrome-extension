@@ -41,14 +41,14 @@ export const getSettings = async (): Promise<Settings> => {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
     if (raw) return JSON.parse(raw) as Settings;
-  } catch (e) { /* fall through */ }
+  } catch { /* fall through */ }
 
   // One-time migration from chrome.storage for installs that predate the localStorage switch
   if (hasChromeStorage()) {
     return new Promise<Settings>((resolve) => {
       chrome.storage.local.get([SETTINGS_KEY], (result) => {
         const settings = (result[SETTINGS_KEY] as Settings | undefined) ?? DEFAULT_SETTINGS;
-        try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) { /* ignore */ }
+        try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* ignore */ }
         resolve(settings);
       });
     });
@@ -60,7 +60,7 @@ export const getSettings = async (): Promise<Settings> => {
 export const saveSettings = async (settings: Settings): Promise<void> => {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  } catch (e) { /* ignore */ }
+  } catch { /* ignore */ }
 };
 
 // Generic per-widget storage: chrome.storage when available (cross-page sync),
@@ -78,7 +78,7 @@ export const getStoredValue = async <T>(key: string, defaultValue: T): Promise<T
   try {
     const raw = localStorage.getItem(key);
     return raw !== null ? (JSON.parse(raw) as T) : defaultValue;
-  } catch (e) {
+  } catch {
     return defaultValue;
   }
 };
@@ -91,5 +91,5 @@ export const setStoredValue = async <T>(key: string, value: T): Promise<void> =>
   }
   try {
     localStorage.setItem(key, JSON.stringify(value));
-  } catch (e) { /* ignore */ }
+  } catch { /* ignore */ }
 };

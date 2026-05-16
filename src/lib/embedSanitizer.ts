@@ -65,13 +65,13 @@ export const sanitizeEmbed = (html: string | null | undefined): string => {
 export const extractEmbedSrc = (html: string | null | undefined): string => {
   if (!html) return '';
   const match = html.match(/<iframe[^>]*\ssrc=["']([^"']+)["']/i);
-  return match ? match[1] : '';
+  return match?.[1] ?? '';
 };
 
 export const extractEmbedTitle = (html: string | null | undefined): string => {
   if (!html) return '';
   const titleMatch = html.match(/<iframe[^>]*\stitle=["']([^"']+)["']/i);
-  if (titleMatch) return titleMatch[1];
+  if (titleMatch?.[1]) return titleMatch[1];
   const src = extractEmbedSrc(html);
   if (src) {
     try {

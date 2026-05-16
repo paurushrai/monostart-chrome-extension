@@ -112,7 +112,7 @@ const SectionWidget = ({
       const urlObj = new URL(url);
       linkTitle = urlObj.hostname.replace('www.', '');
       favicon = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(url)}&size=128`;
-    } catch (err) {
+    } catch {
       linkTitle = url;
     }
 

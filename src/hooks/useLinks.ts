@@ -179,6 +179,7 @@ export function useLinks(): UseLinks {
 
       const updatedHeaderLinks = [...headerLinks];
       const [draggedLink] = updatedHeaderLinks.splice(draggedIndex, 1);
+      if (!draggedLink) return prevLinks;
       updatedHeaderLinks.splice(targetIndex, 0, draggedLink);
 
       const orderedHeaderLinks = updatedHeaderLinks.map((link, index) => ({

@@ -104,7 +104,7 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Props) => {
                   className="flex h-auto items-start justify-start gap-3 p-4 text-left rounded-lg border-border hover:border-primary hover:bg-secondary transition-all font-normal whitespace-normal"
                 >
                   <div className="flex items-center justify-center w-10 h-10 rounded-md bg-secondary flex-shrink-0">
-                    <Icon size={20} className="text-primary" />
+                    {Icon && <Icon size={20} className="text-primary" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-foreground">

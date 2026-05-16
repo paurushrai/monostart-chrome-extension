@@ -5,5 +5,5 @@
         const mode = settings.themeMode || 'device';
         const isDark = mode === 'dark' || (mode === 'device' && window.matchMedia('(prefers-color-scheme: dark)').matches);
         if (isDark) document.documentElement.classList.add('dark');
-    } catch (e) { }
+    } catch { /* fail silently — fall back to default theme */ }
 })();

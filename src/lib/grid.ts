@@ -47,8 +47,9 @@ export const findFirstFreeSlot = (
     for (let r = y; r < y + oh; r++) {
       if (r >= maxRows) break;
       ensureRow(r);
+      const row = grid[r]!;
       for (let c = x; c < x + ow && c < cols; c++) {
-        if (c >= 0 && r >= 0) grid[r][c] = true;
+        if (c >= 0 && r >= 0) row[c] = true;
       }
     }
   });
@@ -59,8 +60,9 @@ export const findFirstFreeSlot = (
     for (let c = 0; c <= cols - w; c++) {
       let canFit = true;
       for (let i = 0; i < h && canFit; i++) {
+        const row = grid[r + i]!;
         for (let j = 0; j < w; j++) {
-          if (grid[r + i][c + j]) { canFit = false; break; }
+          if (row[c + j]) { canFit = false; break; }
         }
       }
       if (canFit) return { x: c, y: r };

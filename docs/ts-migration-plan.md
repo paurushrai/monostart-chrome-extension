@@ -1,6 +1,6 @@
 # TypeScript Migration Plan
 
-**Status:** Phase 4 complete (Phases 0–4 done). Phase 5 (strictness ratchet) pending.
+**Status:** Migration complete. Phases 0–5 done. Strict TS + typescript-eslint wired in.
 **Owner:** Paurush Rai
 **Last updated:** 2026-05-23
 
@@ -899,12 +899,12 @@ escape hatches added during migration.
 
 ### Verification
 
-- ☐ `npm run typecheck` exits zero
-- ☐ `npm run lint` exits zero (or only with documented exemptions)
-- ☐ `npm test` 39/39 passing
-- ☐ `npm run build`
-- ☐ Extension full smoke test
-- ☐ No `.js`/`.jsx` files remain under `src/`
+- ☒ `npm run typecheck` exits zero
+- ☒ `npm run lint` exits zero (19 advisory warnings from react-hooks v6 React Compiler rules — documented as warnings in eslint.config.js)
+- ☒ `npm test` 39/39 passing
+- ☒ `npm run build`
+- ☐ Extension full smoke test (run manually)
+- ☒ No `.jsx` files remain under `src/`. Only `src/background.js` (Chrome service worker — excluded from tsconfig per plan).
 
 ### Why ratchet at the end
 

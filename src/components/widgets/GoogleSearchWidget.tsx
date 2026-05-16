@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type FormEvent, type MouseEvent } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { Search, X, History } from 'lucide-react';
 import LensSearchModal from './LensSearchModal';
 import VoiceSearchOverlay from './VoiceSearchOverlay';
@@ -212,11 +212,12 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
     r.onresult = (event: SpeechRecognitionResultEvent) => {
       let current = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
-        current += event.results[i][0].transcript;
+        const alt = event.results[i]?.[0];
+        if (alt) current += alt.transcript;
       }
       setVoiceTranscript(current);
 
-      if (event.results[0].isFinal) {
+      if (event.results[0]?.isFinal) {
         setQuery(current);
         setTimeout(() => {
           setVoiceOpen(false);
