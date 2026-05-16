@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type FocusEvent, type KeyboardEvent, type FormEvent } from 'react';
+import type { Layout } from 'react-grid-layout/legacy';
 import { X, Check } from 'lucide-react';
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -7,6 +7,7 @@ import SectionHeader from './section/SectionHeader';
 import SectionInnerGrid from './section/SectionInnerGrid';
 import { useSectionDragOut } from '../../hooks/useSectionDragOut';
 import { findFirstFreeSlot } from '../../lib/grid';
+import type { Section, RegularLink, LinkItem, DragCoords, GridSlot } from '../../types';
 
 const PRESET_COLORS = [
   { name: 'Red', hsl: '346 87% 61%' },
@@ -23,6 +24,27 @@ const PRESET_COLORS = [
   { name: 'Neutral', hsl: '0 0% 50%' },
 ];
 
+interface SectionRef {
+  id: string;
+  title: string;
+}
+
+interface Props {
+  item: Section;
+  onDelete: (id: string) => void;
+  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
+  isEditing: boolean;
+  openInNewTab?: boolean;
+  sections?: SectionRef[];
+  onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  isDraggedOver: boolean;
+  dragCursorCoords: DragCoords | null;
+  onInnerDragStart: (link: RegularLink, sectionId: string) => void;
+  onInnerDrag: (link: RegularLink, sectionId: string, x: number, y: number) => void;
+  onInnerDragStop: (link: RegularLink, sectionId: string, x: number, y: number) => void;
+  draggedItem: LinkItem | null;
+}
+
 const SectionWidget = ({
   item,
   onDelete,
@@ -37,14 +59,14 @@ const SectionWidget = ({
   onInnerDrag,
   onInnerDragStop,
   draggedItem,
-}) => {
+}: Props) => {
   const { title, borderColor = '200 73% 52%', links = [], cols = 3 } = item;
 
   const [isAddingLink, setIsAddingLink] = useState(false);
   const [newUrl, setNewUrl] = useState('');
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const addInputRef = useRef(null);
-  const containerRef = useRef(null);
+  const addInputRef = useRef<HTMLInputElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const dragOut = useSectionDragOut({
     containerRef,
@@ -61,21 +83,21 @@ const SectionWidget = ({
     }
   }, [isAddingLink]);
 
-  const handleTitleBlur = (e) => {
+  const handleTitleBlur = (e: FocusEvent<HTMLSpanElement>) => {
     const newTitle = e.target.innerText.trim();
     if (newTitle && newTitle !== title) {
       onUpdateLink(item.id, { title: newTitle });
     }
   };
 
-  const handleTitleKeyDown = (e) => {
+  const handleTitleKeyDown = (e: KeyboardEvent<HTMLSpanElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      e.target.blur();
+      (e.target as HTMLElement).blur();
     }
   };
 
-  const handleAddLinkSubmit = async (e) => {
+  const handleAddLinkSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!newUrl.trim()) return;
 
@@ -95,7 +117,7 @@ const SectionWidget = ({
     }
 
     const currentCols = cols;
-    const newLinkItem = {
+    const newLinkItem: RegularLink = {
       id: `link-${Date.now()}`,
       type: 'link',
       url,
@@ -112,35 +134,37 @@ const SectionWidget = ({
       w: Math.min(l.w ?? (l.viewMode === 'icon' ? 1 : Math.min(3, currentCols)), currentCols),
       h: l.h ?? 1,
     }));
-    const slot = findFirstFreeSlot(occupied, newLinkItem.w, newLinkItem.h, currentCols);
-    newLinkItem.x = slot.x;
-    newLinkItem.y = slot.y;
+    const slot = findFirstFreeSlot(occupied, newLinkItem.w!, newLinkItem.h!, currentCols);
+    if (slot) {
+      newLinkItem.x = slot.x;
+      newLinkItem.y = slot.y;
+    }
 
     onUpdateLink(item.id, { links: [...links, newLinkItem] });
     setNewUrl('');
     setIsAddingLink(false);
   };
 
-  const handleInnerLayoutChange = (newLayout) => {
+  const handleInnerLayoutChange = (newLayout: Layout) => {
     if (dragOut.isMovingOutRef.current) {
       dragOut.isMovingOutRef.current = false;
       return;
     }
-    const updatedLinks = links.map(l => {
-      const layoutItem = newLayout.find(li => li.i === l.id);
+    const updatedLinks = links.map((l) => {
+      const layoutItem = newLayout.find((li) => li.i === l.id);
       if (!layoutItem) return l;
       return { ...l, x: layoutItem.x, y: layoutItem.y, w: layoutItem.w, h: layoutItem.h };
     });
     onUpdateLink(item.id, { links: updatedLinks });
   };
 
-  const handleInnerDelete = (linkId) => {
-    onUpdateLink(item.id, { links: links.filter(l => l.id !== linkId) });
+  const handleInnerDelete = (linkId: string) => {
+    onUpdateLink(item.id, { links: links.filter((l) => l.id !== linkId) });
   };
 
-  const handleInnerViewModeChange = (linkId, newMode) => {
+  const handleInnerViewModeChange = (linkId: string, newMode: 'icon' | 'icon+text') => {
     const isIconOnly = newMode === 'icon';
-    const updatedLinks = links.map(l => {
+    const updatedLinks = links.map((l) => {
       if (l.id === linkId) {
         return {
           ...l,
@@ -154,12 +178,12 @@ const SectionWidget = ({
     onUpdateLink(item.id, { links: updatedLinks });
   };
 
-  const handleInnerUpdateLink = (linkId, updates) => {
-    const updatedLinks = links.map(l => l.id === linkId ? { ...l, ...updates } : l);
+  const handleInnerUpdateLink = (linkId: string, updates: Partial<RegularLink>) => {
+    const updatedLinks = links.map((l) => (l.id === linkId ? { ...l, ...updates } : l));
     onUpdateLink(item.id, { links: updatedLinks });
   };
 
-  const handleUpdateCols = (newCols) => {
+  const handleUpdateCols = (newCols: number) => {
     // Clamp any link layouts that exceed the new columns count
     const updatedLinks = links.map(l => {
       const defaultW = l.viewMode === 'icon' ? 1 : Math.min(3, newCols);

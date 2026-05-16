@@ -1,21 +1,58 @@
-/* eslint-disable react/prop-types */
+import type { RefObject, MouseEvent as ReactMouseEvent } from 'react';
 import GridLayout, { WidthProvider } from 'react-grid-layout/legacy';
+import type { Layout } from 'react-grid-layout/legacy';
 import { Folder } from 'lucide-react';
 import LinkCard from '../../LinkCard';
 import { Button } from "../../ui/button";
 import { findFirstFreeSlot } from '../../../lib/grid';
+import type { RegularLink, DragPlaceholder, DragCoords, LinkItem, GridSlot } from '../../../types';
+import type { UseSectionDragOut } from '../../../hooks/useSectionDragOut';
 
 const ReactGridLayout = WidthProvider(GridLayout);
 
+interface SectionRef {
+  id: string;
+  title: string;
+}
+
+interface Props {
+  sectionId: string;
+  cols: number;
+  isEditing: boolean;
+  links: RegularLink[];
+  isDraggedOver: boolean;
+  draggedItem: LinkItem | null;
+  dragCursorCoords: DragCoords | null;
+  openInNewTab?: boolean;
+  sections?: SectionRef[];
+  onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  borderCssColor: string;
+  textCssColor: string;
+  containerRef: RefObject<HTMLDivElement | null>;
+  onInnerLayoutChange: (newLayout: Layout) => void;
+  onRglDragStart: UseSectionDragOut['handleRglDragStart'];
+  onRglDrag: UseSectionDragOut['handleRglDrag'];
+  onRglDragStop: UseSectionDragOut['handleRglDragStop'];
+  onInnerDelete: (id: string) => void;
+  onInnerViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
+  onInnerUpdateLink: (id: string, updates: Partial<RegularLink>) => void;
+  onAddFirstLink: () => void;
+}
+
 /** Slot for the drop-placeholder. Default item w=1 here (small placeholder). */
-const findPlaceholderSlot = (links, cols, itemW, itemH) => {
+const findPlaceholderSlot = (
+  links: readonly RegularLink[],
+  cols: number,
+  itemW: number,
+  itemH: number,
+): GridSlot => {
   const occupied = links.map((l) => ({
     x: l.x ?? 0,
     y: l.y ?? 0,
     w: Math.min(l.w ?? 1, cols),
     h: l.h ?? 1,
   }));
-  return findFirstFreeSlot(occupied, itemW, itemH, cols);
+  return findFirstFreeSlot(occupied, itemW, itemH, cols) as GridSlot;
 };
 
 export default function SectionInnerGrid({
@@ -40,9 +77,13 @@ export default function SectionInnerGrid({
   onInnerViewModeChange,
   onInnerUpdateLink,
   onAddFirstLink,
-}) {
-  // Compute displayLinks (real links + optional drop-placeholder while dragging-over)
-  const displayLinks = [...links];
+}: Props) {
+  // displayLinks holds real RegularLinks; the drop-placeholder is tracked
+  // separately to avoid mixing it into the RegularLink array (it would fail
+  // type narrowing as a Section sub-link).
+  type RowItem = RegularLink | DragPlaceholder;
+  const displayLinks: RowItem[] = [...links];
+
   if (isDraggedOver) {
     const draggedW = draggedItem?.w ?? (draggedItem?.viewMode === 'icon' ? 1 : 3);
     const w = Math.min(draggedW, cols);
@@ -71,7 +112,7 @@ export default function SectionInnerGrid({
       placeholderY = y;
     }
 
-    displayLinks.push({
+    const placeholder: DragPlaceholder = {
       id: 'drag-placeholder',
       type: 'link',
       title: 'Drop to Add',
@@ -80,11 +121,12 @@ export default function SectionInnerGrid({
       h,
       x: placeholderX,
       y: placeholderY,
-      viewMode: w === 1 ? 'icon' : 'card'
-    });
+      viewMode: w === 1 ? 'icon' : 'card',
+    };
+    displayLinks.push(placeholder);
   }
 
-  const layout = displayLinks.map(l => {
+  const layout = displayLinks.map((l) => {
     const defaultW = l.viewMode === 'icon' ? 1 : Math.min(3, cols);
     const w = Math.min(l.w ?? defaultW, cols);
     return {
@@ -97,11 +139,11 @@ export default function SectionInnerGrid({
       maxW: cols,
       minH: 1,
       maxH: 2,
-      isResizable: l.id !== 'drag-placeholder'
+      isResizable: l.id !== 'drag-placeholder',
     };
   });
 
-  const handleBodyMouseDown = (e) => {
+  const handleBodyMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (!isEditing) return;
 
     // If clicked on the scrollbar track, stop propagation
@@ -114,19 +156,23 @@ export default function SectionInnerGrid({
 
     // Only treat as "inner card" if the matched .rounded-card is inside THIS section body.
     // (The section itself is wrapped in .rounded-card by DashboardGrid.)
-    const closestCard = e.target.closest('.rounded-card');
+    const target = e.target as Element;
+    const closestCard = target.closest('.rounded-card');
     const isInnerCard = closestCard && containerRef.current?.contains(closestCard);
 
-    const isCardOrInteractive = isInnerCard ||
-                               e.target.closest('button') ||
-                               e.target.closest('form') ||
-                               e.target.closest('input') ||
-                               e.target.closest('[role="menuitem"]') ||
-                               e.target.closest('[role="menu"]');
+    const isCardOrInteractive =
+      isInnerCard ||
+      target.closest('button') ||
+      target.closest('form') ||
+      target.closest('input') ||
+      target.closest('[role="menuitem"]') ||
+      target.closest('[role="menu"]');
     if (isCardOrInteractive) {
       e.stopPropagation();
     }
   };
+
+  const isPlaceholder = (it: RowItem): it is DragPlaceholder => it.id === 'drag-placeholder';
 
   return (
     <div
@@ -168,7 +214,7 @@ export default function SectionInnerGrid({
         >
           {displayLinks.map((subItem) => (
             <div key={subItem.id} className="rounded-card">
-              {subItem.id === 'drag-placeholder' ? (
+              {isPlaceholder(subItem) ? (
                 <div
                   className="w-full h-full rounded-lg border-2 border-dashed flex items-center justify-center bg-primary/5 transition-all duration-300 animate-pulse px-3 text-center select-none"
                   style={{ borderColor: borderCssColor }}

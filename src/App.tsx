@@ -9,6 +9,12 @@ import { useLinks } from './hooks/useLinks';
 import { useTheme } from './hooks/useTheme';
 import { useHeaderDrag } from './hooks/useHeaderDrag';
 import { useToast } from './hooks/useToast';
+import type { LinkItem, Section } from './types';
+
+interface AddWidgetInput {
+  type: LinkItem['type'];
+  defaults?: Partial<LinkItem>;
+}
 
 function App() {
   const {
@@ -28,7 +34,7 @@ function App() {
   const { toast, showToast, dismissToast } = useToast();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [originalLinks, setOriginalLinks] = useState([]);
+  const [originalLinks, setOriginalLinks] = useState<LinkItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
   const [addLinkModalOpen, setAddLinkModalOpen] = useState(false);
@@ -47,7 +53,7 @@ function App() {
     setIsEditing(false);
   }, [originalLinks, replaceLinks]);
 
-  const handleAddWidget = useCallback(async (widget) => {
+  const handleAddWidget = useCallback(async (widget: AddWidgetInput) => {
     const saved = await addWidget(widget);
     if (!saved) {
       showToast('No room for this widget. Resize or remove something to make space.');
@@ -55,8 +61,8 @@ function App() {
   }, [addWidget, showToast]);
 
   const sections = links
-    .filter(l => l.type === 'section')
-    .map(s => ({ id: s.id, title: s.title }));
+    .filter((l): l is Section => l.type === 'section')
+    .map((s) => ({ id: s.id, title: s.title }));
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-background transition-colors duration-200">
@@ -79,7 +85,7 @@ function App() {
 
       <main className="flex-1 p-2">
         <DashboardGrid
-          links={links.filter(l => !l.isHeaderLink)}
+          links={links.filter((l) => !l.isHeaderLink)}
           onLayoutChange={handleLayoutChange}
           onDelete={handleDelete}
           onViewModeChange={handleViewModeChange}

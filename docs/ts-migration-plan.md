@@ -1,8 +1,8 @@
 # TypeScript Migration Plan
 
-**Status:** Not started
-**Owner:** —
-**Last updated:** 2026-05-22
+**Status:** Phase 4 complete (Phases 0–4 done). Phase 5 (strictness ratchet) pending.
+**Owner:** Paurush Rai
+**Last updated:** 2026-05-23
 
 A phased, low-risk migration from JS/JSX to TS/TSX. Each phase is independently
 shippable: the codebase compiles, all tests pass, and the extension works at the
@@ -813,8 +813,8 @@ mismatched and the extension will show a blank page on reload.
 
 ### Verification
 
-- ☐ `npm run typecheck` exits zero
-- ☐ `npm run build`
+- ☒ `npm run typecheck` exits zero
+- ☒ `npm run build`
 - ☐ Extension full smoke test (the checklist from previous sessions)
 
 ### Risk + rollback

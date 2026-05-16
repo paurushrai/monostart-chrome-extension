@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import LinkCard from './LinkCard';
 import IframeWidget from './IframeWidget';
 import GoogleSearchWidget from './widgets/GoogleSearchWidget';
@@ -9,6 +8,47 @@ import NoteWidget from './widgets/NoteWidget';
 import ImageWidget from './widgets/ImageWidget';
 import LabelWidget from './widgets/LabelWidget';
 import { WidgetType } from '../lib/widgetCatalog';
+import type {
+  DisplayItem,
+  DragPlaceholder,
+  LinkItem,
+  RegularLink,
+  Section,
+  Iframe,
+  TodoWidget as TodoWidgetItem,
+  TimerWidget as TimerWidgetItem,
+  Note,
+  ImageWidget as ImageWidgetItem,
+  Label,
+  GoogleSearch,
+  DragCoords,
+  GridSlot,
+} from '../types';
+
+interface SectionRef {
+  id: string;
+  title: string;
+}
+
+interface Props {
+  item: DisplayItem;
+  isEditing: boolean;
+  openInNewTab?: boolean;
+  sections?: SectionRef[];
+  onDelete: (id: string) => void;
+  onViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
+  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
+  onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  activeDragSectionId: string | null;
+  dragCursorCoords: DragCoords | null;
+  draggedItem: LinkItem | null;
+  onInnerDragStart: (link: RegularLink, sectionId: string) => void;
+  onInnerDrag: (link: RegularLink, sectionId: string, x: number, y: number) => void;
+  onInnerDragStop: (link: RegularLink, sectionId: string, x: number, y: number) => void;
+}
+
+const isPlaceholder = (item: DisplayItem): item is DragPlaceholder =>
+  item.id === 'drag-out-placeholder' || item.id === 'drag-placeholder';
 
 /**
  * Renders the appropriate widget for a top-level grid item. Section widgets
@@ -29,8 +69,8 @@ export default function WidgetRenderer({
   onInnerDragStart,
   onInnerDrag,
   onInnerDragStop,
-}) {
-  if (item.id === 'drag-out-placeholder') {
+}: Props) {
+  if (isPlaceholder(item)) {
     return (
       <div className="w-full h-full rounded-lg border-2 border-dashed flex items-center justify-center bg-primary/5 transition-all duration-300 animate-pulse border-primary px-3 text-center select-none">
         <span className="text-2xs font-semibold text-primary block w-full text-center">
@@ -40,32 +80,34 @@ export default function WidgetRenderer({
     );
   }
 
-  switch (item.type) {
+  const linkItem = item as LinkItem;
+
+  switch (linkItem.type) {
     case WidgetType.GOOGLE_SEARCH:
-      return <GoogleSearchWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
+      return <GoogleSearchWidget item={linkItem as GoogleSearch} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.IFRAME:
-      return <IframeWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
+      return <IframeWidget item={linkItem as Iframe} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.TODO:
-      return <TodoWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
+      return <TodoWidget item={linkItem as TodoWidgetItem} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.TIMER:
-      return <TimerWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
+      return <TimerWidget item={linkItem as TimerWidgetItem} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.NOTE:
-      return <NoteWidget item={item} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
+      return <NoteWidget item={linkItem as Note} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
     case WidgetType.IMAGE:
-      return <ImageWidget item={item} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
+      return <ImageWidget item={linkItem as ImageWidgetItem} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
     case WidgetType.LABEL:
-      return <LabelWidget item={item} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
+      return <LabelWidget item={linkItem as Label} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
     case WidgetType.SECTION:
       return (
         <SectionWidget
-          item={item}
+          item={linkItem as Section}
           onDelete={onDelete}
           onUpdateLink={onUpdateLink}
           isEditing={isEditing}
           openInNewTab={openInNewTab}
           sections={sections}
           onMoveLink={onMoveLink}
-          isDraggedOver={activeDragSectionId === item.id}
+          isDraggedOver={activeDragSectionId === linkItem.id}
           dragCursorCoords={dragCursorCoords}
           onInnerDragStart={onInnerDragStart}
           onInnerDrag={onInnerDrag}
@@ -73,10 +115,11 @@ export default function WidgetRenderer({
           draggedItem={draggedItem}
         />
       );
+    case WidgetType.LINK:
     default:
       return (
         <LinkCard
-          item={item}
+          item={linkItem as RegularLink}
           onDelete={onDelete}
           onViewModeChange={onViewModeChange}
           onUpdateLink={onUpdateLink}

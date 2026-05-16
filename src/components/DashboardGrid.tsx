@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
 import GridLayout, { WidthProvider } from 'react-grid-layout/legacy';
+import type { Layout } from 'react-grid-layout/legacy';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import WidgetRenderer from './WidgetRenderer';
@@ -7,14 +7,33 @@ import { useGridDimensions } from '../hooks/useGridDimensions';
 import { useDashboardDrag } from '../hooks/useDashboardDrag';
 import { MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import { getWidgetMeta, WidgetType } from '../lib/widgetCatalog';
+import type { WidgetMeta } from '../lib/widgetCatalog';
+import type { LinkItem, DisplayItem, DragPlaceholder, GridSlot } from '../types';
 
 const ReactGridLayout = WidthProvider(GridLayout);
 
 const PLACEHOLDER_ID = 'drag-out-placeholder';
 
+interface SectionRef {
+  id: string;
+  title: string;
+}
+
+interface Props {
+  links: LinkItem[];
+  onLayoutChange: (layout: Layout) => void;
+  onDelete: (id: string) => void;
+  onViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
+  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
+  isEditing: boolean;
+  openInNewTab?: boolean;
+  sections?: SectionRef[];
+  onMoveLink: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+}
+
 // Initial w/h for an item: prefer persisted value, fall back to catalog defaults,
 // with the historical link-specific viewMode rule preserved.
-const initialSize = (link, meta) => {
+const initialSize = (link: DisplayItem, meta: WidgetMeta | undefined): { w: number; h: number } => {
   if (link.type === WidgetType.LINK) {
     return {
       w: link.w ?? (link.viewMode === 'icon' ? 1 : 3),
@@ -27,24 +46,25 @@ const initialSize = (link, meta) => {
   };
 };
 
-const buildLayout = (displayLinks) => displayLinks.map(link => {
-  const isPlaceholder = link.id === PLACEHOLDER_ID;
-  const meta = getWidgetMeta(link.type);
-  const { minW, maxW, minH, maxH, resizable } = meta?.layout ?? {};
-  const { w, h } = initialSize(link, meta);
-  return {
-    i:    link.id,
-    x:    link.x ?? 0,
-    y:    link.y ?? 0,
-    w,
-    h,
-    minW,
-    maxW,
-    minH,
-    maxH,
-    isResizable: isPlaceholder ? false : (resizable === false ? false : undefined),
-  };
-});
+const buildLayout = (displayLinks: DisplayItem[]): Layout =>
+  displayLinks.map((link) => {
+    const isPlaceholder = link.id === PLACEHOLDER_ID;
+    const meta = getWidgetMeta(link.type);
+    const { minW, maxW, minH, maxH, resizable } = meta?.layout ?? {};
+    const { w, h } = initialSize(link, meta);
+    return {
+      i: link.id,
+      x: link.x ?? 0,
+      y: link.y ?? 0,
+      w,
+      h,
+      minW,
+      maxW,
+      minH,
+      maxH,
+      isResizable: isPlaceholder ? false : (resizable === false ? false : undefined),
+    };
+  });
 
 const DashboardGrid = ({
   links,
@@ -56,16 +76,16 @@ const DashboardGrid = ({
   openInNewTab,
   sections = [],
   onMoveLink,
-}) => {
+}: Props) => {
   const { rowHeight } = useGridDimensions();
   const drag = useDashboardDrag({ links, rowHeight, onMoveLink });
 
   // Add a transient drag-out placeholder while a link is being dragged out of a section
-  const displayLinks = [...links];
+  const displayLinks: DisplayItem[] = [...links];
   if (drag.activeDragOutItem && drag.dragOutCoords) {
     const w = drag.activeDragOutItem.w ?? (drag.activeDragOutItem.viewMode === 'icon' ? 1 : 3);
     const h = drag.activeDragOutItem.h ?? 1;
-    displayLinks.push({
+    const placeholder: DragPlaceholder = {
       id: 'drag-out-placeholder',
       type: 'link',
       title: 'Drop to Place',
@@ -74,7 +94,8 @@ const DashboardGrid = ({
       h,
       x: drag.dragOutCoords.x,
       y: drag.dragOutCoords.y,
-    });
+    };
+    displayLinks.push(placeholder);
   }
 
   const layout = buildLayout(displayLinks);

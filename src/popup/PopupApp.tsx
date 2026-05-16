@@ -1,11 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getSettings } from '../lib/storage';
 import { saveLink } from '../lib/linkRepository';
 import { BookmarkPlus, Check, ExternalLink } from 'lucide-react';
+import type { Settings } from '../types';
+
+interface TabInfo {
+  url: string;
+  title: string;
+  favicon: string;
+}
 
 function PopupApp() {
   const [saved, setSaved] = useState(false);
-  const [tabInfo, setTabInfo] = useState(null);
+  const [tabInfo, setTabInfo] = useState<TabInfo | null>(null);
   const [canSave, setCanSave] = useState(false);
 
   useEffect(() => {
@@ -13,14 +20,14 @@ function PopupApp() {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const tab = tabs[0];
         if (tab) {
-          setTabInfo({ url: tab.url, title: tab.title, favicon: tab.favIconUrl || '' });
+          setTabInfo({ url: tab.url ?? '', title: tab.title ?? '', favicon: tab.favIconUrl || '' });
         }
       });
     } else {
       setTabInfo({ url: 'https://www.google.com', title: 'Example Site', favicon: '' });
     }
 
-    getSettings().then((settings) => {
+    getSettings().then((settings: Settings) => {
       if (!settings) return;
       if (settings.themeColor) {
         document.documentElement.style.setProperty('--primary', settings.themeColor);
@@ -39,7 +46,7 @@ function PopupApp() {
           }
         }
       }
-      const applyMode = (mode) => {
+      const applyMode = (mode: Settings['themeMode']) => {
         const isDark = mode === 'dark' || (mode === 'device' && window.matchMedia('(prefers-color-scheme: dark)').matches);
         if (isDark) {
           document.documentElement.classList.add('dark');

@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+import type { FocusEvent, KeyboardEvent } from 'react';
 import { Plus, Trash2, Palette, Folder, Check, MoreVertical, LayoutGrid } from 'lucide-react';
 import { Button } from "../../ui/button";
 import {
@@ -15,6 +15,22 @@ import {
 
 const COLUMN_OPTIONS = [1, 2, 3, 4, 5, 6];
 
+interface Props {
+  title: string;
+  count: number;
+  cols: number;
+  isEditing: boolean;
+  borderMutedCssColor: string;
+  borderCssColor: string;
+  textCssColor: string;
+  onTitleBlur: (e: FocusEvent<HTMLSpanElement>) => void;
+  onTitleKeyDown: (e: KeyboardEvent<HTMLSpanElement>) => void;
+  onAddLink: () => void;
+  onTogglePalette: () => void;
+  onUpdateCols: (num: number) => void;
+  onDelete: () => void;
+}
+
 export default function SectionHeader({
   title,
   count,
@@ -29,7 +45,7 @@ export default function SectionHeader({
   onTogglePalette,
   onUpdateCols,
   onDelete,
-}) {
+}: Props) {
   return (
     <div
       className={`flex items-center justify-between px-2 py-1 border-b bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-[10px] transition-all duration-300 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
