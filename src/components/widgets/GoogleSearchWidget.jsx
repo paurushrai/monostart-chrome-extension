@@ -1,28 +1,39 @@
 import React, { useState } from 'react';
-import { Search, X, Mic } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import LensSearchModal from './LensSearchModal';
 
-const LensIcon = ({ size = 18 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="none">
-    <path
-      d="M 7.5 4.2 A 8 8 0 0 1 16.5 4.2"
-      stroke="#EA4335"
-      strokeWidth="2.4"
-      strokeLinecap="round"
+const LensIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path 
+      d="M4 11.5V8C4 5.79086 5.79086 4 8 4H9.5L11 2H14.5L16 4H17" 
+      stroke="#4285F4" 
+      strokeWidth="2.5" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
     />
-    <path
-      d="M 19.8 7.5 A 8 8 0 0 1 19.8 16.5"
-      stroke="#FBBC05"
-      strokeWidth="2.4"
-      strokeLinecap="round"
+    <path 
+      d="M17.5 4C19.9853 4 22 6.01472 22 8.5V12.5" 
+      stroke="#FBBC05" 
+      strokeWidth="2.5" 
+      strokeLinecap="round" 
     />
-    <path
-      d="M 16.5 19.8 A 8 8 0 0 1 10 20"
-      stroke="#34A853"
-      strokeWidth="2.4"
-      strokeLinecap="round"
+    <path 
+      d="M4 14.5V16C4 18.2091 5.79086 20 8 20H13" 
+      stroke="#EA4335" 
+      strokeWidth="2.5" 
+      strokeLinecap="round" 
     />
-    <circle cx="6.5" cy="17.5" r="3" fill="#4285F4" />
+    <circle cx="12.5" cy="12.5" r="3.5" fill="#4285F4" />
+    <circle cx="18.5" cy="18.5" r="2.2" fill="#34A853" />
+  </svg>
+);
+
+const GoogleMicIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path fill="#4285F4" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+    <path fill="#34A853" d="M11 18.92h2V22h-2z"/>
+    <path fill="#FBBC05" d="M7 11H5c0 1.93.78 3.68 2.05 4.95l1.41-1.41C7.56 13.63 7 12.38 7 11z"/>
+    <path fill="#EA4335" d="M12 17c-1.38 0-2.63-.56-3.54-1.47l-1.41 1.41A6.99 6.99 0 0 0 12 19.08c3.86 0 7-3.14 7-7h-2c0 2.76-2.24 5-5 5z"/>
   </svg>
 );
 
@@ -92,7 +103,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
           className="p-1 flex-shrink-0"
           tabIndex={-1}
         >
-          <Mic size={18} color="#4285F4" />
+          <GoogleMicIcon size={20} />
         </button>
         <button
           type="button"

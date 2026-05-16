@@ -18,7 +18,9 @@
       "Bash(brew list *)",
       "Bash(DYLD_LIBRARY_PATH=/opt/homebrew/opt/curl/lib rtk git push -u origin main)",
       "Bash(scutil --nc list)",
-      "Bash(scutil --proxy)"
+      "Bash(scutil --proxy)",
+      "Bash(rtk find *)",
+      "Bash(rtk npm *)"
     ]
   }
 }
