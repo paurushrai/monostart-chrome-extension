@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DashboardGrid from './components/DashboardGrid';
 import AddWidgetModal from './components/AddWidgetModal';
+import ThemeSettingsModal from './components/ThemeSettingsModal';
 import { getLinks, saveLinks, saveLink, deleteLink, getSettings, saveSettings } from './lib/storage';
 import { Hexagon, PlusCircle, Edit2, Check, Settings } from 'lucide-react';
 import {
@@ -17,13 +18,49 @@ function App() {
   const [links, setLinks] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [themeModalOpen, setThemeModalOpen] = useState(false);
   const [originalLinks, setOriginalLinks] = useState([]);
-  const [settings, setSettings] = useState({ openInNewTab: false });
+  const [settings, setSettings] = useState({ openInNewTab: false, themeMode: 'device', themeColor: '200 73% 52%' });
 
   useEffect(() => {
     getLinks().then(setLinks);
-    getSettings().then(setSettings);
+    getSettings().then((s) => setSettings({ openInNewTab: false, themeMode: 'device', themeColor: '200 73% 52%', ...s }));
   }, []);
+
+  // Theme Applier
+  useEffect(() => {
+    if (!settings) return;
+
+    // Apply color
+    if (settings.themeColor) {
+      document.documentElement.style.setProperty('--primary', settings.themeColor);
+      document.documentElement.style.setProperty('--ring', settings.themeColor);
+    } else {
+      document.documentElement.style.removeProperty('--primary');
+      document.documentElement.style.removeProperty('--ring');
+    }
+
+    // Apply dark mode
+    const applyMode = (mode) => {
+      const isDark = mode === 'dark' || (mode === 'device' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    applyMode(settings.themeMode || 'device');
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      if (settings.themeMode === 'device' || !settings.themeMode) {
+        applyMode('device');
+      }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [settings.themeMode, settings.themeColor]);
 
   const handleLayoutChange = (layout) => {
     const updatedLinks = links.map(link => {
@@ -165,6 +202,15 @@ function App() {
               )}
               
               <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setThemeModalOpen(true)}
+              >
+                <div className="flex items-center">
+                  <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: 'hsl(var(--primary))' }} />
+                  Theme & Appearance
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem
                 checked={settings.openInNewTab}
                 onSelect={(e) => e.preventDefault()}
@@ -213,6 +259,16 @@ function App() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSelect={handleAddWidget}
+      />
+
+      <ThemeSettingsModal 
+        open={themeModalOpen}
+        onOpenChange={setThemeModalOpen}
+        settings={settings}
+        updateSettings={(newSettings) => {
+          setSettings(newSettings);
+          saveSettings(newSettings);
+        }}
       />
     </div>
   );

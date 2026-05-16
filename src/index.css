@@ -4,50 +4,50 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 42 8% 21%;
-    --card: 0 0% 100%;
-    --card-foreground: 42 8% 21%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 42 8% 21%;
+    /* Light Mode */
+    --background: 220 14% 94%; /* Level 0: Deepest background */
+    --foreground: 222 47% 11%;
+    --muted: 220 14% 95%;      /* Level 0.5: Inset areas, tracks */
+    --muted-foreground: 215 16% 47%;
+    --card: 220 14% 97%;       /* Level 1: Standard cards */
+    --card-foreground: 222 47% 11%;
+    --secondary: 0 0% 100%;    /* Level 2: Raised items on cards */
+    --secondary-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;      /* Level 2: Floating popovers */
+    --popover-foreground: 222 47% 11%;
+    --accent: 0 0% 100%;
+    --accent-foreground: 222 47% 11%;
     --primary: 200 73% 52%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 42 8% 96%;
-    --secondary-foreground: 42 8% 21%;
-    --muted: 42 8% 96%;
-    --muted-foreground: 42 8% 40%;
-    --accent: 42 8% 96%;
-    --accent-foreground: 42 8% 21%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 42 8% 90%;
-    --input: 42 8% 90%;
+    --border: 214 32% 88%;
+    --input: 214 32% 88%;
     --ring: 200 73% 52%;
     --radius: 0.75rem;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --background: 225 6% 13%;
-      --foreground: 0 0% 100%;
-      --card: 0 0% 13%;
-      --card-foreground: 0 0% 100%;
-      --popover: 0 0% 13%;
-      --popover-foreground: 0 0% 100%;
-      --primary: 200 73% 52%;
-      --primary-foreground: 0 0% 100%;
-      --secondary: 0 0% 18%;
-      --secondary-foreground: 0 0% 100%;
-      --muted: 0 0% 18%;
-      --muted-foreground: 0 0% 65%;
-      --accent: 0 0% 18%;
-      --accent-foreground: 0 0% 100%;
-      --destructive: 0 84% 60%;
-      --destructive-foreground: 0 0% 100%;
-      --border: 0 0% 25%;
-      --input: 0 0% 25%;
-      --ring: 200 73% 52%;
-    }
+  .dark {
+    /* Dark Mode */
+    --background: 240 10% 4%;  /* Level 0: Deepest background */
+    --foreground: 0 0% 98%;
+    --muted: 240 5% 7%;        /* Level 0.5: Inset areas, tracks */
+    --muted-foreground: 240 5% 65%;
+    --card: 240 5% 10%;        /* Level 1: Standard cards */
+    --card-foreground: 0 0% 98%;
+    --secondary: 240 5% 15%;   /* Level 2: Raised items on cards */
+    --secondary-foreground: 0 0% 98%;
+    --popover: 240 5% 15%;     /* Level 2: Floating popovers */
+    --popover-foreground: 0 0% 98%;
+    --accent: 240 5% 15%;
+    --accent-foreground: 0 0% 98%;
+    --primary: 200 73% 52%;
+    --primary-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 5% 20%;
+    --input: 240 5% 20%;
+    --ring: 200 73% 52%;
   }
 }
 
