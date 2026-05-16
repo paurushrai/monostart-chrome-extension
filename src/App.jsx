@@ -25,6 +25,17 @@ function App() {
   useEffect(() => {
     getLinks().then(setLinks);
     getSettings().then((s) => setSettings({ openInNewTab: false, themeMode: 'device', themeColor: '200 73% 52%', ...s }));
+    
+    // Auto-sync across extension components (popup -> tab)
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      const listener = (changes, area) => {
+        if (area === 'local' && changes.dashboardLinks) {
+          setLinks(changes.dashboardLinks.newValue || []);
+        }
+      };
+      chrome.storage.onChanged.addListener(listener);
+      return () => chrome.storage.onChanged.removeListener(listener);
+    }
   }, []);
 
   // Theme Applier
@@ -101,18 +112,6 @@ function App() {
   };
 
   const handleAddWidget = async (widget) => {
-    const maxY = links.reduce((max, link) => {
-      if (link.y !== undefined && link.y !== null) {
-        return Math.max(max, link.y + (link.h || 1));
-      }
-      return max;
-    }, 0);
-
-    const widgetHeight = widget.defaults?.h || 1;
-    if (maxY + widgetHeight > 12) {
-      alert("No space left! Please remove or resize some widgets first.");
-      return;
-    }
 
     const saved = await saveLink({
       type: widget.type,
