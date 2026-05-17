@@ -139,7 +139,10 @@ export default function SectionInnerGrid({
       maxW: cols,
       minH: 1,
       maxH: 2,
-      isResizable: l.id !== 'drag-placeholder',
+      // Per-item `true` would override the grid-level `isResizable={isEditing}`
+      // and surface the corner grip in view mode. Force-disable only the
+      // placeholder; leave real items to inherit from the grid.
+      isResizable: l.id === 'drag-placeholder' ? false : undefined,
     };
   });
 
