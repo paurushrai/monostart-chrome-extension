@@ -75,6 +75,7 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUp
         rowHeight={dims.rowHeight}
       margin={[16, 16]}
       compactType={null}
+      preventCollision={true}
       isDraggable={isEditing}
       isResizable={isEditing}
       draggableHandle=".drag-handle"
