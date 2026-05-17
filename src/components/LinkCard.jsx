@@ -52,15 +52,15 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing, o
   };
 
   return (
-    <div className="group card-base relative w-full h-full overflow-hidden">
+    <div className={`group card-base relative w-full h-full ${!isEditing ? 'overflow-hidden' : ''}`}>
 
       {/* Action buttons */}
       {isEditing && (
-        <div className="absolute top-2 right-2 flex gap-1 z-20">
-          <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); nextViewMode(); }} title="Toggle view mode" className="h-6 w-6 rounded-full bg-background/70 backdrop-blur-md shadow-sm border border-border">
+        <div className="absolute -top-3 -right-3 flex gap-1 z-50">
+          <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); nextViewMode(); }} title="Toggle view mode" className="h-6 w-6 rounded-full bg-background shadow-md border border-border hover:bg-secondary">
             <Settings2 size={12} />
           </Button>
-          <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); onDelete(item.id); }} title="Remove" className="h-6 w-6 rounded-full bg-background/70 backdrop-blur-md shadow-sm border border-border hover:text-red-500 hover:border-red-500">
+          <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); onDelete(item.id); }} title="Remove" className="h-6 w-6 rounded-full bg-background shadow-md border border-border hover:bg-secondary hover:text-red-500 hover:border-red-500">
             <X size={12} />
           </Button>
         </div>
@@ -124,7 +124,7 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing, o
         )}
 
         {/* Glassmorphism Hover Overlay for Icon Only Mode */}
-        {isIconOnly && (
+        {isIconOnly && !isEditing && (
           <div className="absolute inset-0 bg-background/70 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center p-2 z-10 pointer-events-none">
             <span className="text-2xs font-semibold text-foreground text-center truncate w-full drop-shadow-sm">
               {siteName}
