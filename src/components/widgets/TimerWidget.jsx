@@ -1,0 +1,208 @@
+import React, { useState, useEffect } from 'react';
+import { Clock, Plus, Trash2, X, Play, Pause, RotateCcw } from 'lucide-react';
+
+// Format milliseconds to MM:SS
+const formatTime = (ms) => {
+  if (ms <= 0) return "00:00";
+  const totalSeconds = Math.floor(ms / 1000);
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+};
+
+const TimerItem = ({ timer, onUpdate, onDelete }) => {
+  const [timeLeft, setTimeLeft] = useState(timer.remainingMs);
+
+  useEffect(() => {
+    let interval;
+    if (timer.isRunning) {
+      interval = setInterval(() => {
+        const now = Date.now();
+        const remaining = timer.endTime - now;
+        if (remaining <= 0) {
+          clearInterval(interval);
+          setTimeLeft(0);
+          onUpdate(timer.id, { isRunning: false, remainingMs: 0, endTime: null });
+          // Play a sound or notify when done
+          try {
+            new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(e => console.log(e));
+          } catch(e){}
+        } else {
+          setTimeLeft(remaining);
+        }
+      }, 100);
+    } else {
+      setTimeLeft(timer.remainingMs);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const handleStart = () => {
+    if (timeLeft <= 0) return;
+    onUpdate(timer.id, { 
+      isRunning: true, 
+      endTime: Date.now() + timeLeft 
+    });
+  };
+
+  const handlePause = () => {
+    onUpdate(timer.id, { 
+      isRunning: false, 
+      remainingMs: timeLeft,
+      endTime: null 
+    });
+  };
+
+  const handleReset = () => {
+    onUpdate(timer.id, { 
+      isRunning: false, 
+      remainingMs: timer.durationMs,
+      endTime: null 
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-1 p-2 bg-gray-50 dark:bg-white/5 rounded-md relative group">
+      <div className="flex justify-between items-center">
+        <span className="text-xs font-medium text-muted-foreground">{timer.label}</span>
+        <button onClick={() => onDelete(timer.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 transition-opacity">
+          <X size={12} />
+        </button>
+      </div>
+      <div className="flex items-center justify-between">
+        <span className={`text-2xl font-mono font-semibold tracking-tight ${timeLeft === 0 ? 'text-red-500 animate-pulse' : 'text-foreground'}`}>
+          {formatTime(timeLeft)}
+        </span>
+        <div className="flex items-center gap-1">
+          {timer.isRunning ? (
+            <button onClick={handlePause} className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20"><Pause size={14} /></button>
+          ) : (
+            <button onClick={handleStart} className="p-1.5 rounded-full bg-primary text-white hover:bg-primary/90"><Play size={14} className="ml-0.5" /></button>
+          )}
+          <button onClick={handleReset} className="p-1.5 rounded-full bg-gray-200 dark:bg-white/10 text-foreground hover:bg-gray-300 dark:hover:bg-white/20"><RotateCcw size={14} /></button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TimerWidget = ({ item, onDelete, isEditing }) => {
+  const [timers, setTimers] = useState([]);
+  const [newMinutes, setNewMinutes] = useState("");
+  const [newLabel, setNewLabel] = useState("");
+  const storageKey = `timer-widget-${item.id}`;
+
+  useEffect(() => {
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.get([storageKey], (result) => {
+        setTimers(result[storageKey] || []);
+      });
+    } else {
+      const data = localStorage.getItem(storageKey);
+      setTimers(data ? JSON.parse(data) : []);
+    }
+  }, [storageKey]);
+
+  const saveTimers = (newTimers) => {
+    setTimers(newTimers);
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.set({ [storageKey]: newTimers });
+    } else {
+      localStorage.setItem(storageKey, JSON.stringify(newTimers));
+    }
+  };
+
+  const handleAdd = (e) => {
+    e.preventDefault();
+    const mins = parseInt(newMinutes);
+    if (!mins || mins <= 0) return;
+    
+    const durationMs = mins * 60 * 1000;
+    const newTimer = {
+      id: Date.now(),
+      label: newLabel.trim() || `${mins} min Timer`,
+      durationMs,
+      remainingMs: durationMs,
+      isRunning: false,
+      endTime: null
+    };
+    saveTimers([...timers, newTimer]);
+    setNewMinutes("");
+    setNewLabel("");
+  };
+
+  const updateTimer = (id, updates) => {
+    const updated = timers.map(t => t.id === id ? { ...t, ...updates } : t);
+    saveTimers(updated);
+  };
+
+  const deleteTimer = (id) => {
+    const updated = timers.filter(t => t.id !== id);
+    saveTimers(updated);
+  };
+
+  return (
+    <div className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
+      {/* Header */}
+      <div className={`flex items-center justify-between px-2 py-1 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
+        <div className="flex items-center gap-1.5">
+          <Clock size={12} className="text-primary" />
+          <span className="text-xs font-medium text-foreground pointer-events-none">{item.title || 'Timers'}</span>
+        </div>
+        {isEditing && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
+            className="flex items-center justify-center h-5 w-5 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 relative z-20"
+            title="Delete Widget"
+          >
+            <Trash2 size={10} />
+          </button>
+        )}
+      </div>
+
+      {isEditing && <div className="absolute inset-x-0 bottom-0 top-[45px] z-10 bg-transparent cursor-grab drag-handle" />}
+
+      {/* Timers List (Scrollable) */}
+      <div className="flex-1 overflow-y-auto p-1 space-y-1">
+        {timers.length === 0 && (
+          <div className="text-xs text-muted-foreground text-center mt-4">No timers set.</div>
+        )}
+        {timers.map(timer => (
+          <TimerItem 
+            key={timer.id} 
+            timer={timer} 
+            onUpdate={updateTimer} 
+            onDelete={deleteTimer} 
+          />
+        ))}
+      </div>
+
+      {/* Add New */}
+      <form onSubmit={handleAdd} className="p-2 border-t border-border shrink-0 bg-white dark:bg-card">
+        <div className="flex gap-2">
+          <input
+            type="number"
+            min="1"
+            max="999"
+            value={newMinutes}
+            onChange={(e) => setNewMinutes(e.target.value)}
+            placeholder="Min"
+            className="w-16 bg-gray-100 dark:bg-white/5 border-none rounded-md py-1.5 px-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+          />
+          <input
+            type="text"
+            value={newLabel}
+            onChange={(e) => setNewLabel(e.target.value)}
+            placeholder="Label (opt)"
+            className="flex-1 min-w-0 bg-gray-100 dark:bg-white/5 border-none rounded-md py-1.5 px-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+          />
+          <button type="submit" disabled={!newMinutes} className="shrink-0 flex items-center justify-center p-1.5 bg-primary text-white disabled:opacity-50 hover:bg-primary/90 rounded-md">
+            <Plus size={16} />
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default TimerWidget;
