@@ -3,7 +3,8 @@ import DashboardGrid from './components/DashboardGrid';
 import AddWidgetModal from './components/AddWidgetModal';
 import ThemeSettingsModal from './components/ThemeSettingsModal';
 import { getLinks, saveLinks, saveLink, deleteLink, getSettings, saveSettings } from './lib/storage';
-import { Hexagon, PlusCircle, Edit2, Check, Settings } from 'lucide-react';
+import { Hexagon, PlusCircle, Edit2, Check, Settings, Link as LinkIcon } from 'lucide-react';
+import AddLinkModal from './components/AddLinkModal';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
   const [originalLinks, setOriginalLinks] = useState([]);
+  const [addLinkModalOpen, setAddLinkModalOpen] = useState(false);
   const [settings, setSettings] = useState({ openInNewTab: false, themeMode: 'device', themeColor: '200 73% 52%' });
 
   useEffect(() => {
@@ -197,6 +199,12 @@ function App() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem
+                onClick={() => setAddLinkModalOpen(true)}
+              >
+                <LinkIcon className="mr-2 h-4 w-4" />
+                Add Link
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 onClick={() => setModalOpen(true)}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -283,6 +291,11 @@ function App() {
           setSettings(newSettings);
           saveSettings(newSettings);
         }}
+      />
+
+      <AddLinkModal
+        open={addLinkModalOpen}
+        onClose={() => setAddLinkModalOpen(false)}
       />
     </div>
   );
