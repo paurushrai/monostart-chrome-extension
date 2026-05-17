@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, X, History } from 'lucide-react';
 import LensSearchModal from './LensSearchModal';
 import VoiceSearchOverlay from './VoiceSearchOverlay';
 
@@ -42,9 +42,108 @@ const isLikelyUrl = (text) => /^(https?:\/\/|[\w-]+\.[\w-]+)/.test(text.trim());
 
 const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
   const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [lensOpen, setLensOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      const q = query.trim();
+      
+      try {
+        let historyResults = [];
+        if (typeof chrome !== 'undefined' && chrome.history) {
+          const historyItems = await new Promise((resolve) => {
+            chrome.history.search({ text: q, maxResults: q ? 5 : 8 }, resolve);
+          });
+          
+          historyResults = historyItems
+            .map(h => {
+              let text = h.title || h.url;
+              if (text && text.endsWith(' - Google Search')) {
+                text = text.replace(' - Google Search', '');
+              }
+              return { text: text || h.url, type: 'history', url: h.url };
+            });
+            
+          // If there is a query, filter strictly. If empty, show recent history.
+          if (q) {
+            historyResults = historyResults.filter(h => h.text.toLowerCase().includes(q.toLowerCase()));
+          }
+        }
+
+        // If query is empty, only show history. Don't fetch autocomplete.
+        if (!q) {
+          setSuggestions(historyResults.slice(0, 8));
+          return;
+        }
+
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+          chrome.runtime.sendMessage(
+            { action: 'fetchSuggestions', query: q },
+            (response) => {
+              let autoResults = [];
+              if (response && response.data && response.data[1]) {
+                autoResults = response.data[1].map(text => ({ text, type: 'search' }));
+              }
+              
+              // Merge, deduplicate by text (case insensitive), and slice to top 8
+              const combined = [...historyResults, ...autoResults];
+              const unique = [];
+              const seen = new Set();
+              for (const item of combined) {
+                const lower = item.text.toLowerCase();
+                if (!seen.has(lower)) {
+                  seen.add(lower);
+                  unique.push(item);
+                }
+              }
+              setSuggestions(unique.slice(0, 8));
+            }
+          );
+        } else {
+          // Fallback
+          const res = await fetch(`https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(q)}`);
+          const data = await res.json();
+          if (data && data[1]) {
+            setSuggestions(data[1].slice(0, 8).map(text => ({ text, type: 'search' })));
+          }
+        }
+      } catch (e) {
+        console.error('Failed to fetch suggestions', e);
+      }
+    };
+
+    const timeout = setTimeout(fetchSuggestions, 200);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  // Elevate parent grid item z-index so dropdown doesn't get hidden under other widgets
+  useEffect(() => {
+    if (containerRef.current) {
+      const gridItem = containerRef.current.closest('.react-grid-item');
+      if (gridItem) {
+        if (showSuggestions && suggestions.length > 0) {
+          gridItem.style.zIndex = '100';
+        } else {
+          gridItem.style.zIndex = '';
+        }
+      }
+    }
+  }, [showSuggestions, suggestions.length]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -112,40 +211,79 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
           <X size={12} className="text-ink dark:text-ink-dark" />
         </button>
       )}
-      <form
-        onSubmit={handleSubmit}
-        className={`relative flex items-center w-full max-w-2xl h-12 px-5 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
+      
+      <div 
+        ref={containerRef}
+        className={`relative w-full max-w-2xl bg-white transition-shadow z-50 ${showSuggestions && suggestions.length > 0 ? 'rounded-t-[24px] rounded-b-none shadow-xl' : 'rounded-full shadow-md hover:shadow-lg'}`}
       >
-        {/* Invisible overlay to prevent input/buttons from blocking drag */}
-        {isEditing && <div className="absolute inset-0 z-10 bg-transparent rounded-full" />}
-        <Search size={18} className="text-gray-500 flex-shrink-0" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search Google or type a URL"
-          disabled={isEditing}
-          className="flex-1 mx-4 bg-transparent border-0 outline-none text-gray-800 placeholder-gray-500 text-base"
-        />
-        <button
-          type="button"
-          onClick={handleVoice}
-          title="Voice search"
-          className="p-1 flex-shrink-0"
-          tabIndex={-1}
+        <form
+          onSubmit={handleSubmit}
+          className={`relative flex items-center w-full h-12 px-5 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
         >
-          <GoogleMicIcon size={20} />
-        </button>
-        <button
-          type="button"
-          onClick={() => setLensOpen(true)}
-          title="Search any image with Lens"
-          className="p-1 ml-1 flex-shrink-0"
-          tabIndex={-1}
-        >
-          <LensIcon size={18} />
-        </button>
-      </form>
+          {/* Invisible overlay to prevent input/buttons from blocking drag */}
+          {isEditing && <div className="absolute inset-0 z-10 bg-transparent rounded-full" />}
+
+          <Search size={18} className="text-gray-500 flex-shrink-0" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            placeholder="Search Google or type a URL"
+            disabled={isEditing}
+            className="flex-1 mx-4 bg-transparent border-0 outline-none text-gray-800 placeholder-gray-500 text-base"
+          />
+          <button
+            type="button"
+            onClick={handleVoice}
+            title="Voice search"
+            className="p-1 flex-shrink-0"
+            tabIndex={-1}
+          >
+            <GoogleMicIcon size={20} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setLensOpen(true)}
+            title="Search any image with Lens"
+            className="p-1 ml-1 flex-shrink-0"
+            tabIndex={-1}
+          >
+            <LensIcon size={18} />
+          </button>
+        </form>
+
+        {/* Suggestions Dropdown */}
+        {showSuggestions && suggestions.length > 0 && (
+          <div className="absolute top-12 left-0 right-0 bg-white border-t border-gray-100 rounded-b-[24px] py-2 overflow-hidden shadow-xl text-left">
+            {suggestions.map((suggestion, idx) => (
+              <div 
+                key={idx}
+                className="flex items-center px-5 py-1.5 hover:bg-gray-100 cursor-pointer"
+                onClick={() => {
+                  setQuery(suggestion.text);
+                  setShowSuggestions(false);
+                  if (suggestion.type === 'history' && suggestion.url && !suggestion.url.includes('google.com/search')) {
+                    window.location.href = suggestion.url;
+                  } else {
+                    window.location.href = `https://www.google.com/search?q=${encodeURIComponent(suggestion.text)}`;
+                  }
+                }}
+              >
+                {suggestion.type === 'history' ? (
+                  <History size={16} className="text-gray-400 mr-4 flex-shrink-0" />
+                ) : (
+                  <Search size={16} className="text-gray-400 mr-4 flex-shrink-0" />
+                )}
+                <span className="text-[15px] font-medium text-gray-800 truncate">{suggestion.text}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <LensSearchModal open={lensOpen} onClose={() => setLensOpen(false)} />
       <VoiceSearchOverlay 
