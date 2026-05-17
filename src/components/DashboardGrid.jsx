@@ -34,14 +34,18 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUp
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   const layout = links.map(link => {
+    const isGoogleSearch = link.type === 'google-search';
     return {
       i:    link.id,
       x:    link.x ?? 0,
       y:    link.y ?? 0,
-      w:    link.w ?? (link.viewMode === 'icon' ? 1 : 3),
-      h:    link.h ?? 1,
-      minW: 1,
-      minH: 1,
+      w:    isGoogleSearch ? 6 : (link.w ?? (link.viewMode === 'icon' ? 1 : 3)),
+      h:    isGoogleSearch ? 1 : (link.h ?? 1),
+      minW: isGoogleSearch ? 6 : 1,
+      maxW: isGoogleSearch ? 6 : undefined,
+      minH: isGoogleSearch ? 1 : 1,
+      maxH: isGoogleSearch ? 1 : undefined,
+      isResizable: isGoogleSearch ? false : undefined
     };
   });
 
