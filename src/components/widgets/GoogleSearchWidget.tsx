@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type FormEvent } from 'react';
+import { useState, useEffect, useRef, type FormEvent, type KeyboardEvent } from 'react';
 import { Search, X, History } from 'lucide-react';
 import LensSearchModal from './LensSearchModal';
 import VoiceSearchOverlay from './VoiceSearchOverlay';
@@ -82,10 +82,12 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const [lensOpen, setLensOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -106,6 +108,16 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
               }
               return { text: text || h.url || '', type: 'history', url: h.url };
             });
+
+          // Dedupe by display text (case-insensitive). chrome.history.search
+          // returns one entry per visit, so the same query/page can repeat.
+          const seenHistory = new Set<string>();
+          historyResults = historyResults.filter((h) => {
+            const key = h.text.toLowerCase();
+            if (seenHistory.has(key)) return false;
+            seenHistory.add(key);
+            return true;
+          });
 
           // If there is a query, filter strictly. If empty, show recent history.
           if (q) {
@@ -159,6 +171,18 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
     return () => clearTimeout(timeout);
   }, [query]);
 
+  // Reset keyboard selection whenever the user types — typing should always
+  // surface the typed query, not a stale highlighted suggestion.
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [query]);
+
+  // Keep the keyboard-selected suggestion visible inside the dropdown.
+  useEffect(() => {
+    if (activeIndex < 0) return;
+    suggestionRefs.current[activeIndex]?.scrollIntoView({ block: 'nearest' });
+  }, [activeIndex]);
+
   useEffect(() => {
     const handleClick = (e: globalThis.MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -183,14 +207,42 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
     }
   }, [showSuggestions, suggestions.length]);
 
+  const navigateToSuggestion = (suggestion: Suggestion) => {
+    setShowSuggestions(false);
+    setActiveIndex(-1);
+    if (suggestion.type === 'history' && suggestion.url && !suggestion.url.includes('google.com/search')) {
+      window.location.href = suggestion.url;
+    } else {
+      window.location.href = `https://www.google.com/search?q=${encodeURIComponent(suggestion.text)}`;
+    }
+  };
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (activeIndex >= 0 && activeIndex < suggestions.length) {
+      navigateToSuggestion(suggestions[activeIndex]!);
+      return;
+    }
     const q = query.trim();
     if (!q) return;
     const url = isLikelyUrl(q)
       ? q.startsWith('http') ? q : `https://${q}`
       : `https://www.google.com/search?q=${encodeURIComponent(q)}`;
     window.location.href = url;
+  };
+
+  const handleInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex((i) => (i + 1 >= suggestions.length ? 0 : i + 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      setActiveIndex(-1);
+    }
   };
 
   const handleVoice = () => {
@@ -274,6 +326,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
               setShowSuggestions(true);
             }}
             onFocus={() => setShowSuggestions(true)}
+            onKeyDown={handleInputKeyDown}
             placeholder="Search Google or type a URL"
             disabled={isEditing}
             className="flex-1 mx-4 bg-transparent border-0 outline-none text-gray-800 placeholder-gray-500 text-base"
@@ -304,16 +357,10 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
             {suggestions.map((suggestion, idx) => (
               <div
                 key={idx}
-                className="flex items-center px-5 py-1.5 hover:bg-gray-100 cursor-pointer"
-                onClick={() => {
-                  setQuery(suggestion.text);
-                  setShowSuggestions(false);
-                  if (suggestion.type === 'history' && suggestion.url && !suggestion.url.includes('google.com/search')) {
-                    window.location.href = suggestion.url;
-                  } else {
-                    window.location.href = `https://www.google.com/search?q=${encodeURIComponent(suggestion.text)}`;
-                  }
-                }}
+                ref={(el) => { suggestionRefs.current[idx] = el; }}
+                onMouseEnter={() => setActiveIndex(idx)}
+                className={`flex items-center px-5 py-1.5 cursor-pointer ${idx === activeIndex ? 'bg-gray-100' : 'hover:bg-gray-100'}`}
+                onClick={() => navigateToSuggestion(suggestion)}
               >
                 {suggestion.type === 'history' ? (
                   <History size={16} className="text-gray-400 mr-4 flex-shrink-0" />
