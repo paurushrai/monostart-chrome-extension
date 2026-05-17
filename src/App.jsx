@@ -148,7 +148,7 @@ function App() {
               MonoStart
             </h1>
             <span className="text-xs text-muted-foreground font-medium opacity-60 ml-3">
-              Developed by{' '}
+              by{' '}
               <a
                 href="https://www.paurushrai.in"
                 target="_blank"
@@ -262,20 +262,6 @@ function App() {
         />
       </main>
 
-      {/* Footer */}
-      <footer className="w-full py-2 flex items-center justify-center border-t border-border bg-background/50 text-xs text-muted-foreground z-10">
-        <span className="opacity-70">
-          Developed by{' '}
-          <a
-            href="https://www.paurushrai.in"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline hover:opacity-100 font-medium transition-all"
-          >
-            Paurush Rai
-          </a>
-        </span>
-      </footer>
 
       <AddWidgetModal
         open={modalOpen}
