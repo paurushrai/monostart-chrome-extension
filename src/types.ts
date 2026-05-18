@@ -24,7 +24,8 @@ interface BaseItem {
   // Layout hint, conceptually only meaningful for RegularLink but hoisted here
   // so placement/layout code can read `item.viewMode` without narrowing first.
   // 'card' is set by the synthetic drag-placeholder only.
-  viewMode?: 'icon' | 'icon+text' | 'card';
+  // 'text' is header-only (renders the site name instead of the favicon).
+  viewMode?: 'icon' | 'icon+text' | 'card' | 'text';
 }
 
 // ---------------------------------------------------------------------------
