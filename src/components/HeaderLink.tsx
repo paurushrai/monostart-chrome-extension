@@ -29,7 +29,7 @@ interface Props {
   onUpdateLink: (id: string, updates: Partial<RegularLink>) => void;
   draggedHeaderLinkId: string | null;
   dragOverHeaderLinkId: string | null;
-  onDragStart: (id: string) => void;
+  onDragStart: (id: string, e: DragEvent) => void;
   onDragOver: (e: DragEvent, id: string) => void;
   onDrop: (id: string) => void;
   onDragEnd: () => void;
@@ -113,7 +113,7 @@ const HeaderLink = ({
         ${isDragging ? 'opacity-30 scale-95' : ''}
       `}
       draggable={isEditing}
-      onDragStart={() => onDragStart(item.id)}
+      onDragStart={(e) => onDragStart(item.id, e)}
       onDragOver={(e) => onDragOver(e, item.id)}
       onDrop={() => onDrop(item.id)}
       onDragEnd={onDragEnd}

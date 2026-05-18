@@ -66,6 +66,8 @@ export interface UseDashboardDrag {
   handleInnerDragStart: (item: RegularLink, parentSectionId: string) => void;
   handleInnerDrag: (item: RegularLink, parentSectionId: string, clientX: number, clientY: number) => void;
   handleInnerDragStop: (item: RegularLink, parentSectionId: string, clientX: number, clientY: number) => void;
+  // External HTML5 drag drops (e.g. header link → main grid)
+  handleExternalDrop: (linkId: string, clientX: number, clientY: number) => boolean;
 }
 
 /**
@@ -301,6 +303,20 @@ export function useDashboardDrag({
     onMoveLink(draggedLink.id, targetSectionId, targetCoords);
   }, [links, dragCursorCoords, computeSectionDropCoords, onMoveLink]);
 
+  // Drop handler for items dragged in from OUTSIDE the RGL grids (currently
+  // just header-link HTML5 drags). Header links never appear in the main
+  // grid's `links` array (App filters them out before passing in), so we
+  // can't look the item up by id here — instead we assume the external
+  // shape: 1×1 icon, which is always true for header links today.
+  const handleExternalDrop = useCallback((linkId: string, clientX: number, clientY: number): boolean => {
+    const externalPlaceholder = { viewMode: 'icon' as const, w: 1, h: 1 } as RegularLink;
+    const slot = computeMainGridDropSlot(externalPlaceholder, clientX, clientY);
+    if (!slot) return false;
+    if (checkCollision(slot.gridX, slot.gridY, slot.w, slot.h)) return false;
+    onMoveLink(linkId, null, { x: slot.gridX, y: slot.gridY });
+    return true;
+  }, [computeMainGridDropSlot, checkCollision, onMoveLink]);
+
   return {
     gridRef,
     activeDragSectionId,
@@ -314,5 +330,6 @@ export function useDashboardDrag({
     handleInnerDragStart,
     handleInnerDrag,
     handleInnerDragStop,
+    handleExternalDrop,
   };
 }

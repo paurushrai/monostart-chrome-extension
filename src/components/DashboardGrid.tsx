@@ -1,3 +1,4 @@
+import { useState, type DragEvent as ReactDragEvent } from 'react';
 import GridLayout, { WidthProvider } from 'react-grid-layout/legacy';
 import type { Layout } from 'react-grid-layout/legacy';
 import 'react-grid-layout/css/styles.css';
@@ -5,6 +6,7 @@ import 'react-resizable/css/styles.css';
 import WidgetRenderer from './WidgetRenderer';
 import { useGridDimensions } from '../hooks/useGridDimensions';
 import { useDashboardDrag } from '../hooks/useDashboardDrag';
+import { HEADER_LINK_DRAG_TYPE } from '../hooks/useHeaderDrag';
 import { MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import { getWidgetMeta, WidgetType } from '../lib/widgetCatalog';
 import type { WidgetMeta } from '../lib/widgetCatalog';
@@ -79,6 +81,34 @@ const DashboardGrid = ({
 }: Props) => {
   const { rowHeight } = useGridDimensions();
   const drag = useDashboardDrag({ links, rowHeight, onMoveLink });
+  // Visual hover ring while a header link is being dragged over the grid.
+  // The id itself rides in dataTransfer so we don't depend on cross-event
+  // React state commits.
+  const [isHeaderDragOver, setIsHeaderDragOver] = useState(false);
+
+  const isHeaderLinkDrag = (e: ReactDragEvent<HTMLDivElement>) =>
+    e.dataTransfer.types.includes(HEADER_LINK_DRAG_TYPE);
+
+  const handleHeaderDragOver = (e: ReactDragEvent<HTMLDivElement>) => {
+    if (!isHeaderLinkDrag(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!isHeaderDragOver) setIsHeaderDragOver(true);
+  };
+
+  const handleHeaderDragLeave = (e: ReactDragEvent<HTMLDivElement>) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+    setIsHeaderDragOver(false);
+  };
+
+  const handleHeaderDrop = (e: ReactDragEvent<HTMLDivElement>) => {
+    setIsHeaderDragOver(false);
+    if (!isHeaderLinkDrag(e)) return;
+    e.preventDefault();
+    const linkId = e.dataTransfer.getData(HEADER_LINK_DRAG_TYPE);
+    if (!linkId) return;
+    drag.handleExternalDrop(linkId, e.clientX, e.clientY);
+  };
 
   // Add a transient drag-out placeholder while a link is being dragged out of a section
   const displayLinks: DisplayItem[] = [...links];
@@ -101,7 +131,13 @@ const DashboardGrid = ({
   const layout = buildLayout(displayLinks);
 
   return (
-    <div className="w-full" ref={drag.gridRef}>
+    <div
+      className={`w-full rounded-lg transition-colors ${isHeaderDragOver ? 'bg-primary/5 ring-2 ring-primary/40' : ''}`}
+      ref={drag.gridRef}
+      onDragOver={handleHeaderDragOver}
+      onDragLeave={handleHeaderDragLeave}
+      onDrop={handleHeaderDrop}
+    >
       <ReactGridLayout
         className="layout"
         layout={layout}
