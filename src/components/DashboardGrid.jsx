@@ -1,17 +1,28 @@
 /* eslint-disable react/prop-types */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import GridLayout, { WidthProvider } from 'react-grid-layout/legacy';
 import LinkCard from './LinkCard';
 import IframeWidget from './IframeWidget';
 import GoogleSearchWidget from './widgets/GoogleSearchWidget';
 import TodoWidget from './widgets/TodoWidget';
 import TimerWidget from './widgets/TimerWidget';
+import SectionWidget from './widgets/SectionWidget';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
 const ReactGridLayout = WidthProvider(GridLayout);
 
-const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUpdateLink, isEditing, openInNewTab }) => {
+const DashboardGrid = ({ 
+  links, 
+  onLayoutChange, 
+  onDelete, 
+  onViewModeChange, 
+  onUpdateLink, 
+  isEditing, 
+  openInNewTab,
+  sections = [],
+  onMoveLink
+}) => {
   const getDimensions = () => {
     if (typeof window === 'undefined') return { rowHeight: 60 };
     
@@ -29,29 +40,262 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUp
   };
 
   const [dims, setDims] = useState(getDimensions());
+  const [activeDragSectionId, setActiveDragSectionId] = useState(null);
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [draggedItemType, setDraggedItemType] = useState(null);
+
+  // Drag out state for nested folder links
+  const [activeDragOutItem, setActiveDragOutItem] = useState(null);
+  const [dragOutCoords, setDragOutCoords] = useState(null);
+
+  // Cursor coordinates for section ingestion placeholders
+  const [dragCursorCoords, setDragCursorCoords] = useState(null);
+
+  const gridRef = useRef(null);
 
   useEffect(() => {
     const handleResize = () => setDims(getDimensions());
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  const layout = links.map(link => {
+
+  const checkCollision = (x, y, w, h) => {
+    return links.some(item => {
+      const isGoogleSearch = item.type === 'google-search';
+      const isSection = item.type === 'section';
+      const itemW = isGoogleSearch ? 6 : (isSection ? (item.w ?? 6) : (item.w ?? (item.viewMode === 'icon' ? 1 : 3)));
+      const itemH = isGoogleSearch ? 1 : (isSection ? (item.h ?? 4) : (item.h ?? 1));
+      const itemX = item.x ?? 0;
+      const itemY = item.y ?? 0;
+
+      return (
+        x < itemX + itemW &&
+        x + w > itemX &&
+        y < itemY + itemH &&
+        y + h > itemY
+      );
+    });
+  };
+
+  const handleInnerDragStart = (item, parentSectionId) => {
+    setActiveDragOutItem(item);
+  };
+
+  const handleInnerDrag = (item, parentSectionId, clientX, clientY) => {
+    const sectionEl = document.querySelector(`[data-section-id="${parentSectionId}"]`);
+    if (!sectionEl) return;
+
+    const rect = sectionEl.getBoundingClientRect();
+    const isOutside = 
+      clientX < rect.left ||
+      clientX > rect.right ||
+      clientY < rect.top ||
+      clientY > rect.bottom;
+
+    if (isOutside) {
+      const gridEl = gridRef.current;
+      if (gridEl) {
+        const gridRect = gridEl.getBoundingClientRect();
+        const colWidth = gridRect.width / 18;
+        const rowHeight = dims.rowHeight + 16;
+        
+        const scrollLeft = gridEl.scrollLeft || 0;
+        const scrollTop = gridEl.scrollTop || 0;
+        const localX = clientX - gridRect.left + scrollLeft;
+        const localY = clientY - gridRect.top + scrollTop;
+        
+        const w = item.viewMode === 'icon' ? 1 : 3;
+        const h = 1;
+        
+        let gridX = Math.floor(localX / colWidth);
+        let gridY = Math.floor(localY / rowHeight);
+        
+        gridX = Math.max(0, Math.min(18 - w, gridX));
+        gridY = Math.max(0, gridY);
+        
+        setActiveDragOutItem(item);
+        
+        // Block coordinate updates if there is a collision
+        if (checkCollision(gridX, gridY, w, h)) {
+          setDragOutCoords(null);
+        } else {
+          setDragOutCoords({ x: gridX, y: gridY });
+        }
+      }
+    } else {
+      setDragOutCoords(null);
+    }
+  };
+
+  const handleInnerDragStop = (item, parentSectionId, clientX, clientY) => {
+    const sectionEl = document.querySelector(`[data-section-id="${parentSectionId}"]`);
+    if (sectionEl) {
+      const rect = sectionEl.getBoundingClientRect();
+      const isOutside = 
+        clientX < rect.left ||
+        clientX > rect.right ||
+        clientY < rect.top ||
+        clientY > rect.bottom;
+
+      if (isOutside) {
+        const gridEl = gridRef.current;
+        if (gridEl) {
+          const gridRect = gridEl.getBoundingClientRect();
+          const colWidth = gridRect.width / 18;
+          const rowHeight = dims.rowHeight + 16;
+          
+          const scrollLeft = gridEl.scrollLeft || 0;
+          const scrollTop = gridEl.scrollTop || 0;
+          const localX = clientX - gridRect.left + scrollLeft;
+          const localY = clientY - gridRect.top + scrollTop;
+          
+          const w = item.viewMode === 'icon' ? 1 : 3;
+          const h = 1;
+          
+          let gridX = Math.floor(localX / colWidth);
+          let gridY = Math.floor(localY / rowHeight);
+          
+          gridX = Math.max(0, Math.min(18 - w, gridX));
+          gridY = Math.max(0, gridY);
+          
+          // Only drop if there is no collision
+          if (!checkCollision(gridX, gridY, w, h)) {
+            onMoveLink(item.id, null, { x: gridX, y: gridY });
+          }
+        }
+      }
+    }
+    setActiveDragOutItem(null);
+    setDragOutCoords(null);
+  };
+
+  const displayLinks = [...links];
+  if (activeDragOutItem && dragOutCoords) {
+    const w = activeDragOutItem.viewMode === 'icon' ? 1 : 3;
+    const h = 1;
+    displayLinks.push({
+      id: 'drag-out-placeholder',
+      type: 'link',
+      title: 'Drop to Place',
+      url: '',
+      w,
+      h,
+      x: dragOutCoords.x,
+      y: dragOutCoords.y
+    });
+  }
+
+  const layout = displayLinks.map(link => {
+    const isSection = link.type === 'section';
     const isGoogleSearch = link.type === 'google-search';
+    const isPlaceholder = link.id === 'drag-out-placeholder';
     return {
       i:    link.id,
       x:    link.x ?? 0,
       y:    link.y ?? 0,
-      w:    isGoogleSearch ? 6 : (link.w ?? (link.viewMode === 'icon' ? 1 : 3)),
-      h:    isGoogleSearch ? 1 : (link.h ?? 1),
-      minW: isGoogleSearch ? 6 : (link.type === 'todo' || link.type === 'timer' ? 3 : 1),
+      w:    isGoogleSearch ? 6 : (isSection ? (link.w ?? 6) : (link.w ?? (link.viewMode === 'icon' ? 1 : 3))),
+      h:    isGoogleSearch ? 1 : (isSection ? (link.h ?? 4) : (link.h ?? 1)),
+      minW: isGoogleSearch ? 6 : (isSection ? 3 : (link.type === 'todo' || link.type === 'timer' ? 3 : 1)),
       maxW: isGoogleSearch ? 6 : undefined,
-      minH: isGoogleSearch ? 1 : (link.type === 'todo' || link.type === 'timer' ? 3 : 1),
+      minH: isGoogleSearch ? 1 : (isSection ? 4 : (link.type === 'todo' || link.type === 'timer' ? 3 : 1)),
       maxH: isGoogleSearch ? 1 : undefined,
-      isResizable: isGoogleSearch ? false : undefined
+      isResizable: isPlaceholder ? false : (isGoogleSearch ? false : (link.type === 'link' && ((link.w ?? (link.viewMode === 'icon' ? 1 : 3)) === 1 || link.viewMode === 'icon') ? false : undefined))
     };
   });
 
+  const handleDragStart = (layout, oldItem, newItem, placeholder, e) => {
+    const item = links.find(l => l.id === newItem.i);
+    setDraggedItem(item || null);
+    setDraggedItemType(item?.type || null);
+  };
+
+  const handleDrag = (layout, oldItem, newItem, placeholder, e) => {
+    if (!e || draggedItemType !== 'link') return;
+
+    const clientX = e.clientX ?? (e.touches?.[0]?.clientX ?? e.changedTouches?.[0]?.clientX);
+    const clientY = e.clientY ?? (e.touches?.[0]?.clientY ?? e.changedTouches?.[0]?.clientY);
+
+    if (clientX === undefined || clientY === undefined) {
+      if (activeDragSectionId) setActiveDragSectionId(null);
+      setDragCursorCoords(null);
+      return;
+    }
+
+    setDragCursorCoords({ x: clientX, y: clientY });
+
+    const sectionElements = document.querySelectorAll('[data-section-id]');
+    let targetSectionId = null;
+
+    for (const el of sectionElements) {
+      const rect = el.getBoundingClientRect();
+      if (
+        clientX >= rect.left &&
+        clientX <= rect.right &&
+        clientY >= rect.top &&
+        clientY <= rect.bottom
+      ) {
+        targetSectionId = el.getAttribute('data-section-id');
+        break;
+      }
+    }
+
+    if (targetSectionId !== activeDragSectionId) {
+      setActiveDragSectionId(targetSectionId);
+    }
+  };
+
+  const handleDragStop = (layout, oldItem, newItem, placeholder, e) => {
+    setActiveDragSectionId(null);
+    setDraggedItemType(null);
+    setDraggedItem(null);
+    setDragCursorCoords(null);
+
+    if (!e) return;
+
+    // Get cursor release coordinates (supports both mouse mouseup and touch touchend events)
+    const clientX = e.clientX ?? (e.touches?.[0]?.clientX ?? e.changedTouches?.[0]?.clientX);
+    const clientY = e.clientY ?? (e.touches?.[0]?.clientY ?? e.changedTouches?.[0]?.clientY);
+
+    if (clientX === undefined || clientY === undefined) return;
+
+    // Find if the cursor was released inside any SectionWidget container
+    const sectionElements = document.querySelectorAll('[data-section-id]');
+    let targetSectionId = null;
+
+    for (const el of sectionElements) {
+      const rect = el.getBoundingClientRect();
+      if (
+        clientX >= rect.left &&
+        clientX <= rect.right &&
+        clientY >= rect.top &&
+        clientY <= rect.bottom
+      ) {
+        targetSectionId = el.getAttribute('data-section-id');
+        break;
+      }
+    }
+
+    if (targetSectionId) {
+      // Find the dragged link item from the top-level links list
+      const draggedLink = links.find(l => l.id === newItem.i && l.type === 'link');
+      if (draggedLink) {
+        // Move the link into the target section
+        onMoveLink(draggedLink.id, targetSectionId);
+      }
+    }
+  };
+
   const renderWidget = (item) => {
+    if (item.id === 'drag-out-placeholder') {
+      return (
+        <div className="w-full h-full rounded-lg border-2 border-dashed flex items-center justify-center bg-primary/5 transition-all duration-300 animate-pulse border-primary px-3 text-center select-none">
+          <span className="text-2xs font-semibold text-primary block w-full text-center">
+            {item.w === 1 ? 'Place' : 'Drop to Place'}
+          </span>
+        </div>
+      );
+    }
+
     switch (item.type) {
       case 'google-search':
         return <GoogleSearchWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
@@ -61,6 +305,24 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUp
         return <TodoWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
       case 'timer':
         return <TimerWidget item={item} onDelete={onDelete} isEditing={isEditing} />;
+      case 'section':
+        return (
+          <SectionWidget
+            item={item}
+            onDelete={onDelete}
+            onUpdateLink={onUpdateLink}
+            isEditing={isEditing}
+            openInNewTab={openInNewTab}
+            sections={sections}
+            onMoveLink={onMoveLink}
+            isDraggedOver={activeDragSectionId === item.id}
+            dragCursorCoords={dragCursorCoords}
+            onInnerDragStart={handleInnerDragStart}
+            onInnerDrag={handleInnerDrag}
+            onInnerDragStop={handleInnerDragStop}
+            draggedItem={draggedItem}
+          />
+        );
       default:
         return (
           <LinkCard
@@ -70,28 +332,34 @@ const DashboardGrid = ({ links, onLayoutChange, onDelete, onViewModeChange, onUp
             onUpdateLink={onUpdateLink}
             isEditing={isEditing}
             openInNewTab={openInNewTab}
+            sections={sections}
+            onMoveLink={onMoveLink}
+            parentId={undefined}
           />
         );
     }
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={gridRef}>
       <ReactGridLayout
         className="layout"
         layout={layout}
         cols={18}
         maxRows={12}
         rowHeight={dims.rowHeight}
-      margin={[16, 16]}
-      compactType={null}
-      preventCollision={true}
-      isDraggable={isEditing}
-      isResizable={isEditing}
-      draggableHandle=".drag-handle"
-      onLayoutChange={(newLayout) => onLayoutChange(newLayout)}
+        margin={[16, 16]}
+        compactType={null}
+        preventCollision={true}
+        isDraggable={isEditing}
+        isResizable={isEditing}
+        draggableHandle=".drag-handle"
+        onDragStart={handleDragStart}
+        onDrag={handleDrag}
+        onDragStop={handleDragStop}
+        onLayoutChange={(newLayout) => onLayoutChange(newLayout)}
       >
-        {links.map((item) => (
+        {displayLinks.map((item) => (
           <div key={item.id} className="rounded-card">
             {renderWidget(item)}
           </div>

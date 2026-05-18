@@ -91,45 +91,249 @@ function App() {
   }, [settings.themeMode, settings.themeColor]);
 
   const handleLayoutChange = (layout) => {
-    const updatedLinks = links.map(link => {
-      const item = layout.find(l => l.i === link.id);
-      return item ? { ...link, x: item.x, y: item.y, w: item.w, h: item.h } : link;
+    setLinks(prevLinks => {
+      const updatedLinks = prevLinks.map(link => {
+        const item = layout.find(l => l.i === link.id);
+        return item ? { ...link, x: item.x, y: item.y, w: item.w, h: item.h } : link;
+      });
+      saveLinks(updatedLinks);
+      return updatedLinks;
     });
-    setLinks(updatedLinks);
-    saveLinks(updatedLinks);
   };
 
   const handleDelete = async (id) => {
     await deleteLink(id);
-    setLinks(prev => prev.filter(l => l.id !== id));
+    const deleteNested = (items) => {
+      return items
+        .filter(item => item.id !== id)
+        .map(item => {
+          if (item.type === 'section' && item.links) {
+            return { ...item, links: deleteNested(item.links) };
+          }
+          return item;
+        });
+    };
+    setLinks(prev => deleteNested(prev));
   };
 
   const handleViewModeChange = async (id, newMode) => {
     const isIconOnly = newMode === 'icon';
-    const updatedLinks = links.map(l => {
-      if (l.id === id) {
-        return {
-          ...l,
-          viewMode: newMode,
-          w: isIconOnly ? 1 : 3,
-          h: isIconOnly ? 1 : 1
-        };
-      }
-      return l;
-    });
+    const updateNested = (items) => {
+      return items.map(l => {
+        if (l.id === id) {
+          return {
+            ...l,
+            viewMode: newMode,
+            w: isIconOnly ? 1 : 3,
+            h: isIconOnly ? 1 : 1
+          };
+        }
+        if (l.type === 'section' && l.links) {
+          return { ...l, links: updateNested(l.links) };
+        }
+        return l;
+      });
+    };
+    const updatedLinks = updateNested(links);
     setLinks(updatedLinks);
     await saveLinks(updatedLinks);
   };
 
-
   const handleUpdateLink = async (id, updates) => {
-    const updatedLinks = links.map(l => l.id === id ? { ...l, ...updates } : l);
+    const updateNested = (items) => {
+      return items.map(l => {
+        if (l.id === id) {
+          return { ...l, ...updates };
+        }
+        if (l.type === 'section' && l.links) {
+          return { ...l, links: updateNested(l.links) };
+        }
+        return l;
+      });
+    };
+    const updatedLinks = updateNested(links);
     setLinks(updatedLinks);
     await saveLinks(updatedLinks);
+  };
+
+  const handleMoveLink = async (linkId, targetSectionId, targetCoords) => {
+    setLinks(prevLinks => {
+      let foundLink = null;
+      
+      // Remove from top level or sections
+      let cleanedLinks = prevLinks.filter(l => {
+        if (l.id === linkId) {
+          foundLink = l;
+          return false;
+        }
+        return true;
+      });
+
+      cleanedLinks = cleanedLinks.map(item => {
+        if (item.type === 'section' && item.links) {
+          const hasLink = item.links.some(l => l.id === linkId);
+          if (hasLink) {
+            foundLink = item.links.find(l => l.id === linkId);
+            return {
+              ...item,
+              links: item.links.filter(l => l.id !== linkId)
+            };
+          }
+        }
+        return item;
+      });
+
+      if (!foundLink) return prevLinks;
+
+      let updatedLinks = [];
+      if (targetSectionId) {
+        // Put in a section
+        updatedLinks = cleanedLinks.map(item => {
+          if (item.id === targetSectionId && item.type === 'section') {
+            const sectionLinks = item.links || [];
+            const w = foundLink.viewMode === 'icon' ? 1 : 3;
+            const h = 1;
+
+            let newX = 0;
+            let newY = 0;
+
+            if (targetCoords && targetCoords.x !== undefined && targetCoords.y !== undefined) {
+              const cols = item.cols || 3;
+              newX = Math.max(0, Math.min(cols - w, targetCoords.x));
+              newY = Math.max(0, targetCoords.y);
+            } else {
+              // Simple slot finder
+              const cols = item.cols || 3;
+              const grid = [];
+              sectionLinks.forEach(l => {
+                const lx = l.x ?? 0;
+                const ly = l.y ?? 0;
+                const lw = Math.min(l.w ?? (l.viewMode === 'icon' ? 1 : Math.min(3, cols)), cols);
+                const lh = l.h ?? 1;
+                for (let r = ly; r < ly + lh; r++) {
+                  while (grid.length <= r) grid.push(Array(cols).fill(false));
+                  for (let c = lx; c < lx + lw && c < cols; c++) {
+                    grid[r][c] = true;
+                  }
+                }
+              });
+
+              let placed = false;
+              let r = 0;
+
+              while (!placed) {
+                while (grid.length <= r + h) grid.push(Array(cols).fill(false));
+                for (let c = 0; c <= cols - w; c++) {
+                  let canFit = true;
+                  for (let i = 0; i < h; i++) {
+                    for (let j = 0; j < w; j++) {
+                      if (grid[r + i][c + j]) {
+                        canFit = false;
+                        break;
+                      }
+                    }
+                    if (!canFit) break;
+                  }
+                  if (canFit) {
+                    newX = c;
+                    newY = r;
+                    placed = true;
+                    break;
+                  }
+                }
+                r++;
+              }
+            }
+
+            return {
+              ...item,
+              links: [
+                ...sectionLinks,
+                {
+                  ...foundLink,
+                  x: newX,
+                  y: newY,
+                  w,
+                  h
+                }
+              ]
+            };
+          }
+          return item;
+        });
+      } else {
+        // Put back in main dashboard grid
+        const w = foundLink.viewMode === 'icon' ? 1 : 3;
+        const h = 1;
+
+        let newX = 0;
+        let newY = 0;
+
+        if (targetCoords && targetCoords.x !== undefined && targetCoords.y !== undefined) {
+          const maxCols = 18;
+          newX = Math.max(0, Math.min(maxCols - w, targetCoords.x));
+          newY = Math.max(0, targetCoords.y);
+        } else {
+          const maxCols = 18;
+          const maxRows = 12;
+          const grid = Array(maxRows).fill(null).map(() => Array(maxCols).fill(false));
+          
+          cleanedLinks.forEach(link => {
+            if (link.x !== undefined && link.y !== undefined) {
+              for (let r = link.y; r < link.y + (link.h || 1) && r < maxRows; r++) {
+                for (let c = link.x; c < link.x + (link.w || 1) && c < maxCols; c++) {
+                  grid[r][c] = true;
+                }
+              }
+            }
+          });
+
+          let placed = false;
+
+          for (let r = 0; r <= maxRows - h && !placed; r++) {
+            for (let c = 0; c <= maxCols - w && !placed; c++) {
+              let canFit = true;
+              for (let i = 0; i < h; i++) {
+                for (let j = 0; j < w; j++) {
+                  if (grid[r + i][c + j]) {
+                    canFit = false;
+                    break;
+                  }
+                }
+                if (!canFit) break;
+              }
+              if (canFit) {
+                newX = c;
+                newY = r;
+                placed = true;
+              }
+            }
+          }
+
+          if (!placed) {
+            newX = 0;
+            newY = 11;
+          }
+        }
+
+        updatedLinks = [
+          ...cleanedLinks,
+          {
+            ...foundLink,
+            x: newX,
+            y: newY,
+            w,
+            h
+          }
+        ];
+      }
+
+      saveLinks(updatedLinks);
+      return updatedLinks;
+    });
   };
 
   const handleAddWidget = async (widget) => {
-
     const saved = await saveLink({
       type: widget.type,
       ...widget.defaults,
@@ -259,6 +463,8 @@ function App() {
           onUpdateLink={handleUpdateLink}
           isEditing={isEditing}
           openInNewTab={settings.openInNewTab}
+          sections={links.filter(l => l.type === 'section').map(s => ({ id: s.id, title: s.title }))}
+          onMoveLink={handleMoveLink}
         />
       </main>
 

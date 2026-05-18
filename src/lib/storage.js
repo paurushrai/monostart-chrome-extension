@@ -24,12 +24,51 @@ export const saveLinks = async (links) => {
   }
 };
 
-export const saveLink = async (newLink) => {
+const findSlotInSection = (sectionLinks, itemW = 3, itemH = 1) => {
+  const cols = 3;
+  const grid = [];
+  
+  sectionLinks.forEach(link => {
+    const lx = link.x ?? 0;
+    const ly = link.y ?? 0;
+    const lw = link.w ?? 3;
+    const lh = link.h ?? 1;
+    for (let r = ly; r < ly + lh; r++) {
+      while (grid.length <= r) grid.push(Array(cols).fill(false));
+      for (let c = lx; c < lx + lw && c < cols; c++) {
+        grid[r][c] = true;
+      }
+    }
+  });
+
+  let r = 0;
+  while (true) {
+    while (grid.length <= r + itemH) grid.push(Array(cols).fill(false));
+    for (let c = 0; c <= cols - itemW; c++) {
+      let canFit = true;
+      for (let i = 0; i < itemH; i++) {
+        for (let j = 0; j < itemW; j++) {
+          if (grid[r + i][c + j]) {
+            canFit = false;
+            break;
+          }
+        }
+        if (!canFit) break;
+      }
+      if (canFit) {
+        return { x: c, y: r };
+      }
+    }
+    r++;
+  }
+};
+
+export const saveLink = async (newLink, sectionId) => {
   const currentLinks = await getLinks();
   
-  const id = `link-${Date.now()}`;
-  const w = newLink.w || 2;
-  const h = newLink.h || 2;
+  const id = newLink.id || `${newLink.type || 'link'}-${Date.now()}`;
+  const w = newLink.w || (newLink.type === 'section' ? 6 : 2);
+  const h = newLink.h || (newLink.type === 'section' ? 4 : 2);
   
   const linkWithId = {
     w,
@@ -38,6 +77,30 @@ export const saveLink = async (newLink) => {
     id,
     i: id,
   };
+
+  if (sectionId) {
+    // Save inside a specific section
+    const updatedLinks = currentLinks.map(item => {
+      if (item.id === sectionId && item.type === 'section') {
+        const innerLinks = item.links || [];
+        const slot = findSlotInSection(innerLinks, w, h);
+        return {
+          ...item,
+          links: [
+            ...innerLinks,
+            {
+              ...linkWithId,
+              x: slot.x,
+              y: slot.y
+            }
+          ]
+        };
+      }
+      return item;
+    });
+    await saveLinks(updatedLinks);
+    return linkWithId;
+  }
   
   if (newLink.x !== undefined && newLink.y !== undefined) {
     linkWithId.x = newLink.x;
@@ -94,7 +157,17 @@ export const saveLink = async (newLink) => {
 
 export const deleteLink = async (id) => {
   const currentLinks = await getLinks();
-  const updatedLinks = currentLinks.filter(link => link.id !== id);
+  const deleteNested = (items) => {
+    return items
+      .filter(item => item.id !== id)
+      .map(item => {
+        if (item.type === 'section' && item.links) {
+          return { ...item, links: deleteNested(item.links) };
+        }
+        return item;
+      });
+  };
+  const updatedLinks = deleteNested(currentLinks);
   await saveLinks(updatedLinks);
 };
 

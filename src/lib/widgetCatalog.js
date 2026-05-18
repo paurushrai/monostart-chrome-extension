@@ -1,4 +1,4 @@
-import { Search, Globe, CheckSquare, Clock } from 'lucide-react';
+import { Search, Globe, CheckSquare, Clock, Folder } from 'lucide-react';
 
 export const WIDGET_CATALOG = [
   {
@@ -21,6 +21,13 @@ export const WIDGET_CATALOG = [
     description: 'Manage multiple timers.',
     icon: Clock,
     defaults: { w: 3, h: 3, title: 'Timers' },
+  },
+  {
+    type: 'section',
+    name: 'Link Section',
+    description: 'Create an elegant, custom-colored folder container for organizing links.',
+    icon: Folder,
+    defaults: { w: 6, h: 4, title: 'New Section', borderColor: '200 73% 52%', links: [] },
   },
   {
     type: 'iframe',

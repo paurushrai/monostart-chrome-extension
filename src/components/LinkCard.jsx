@@ -1,10 +1,31 @@
 import React from 'react';
 import { ExternalLink, X, Settings2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal
+} from "@/components/ui/dropdown-menu";
 
 const VIEW_MODES = ['icon', 'icon+text'];
 
-const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing, openInNewTab }) => {
+const LinkCard = ({
+  item,
+  onDelete,
+  onViewModeChange,
+  onUpdateLink,
+  isEditing,
+  openInNewTab,
+  sections = [],
+  onMoveLink,
+  parentId
+}) => {
   const { url, title, favicon, viewMode = 'icon+text', customName } = item;
 
   const nextViewMode = () => {
@@ -56,27 +77,71 @@ const LinkCard = ({ item, onDelete, onViewModeChange, onUpdateLink, isEditing, o
 
       {/* Action buttons */}
       {isEditing && (
-        <div className="absolute -top-3 -right-3 flex gap-1 z-50">
-          <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); nextViewMode(); }} title="Toggle view mode" className="h-6 w-6 rounded-full bg-background shadow-md border border-border hover:bg-secondary">
-            <Settings2 size={12} />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); onDelete(item.id); }} title="Remove" className="h-6 w-6 rounded-full bg-background shadow-md border border-border hover:bg-secondary hover:text-red-500 hover:border-red-500">
-            <X size={12} />
-          </Button>
+        <div className="absolute top-1.5 right-1.5 flex gap-1 z-50">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Settings"
+                className="h-6 w-6 rounded-full bg-background shadow-md border border-border hover:bg-secondary"
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <Settings2 size={12} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44" onMouseDown={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onClick={(e) => { e.preventDefault(); nextViewMode(); }}>
+                Toggle view mode
+              </DropdownMenuItem>
+              
+              {onMoveLink && (sections.length > 0 || parentId) && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    Move to...
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent onMouseDown={(e) => e.stopPropagation()}>
+                      {parentId && (
+                        <DropdownMenuItem onClick={() => onMoveLink(item.id, null)}>
+                          Main Dashboard
+                        </DropdownMenuItem>
+                      )}
+                      {sections
+                        .filter(s => s.id !== parentId)
+                        .map(s => (
+                          <DropdownMenuItem key={s.id} onClick={() => onMoveLink(item.id, s.id)}>
+                            {s.title}
+                          </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+              )}
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem
+                onClick={(e) => { e.preventDefault(); onDelete(item.id); }}
+                className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"
+              >
+                Delete Link
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
 
-      {/* Link */}
       <a
         href={url}
         target={openInNewTab ? "_blank" : "_top"}
         rel="noopener noreferrer"
         draggable={false}
         onClick={(e) => isEditing && e.preventDefault()}
-        className={`flex w-full h-full text-inherit no-underline ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}
+        className={`flex w-full h-full text-inherit no-underline ${isEditing ? (parentId ? 'inner-drag-handle' : 'drag-handle') + ' cursor-grab active:cursor-grabbing' : ''}
           ${isIconOnly
             ? 'items-center justify-center p-0'
-            : 'flex-row items-center justify-start gap-4 px-5 py-3'
+            : `flex-row items-center justify-start gap-3 pl-4 py-2 ${isEditing ? 'pr-9' : 'pr-4'}`
           }`}
       >
         {/* Favicon */}
