@@ -99,160 +99,156 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
       }`}
     >
       
-      {/* Settings overlay (only visible in edit mode or on hover in view mode) */}
-      <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/label:opacity-100 transition-opacity duration-200 z-30">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button 
-              onMouseDown={(e) => e.stopPropagation()}
-              title="Text Settings"
-              className="flex items-center justify-center h-5 w-5 rounded bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-foreground"
-            >
-              <Settings size={11} />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 p-1">
-            <DropdownMenuItem 
-              onClick={() => {
-                setIsEditingText(true);
-                setTimeout(() => inputRef.current?.focus(), 50);
-              }}
-              className="flex items-center gap-2 py-1 cursor-pointer text-xs"
-            >
-              <Type size={12} className="text-muted-foreground" />
-              <span>Edit Text</span>
-            </DropdownMenuItem>
+      {/* Settings overlay (only visible in edit mode) */}
+      {isEditing && !isEditingText && (
+        <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/label:opacity-100 transition-opacity duration-200 z-30">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button 
+                onMouseDown={(e) => e.stopPropagation()}
+                title="Text Settings"
+                className="flex items-center justify-center h-5 w-5 rounded bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-foreground"
+              >
+                <Settings size={11} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 p-1">
+              <DropdownMenuItem 
+                onClick={() => {
+                  setIsEditingText(true);
+                  setTimeout(() => inputRef.current?.focus(), 50);
+                }}
+                className="flex items-center gap-2 py-1 cursor-pointer text-xs"
+              >
+                <Type size={12} className="text-muted-foreground" />
+                <span>Edit Text</span>
+              </DropdownMenuItem>
 
-            <DropdownMenuItem 
-              onClick={() => onUpdateLink(item.id, { cardStyle: !cardStyle })}
-              className="flex items-center justify-between py-1 cursor-pointer text-xs"
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 rounded border border-border flex items-center justify-center bg-background shrink-0">
-                  {cardStyle && <Check size={10} className="text-primary" />}
+              <DropdownMenuItem 
+                onClick={() => onUpdateLink(item.id, { cardStyle: !cardStyle })}
+                className="flex items-center justify-between py-1 cursor-pointer text-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded border border-border flex items-center justify-center bg-background shrink-0">
+                    {cardStyle && <Check size={10} className="text-primary" />}
+                  </div>
+                  <span>Show Card Style</span>
                 </div>
-                <span>Show Card Style</span>
-              </div>
-            </DropdownMenuItem>
+              </DropdownMenuItem>
 
-            <DropdownMenuSeparator />
+              <DropdownMenuSeparator />
 
-            {/* Size sub-menu */}
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="flex items-center gap-2 py-1 cursor-pointer text-xs">
-                <Sparkles size={12} className="text-muted-foreground" />
-                <span>Font Size</span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="p-1">
-                {FONT_SIZES.map((fs) => (
+              {/* Size sub-menu */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="flex items-center gap-2 py-1 cursor-pointer text-xs">
+                  <Sparkles size={12} className="text-muted-foreground" />
+                  <span>Font Size</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="p-1">
+                  {FONT_SIZES.map((fs) => (
+                    <DropdownMenuItem
+                      key={fs.id}
+                      onClick={() => onUpdateLink(item.id, { size: fs.id })}
+                      className="flex items-center justify-between py-1 cursor-pointer text-xs"
+                    >
+                      <span>{fs.name}</span>
+                      {size === fs.id && <Check size={12} className="text-primary" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+
+              {/* Alignment sub-menu */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="flex items-center gap-2 py-1 cursor-pointer text-xs">
+                  <AlignLeft size={12} className="text-muted-foreground" />
+                  <span>Alignment</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="p-1">
                   <DropdownMenuItem
-                    key={fs.id}
-                    onClick={() => onUpdateLink(item.id, { size: fs.id })}
+                    onClick={() => onUpdateLink(item.id, { align: 'left' })}
                     className="flex items-center justify-between py-1 cursor-pointer text-xs"
                   >
-                    <span>{fs.name}</span>
-                    {size === fs.id && <Check size={12} className="text-primary" />}
+                    <div className="flex items-center gap-2">
+                      <AlignLeft size={12} />
+                      <span>Left</span>
+                    </div>
+                    {align === 'left' && <Check size={12} className="text-primary" />}
                   </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-
-            {/* Alignment sub-menu */}
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="flex items-center gap-2 py-1 cursor-pointer text-xs">
-                <AlignLeft size={12} className="text-muted-foreground" />
-                <span>Alignment</span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="p-1">
-                <DropdownMenuItem
-                  onClick={() => onUpdateLink(item.id, { align: 'left' })}
-                  className="flex items-center justify-between py-1 cursor-pointer text-xs"
-                >
-                  <div className="flex items-center gap-2">
-                    <AlignLeft size={12} />
-                    <span>Left</span>
-                  </div>
-                  {align === 'left' && <Check size={12} className="text-primary" />}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onUpdateLink(item.id, { align: 'center' })}
-                  className="flex items-center justify-between py-1 cursor-pointer text-xs"
-                >
-                  <div className="flex items-center gap-2">
-                    <AlignCenter size={12} />
-                    <span>Center</span>
-                  </div>
-                  {align === 'center' && <Check size={12} className="text-primary" />}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onUpdateLink(item.id, { align: 'right' })}
-                  className="flex items-center justify-between py-1 cursor-pointer text-xs"
-                >
-                  <div className="flex items-center gap-2">
-                    <AlignRight size={12} />
-                    <span>Right</span>
-                  </div>
-                  {align === 'right' && <Check size={12} className="text-primary" />}
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-
-            {/* Weight sub-menu */}
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="flex items-center gap-2 py-1 cursor-pointer text-xs">
-                <Bold size={12} className="text-muted-foreground" />
-                <span>Font Weight</span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="p-1">
-                {FONT_WEIGHTS.map((fw) => (
                   <DropdownMenuItem
-                    key={fw.id}
-                    onClick={() => onUpdateLink(item.id, { fontWeight: fw.id })}
+                    onClick={() => onUpdateLink(item.id, { align: 'center' })}
                     className="flex items-center justify-between py-1 cursor-pointer text-xs"
                   >
-                    <span>{fw.name}</span>
-                    {fontWeight === fw.id && <Check size={12} className="text-primary" />}
+                    <div className="flex items-center gap-2">
+                      <AlignCenter size={12} />
+                      <span>Center</span>
+                    </div>
+                    {align === 'center' && <Check size={12} className="text-primary" />}
                   </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-
-            {/* Opacity sub-menu */}
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="flex items-center gap-2 py-1 cursor-pointer text-xs">
-                <div className="w-3 h-3 rounded-full border border-current opacity-60" />
-                <span className="ml-0.5">Opacity</span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="p-1">
-                {OPACITIES.map((op) => (
                   <DropdownMenuItem
-                    key={op.id}
-                    onClick={() => onUpdateLink(item.id, { opacity: op.id })}
+                    onClick={() => onUpdateLink(item.id, { align: 'right' })}
                     className="flex items-center justify-between py-1 cursor-pointer text-xs"
                   >
-                    <span>{op.name}</span>
-                    {opacity === op.id && <Check size={12} className="text-primary" />}
+                    <div className="flex items-center gap-2">
+                      <AlignRight size={12} />
+                      <span>Right</span>
+                    </div>
+                    {align === 'right' && <Check size={12} className="text-primary" />}
                   </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
 
-            {isEditing && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-                  className="flex items-center gap-2 py-1 cursor-pointer text-xs text-red-500 hover:text-red-600 focus:text-red-600"
-                >
-                  <Trash2 size={12} />
-                  <span>Delete Text</span>
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {/* Weight sub-menu */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="flex items-center gap-2 py-1 cursor-pointer text-xs">
+                  <Bold size={12} className="text-muted-foreground" />
+                  <span>Font Weight</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="p-1">
+                  {FONT_WEIGHTS.map((fw) => (
+                    <DropdownMenuItem
+                      key={fw.id}
+                      onClick={() => onUpdateLink(item.id, { fontWeight: fw.id })}
+                      className="flex items-center justify-between py-1 cursor-pointer text-xs"
+                    >
+                      <span>{fw.name}</span>
+                      {fontWeight === fw.id && <Check size={12} className="text-primary" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
 
-        {isEditing && (
+              {/* Opacity sub-menu */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="flex items-center gap-2 py-1 cursor-pointer text-xs">
+                  <div className="w-3 h-3 rounded-full border border-current opacity-60" />
+                  <span className="ml-0.5">Opacity</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="p-1">
+                  {OPACITIES.map((op) => (
+                    <DropdownMenuItem
+                      key={op.id}
+                      onClick={() => onUpdateLink(item.id, { opacity: op.id })}
+                      className="flex items-center justify-between py-1 cursor-pointer text-xs"
+                    >
+                      <span>{op.name}</span>
+                      {opacity === op.id && <Check size={12} className="text-primary" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
+                className="flex items-center gap-2 py-1 cursor-pointer text-xs text-red-500 hover:text-red-600 focus:text-red-600"
+              >
+                <Trash2 size={12} />
+                <span>Delete Text</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <button
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
@@ -261,8 +257,8 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
           >
             <Trash2 size={10} />
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Text Render/Input */}
       <div className={`px-4 py-2 w-full truncate leading-none ${size} ${fontWeight} ${opacity}`}>

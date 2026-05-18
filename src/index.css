@@ -210,3 +210,10 @@
   transform: none !important;
 }
 
+/* Disable transition animations for all grid items to prevent right-to-left layout slides on mount/reload */
+.react-grid-item {
+  transition: none !important;
+}
+
+
+
