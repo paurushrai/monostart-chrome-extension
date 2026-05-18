@@ -144,7 +144,7 @@ const TimerWidget = ({ item, onDelete, isEditing }) => {
   return (
     <div className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
       {/* Header */}
-      <div className={`flex items-center justify-between px-2 py-1 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
+      <div className={`flex items-center justify-between px-2 py-1 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
         <div className="flex items-center gap-1.5">
           <Clock size={12} className="text-primary" />
           <span className="text-xs font-medium text-foreground pointer-events-none">{item.title || 'Timers'}</span>
@@ -178,7 +178,7 @@ const TimerWidget = ({ item, onDelete, isEditing }) => {
       </div>
 
       {/* Add New */}
-      <form onSubmit={handleAdd} className="p-2 border-t border-border shrink-0 bg-white dark:bg-card">
+      <form onSubmit={handleAdd} className="p-2 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl">
         <div className="flex gap-2">
           <input
             type="number"

@@ -10,6 +10,7 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
       <div className={`flex items-center justify-between px-2 py-1
                       bg-secondary
                       border-b border-border flex-shrink-0
+                      rounded-t-xl
                       ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
 
         <span className="text-xs font-medium text-foreground truncate mr-2">
@@ -43,7 +44,7 @@ const IframeWidget = ({ item, onDelete, isEditing }) => {
       </div>
 
       {/* Iframe container */}
-      <div className="relative flex-1 w-full overflow-hidden">
+      <div className="relative flex-1 w-full overflow-hidden rounded-b-xl">
         {/* Overlay to prevent iframe stealing mouse events while dragging */}
         {isEditing && <div className="absolute inset-0 z-10 bg-transparent" />}
         <iframe
