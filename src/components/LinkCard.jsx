@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { ExternalLink, X, Settings2, Check } from 'lucide-react';
+import { 
+  ExternalLink, 
+  X, 
+  Check, 
+  MoreHorizontal, 
+  Trash2, 
+  Ruler, 
+  FolderInput, 
+  Home, 
+  Folder, 
+  Square, 
+  RectangleHorizontal 
+} from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -81,19 +93,20 @@ const LinkCard = ({
               <Button
                 variant="ghost"
                 size="icon"
-                title="Settings"
+                title="Options"
                 className="h-6.5 w-6.5 rounded-full bg-background shadow-md border border-border hover:bg-secondary flex items-center justify-center transition-transform active:scale-95"
               >
-                <Settings2 size={12} className="text-foreground" />
+                <MoreHorizontal size={12} className="text-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44" onMouseDown={(e) => e.stopPropagation()}>
+            <DropdownMenuContent align="end" className="w-48" onMouseDown={(e) => e.stopPropagation()}>
               <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="flex items-center">
-                  Size
+                <DropdownMenuSubTrigger className="flex items-center gap-2">
+                  <Ruler size={13} className="text-muted-foreground" />
+                  <span>Size</span>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
-                  <DropdownMenuSubContent className="w-36" onMouseDown={(e) => e.stopPropagation()}>
+                  <DropdownMenuSubContent className="w-40" onMouseDown={(e) => e.stopPropagation()}>
                     <DropdownMenuItem
                       onClick={() => {
                         onViewModeChange(item.id, 'icon');
@@ -101,7 +114,10 @@ const LinkCard = ({
                       }}
                       className="flex items-center justify-between"
                     >
-                      <span>Small (1x1)</span>
+                      <div className="flex items-center gap-2">
+                        <Square size={13} className="text-muted-foreground" />
+                        <span>Small (1×1)</span>
+                      </div>
                       {isIconOnly && <Check className="h-3.5 w-3.5 text-primary ml-2" />}
                     </DropdownMenuItem>
                     
@@ -112,7 +128,10 @@ const LinkCard = ({
                       }}
                       className="flex items-center justify-between"
                     >
-                      <span>Medium (1x3)</span>
+                      <div className="flex items-center gap-2">
+                        <RectangleHorizontal size={13} className="text-muted-foreground" />
+                        <span>Medium (3×1)</span>
+                      </div>
                       {!isIconOnly && <Check className="h-3.5 w-3.5 text-primary ml-2" />}
                     </DropdownMenuItem>
                   </DropdownMenuSubContent>
@@ -121,27 +140,37 @@ const LinkCard = ({
               
               {onMoveLink && (sections.length > 0 || parentId) && (
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    Move to...
+                  <DropdownMenuSubTrigger className="flex items-center gap-2">
+                    <FolderInput size={13} className="text-muted-foreground" />
+                    <span>Move to...</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
-                    <DropdownMenuSubContent onMouseDown={(e) => e.stopPropagation()}>
+                    <DropdownMenuSubContent className="w-44" onMouseDown={(e) => e.stopPropagation()}>
                       {parentId && (
-                        <DropdownMenuItem onClick={() => {
-                          onMoveLink(item.id, null);
-                          setIsMenuOpen(false);
-                        }}>
-                          Main Dashboard
+                        <DropdownMenuItem 
+                          onClick={() => {
+                            onMoveLink(item.id, null);
+                            setIsMenuOpen(false);
+                          }}
+                          className="flex items-center gap-2"
+                        >
+                          <Home size={13} className="text-muted-foreground" />
+                          <span>Main Dashboard</span>
                         </DropdownMenuItem>
                       )}
                       {sections
                         .filter(s => s.id !== parentId)
                         .map(s => (
-                          <DropdownMenuItem key={s.id} onClick={() => {
-                            onMoveLink(item.id, s.id);
-                            setIsMenuOpen(false);
-                          }}>
-                            {s.title}
+                          <DropdownMenuItem 
+                            key={s.id} 
+                            onClick={() => {
+                              onMoveLink(item.id, s.id);
+                              setIsMenuOpen(false);
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <Folder size={13} className="text-muted-foreground" />
+                            <span className="truncate">{s.title}</span>
                           </DropdownMenuItem>
                         ))}
                     </DropdownMenuSubContent>
@@ -156,9 +185,10 @@ const LinkCard = ({
                   onDelete(item.id);
                   setIsMenuOpen(false);
                 }}
-                className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"
+                className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20 flex items-center gap-2"
               >
-                Delete Link
+                <Trash2 size={13} />
+                <span>Delete Link</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
