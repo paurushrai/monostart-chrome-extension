@@ -1,4 +1,4 @@
-import { Search, Globe, CheckSquare, Clock, Folder } from 'lucide-react';
+import { Search, Globe, CheckSquare, Clock, Folder, FileText, Image, Type } from 'lucide-react';
 
 export const WIDGET_CATALOG = [
   {
@@ -35,6 +35,27 @@ export const WIDGET_CATALOG = [
     description: 'Embed any website as a live widget.',
     icon: Globe,
     defaults: { w: 4, h: 4, title: 'Embed', url: 'https://www.google.com' },
+  },
+  {
+    type: 'note',
+    name: 'Sticky Note',
+    description: 'Write notes or reminders with custom colors.',
+    icon: FileText,
+    defaults: { w: 3, h: 3, title: 'Sticky Note', content: '', noteColor: 'default' },
+  },
+  {
+    type: 'image',
+    name: 'Photo / Image',
+    description: 'Add an image from a URL or upload a local file.',
+    icon: Image,
+    defaults: { w: 3, h: 3, title: 'Photo Frame', url: '', fit: 'cover' },
+  },
+  {
+    type: 'label',
+    name: 'Text Label',
+    description: 'Add a clean floating text header or title to style your grid.',
+    icon: Type,
+    defaults: { w: 4, h: 1, text: 'Google', align: 'left', size: 'text-3xl', fontWeight: 'font-bold', opacity: 'opacity-100' },
   },
 ];
 

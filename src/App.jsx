@@ -3,7 +3,7 @@ import DashboardGrid from './components/DashboardGrid';
 import AddWidgetModal from './components/AddWidgetModal';
 import ThemeSettingsModal from './components/ThemeSettingsModal';
 import { getLinks, saveLinks, saveLink, deleteLink, getSettings, saveSettings } from './lib/storage';
-import { Hexagon, PlusCircle, Edit2, Check, Settings, Link as LinkIcon, Palette, ExternalLink, LayoutGrid } from 'lucide-react';
+import { Hexagon, PlusCircle, Edit2, Check, Settings, Link as LinkIcon, Palette, ExternalLink, LayoutGrid, Sparkles } from 'lucide-react';
 import AddLinkModal from './components/AddLinkModal';
 import {
   DropdownMenu,
@@ -95,7 +95,7 @@ function App() {
       const updatedLinks = prevLinks.map(link => {
         const item = layout.find(l => l.i === link.id);
         if (!item) return link;
-        const isResizableType = ['section', 'todo', 'timer', 'iframe'].includes(link.type);
+        const isResizableType = ['section', 'todo', 'timer', 'iframe', 'note', 'image', 'label'].includes(link.type);
         return {
           ...link,
           x: item.x,
@@ -105,6 +105,111 @@ function App() {
       });
       saveLinks(updatedLinks);
       return updatedLinks;
+    });
+  };
+
+  const handleAutoArrange = () => {
+    setLinks(prevLinks => {
+      const topLevelLinks = prevLinks.filter(link => !link.parentId);
+      const nestedLinks = prevLinks.filter(link => link.parentId);
+
+      const typePriority = {
+        'google-search': 1,
+        'label': 2,
+        'section': 3,
+        'todo': 4,
+        'timer': 4,
+        'note': 4,
+        'image': 4,
+        'iframe': 4,
+        'link': 5
+      };
+
+      const sorted = [...topLevelLinks].sort((a, b) => {
+        const priorityA = typePriority[a.type] || 6;
+        const priorityB = typePriority[b.type] || 6;
+        if (priorityA !== priorityB) return priorityA - priorityB;
+        const nameA = a.title || a.text || a.url || '';
+        const nameB = b.title || b.text || b.url || '';
+        return nameA.localeCompare(nameB) || a.id.localeCompare(b.id);
+      });
+
+      const maxCols = 18;
+      const grid = [];
+
+      const updatedTopLevel = sorted.map(link => {
+        let w = link.w;
+        let h = link.h;
+
+        if (link.type === 'google-search') {
+          w = 6;
+          h = 1;
+        } else if (link.type === 'section') {
+          w = w || 6;
+          h = h || 4;
+        } else if (['todo', 'timer', 'note', 'image'].includes(link.type)) {
+          w = w || 3;
+          h = h || 3;
+        } else if (link.type === 'iframe') {
+          w = w || 4;
+          h = h || 4;
+        } else if (link.type === 'label') {
+          w = w || 4;
+          h = 1;
+        } else {
+          w = w || (link.viewMode === 'icon' ? 1 : 3);
+          h = h || 1;
+        }
+
+        let foundX = 0;
+        let foundY = 0;
+        let placed = false;
+        let r = 0;
+
+        while (!placed) {
+          while (grid.length <= r + h) {
+            grid.push(Array(maxCols).fill(false));
+          }
+
+          for (let c = 0; c <= maxCols - w; c++) {
+            let canFit = true;
+            for (let i = 0; i < h; i++) {
+              for (let j = 0; j < w; j++) {
+                if (grid[r + i][c + j]) {
+                  canFit = false;
+                  break;
+                }
+              }
+              if (!canFit) break;
+            }
+
+            if (canFit) {
+              foundX = c;
+              foundY = r;
+              for (let i = 0; i < h; i++) {
+                for (let j = 0; j < w; j++) {
+                  grid[r + i][c + j] = true;
+                }
+              }
+              placed = true;
+              break;
+            }
+          }
+          r++;
+        }
+
+        return {
+          ...link,
+          x: foundX,
+          y: foundY,
+          w,
+          h
+        };
+      });
+
+      const nextLinks = [...updatedTopLevel, ...nestedLinks];
+      saveLinks(nextLinks);
+      return nextLinks;
     });
   };
 
@@ -426,6 +531,19 @@ function App() {
               >
                 <LayoutGrid size={14} className="text-muted-foreground" />
                 <span>Add Widget</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (!isEditing) {
+                    setOriginalLinks([...links]);
+                    setIsEditing(true);
+                  }
+                  handleAutoArrange();
+                }}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <Sparkles size={14} className="text-muted-foreground" />
+                <span>Auto-Arrange Grid</span>
               </DropdownMenuItem>
               
               {!isEditing && (
