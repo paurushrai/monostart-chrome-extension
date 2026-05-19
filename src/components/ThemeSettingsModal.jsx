@@ -63,7 +63,10 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-card border-border text-foreground">
+      <DialogContent
+        className="sm:max-w-md bg-card border-border text-foreground"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Theme & Appearance</DialogTitle>
           <DialogDescription className="text-muted-foreground">
