@@ -27,7 +27,7 @@ export const saveLinks = async (links) => {
 const findSlotInSection = (sectionLinks, itemW = 3, itemH = 1) => {
   const cols = 3;
   const grid = [];
-  
+
   sectionLinks.forEach(link => {
     const lx = link.x ?? 0;
     const ly = link.y ?? 0;
@@ -63,13 +63,48 @@ const findSlotInSection = (sectionLinks, itemW = 3, itemH = 1) => {
   }
 };
 
+const getMinSize = (type) => {
+  if (type === 'google-search') return { minW: 6, minH: 1 };
+  if (type === 'section') return { minW: 3, minH: 4 };
+  if (type === 'todo' || type === 'timer') return { minW: 3, minH: 3 };
+  return { minW: 1, minH: 1 };
+};
+
+const findFreeSlot = (links, w, h, maxCols = 18, maxRows = 12) => {
+  if (w > maxCols || h > maxRows) return null;
+  const grid = Array(maxRows).fill(null).map(() => Array(maxCols).fill(false));
+  links.forEach(link => {
+    if (link.isHeaderLink) return;
+    if (link.x === undefined || link.y === undefined) return;
+    const lw = link.w || 1;
+    const lh = link.h || 1;
+    for (let r = link.y; r < link.y + lh && r < maxRows; r++) {
+      for (let c = link.x; c < link.x + lw && c < maxCols; c++) {
+        if (r >= 0 && c >= 0) grid[r][c] = true;
+      }
+    }
+  });
+  for (let r = 0; r <= maxRows - h; r++) {
+    for (let c = 0; c <= maxCols - w; c++) {
+      let canFit = true;
+      for (let i = 0; i < h && canFit; i++) {
+        for (let j = 0; j < w; j++) {
+          if (grid[r + i][c + j]) { canFit = false; break; }
+        }
+      }
+      if (canFit) return { x: c, y: r };
+    }
+  }
+  return null;
+};
+
 export const saveLink = async (newLink, sectionId) => {
   const currentLinks = await getLinks();
-  
+
   const id = newLink.id || `${newLink.type || 'link'}-${Date.now()}`;
   const w = newLink.w || (newLink.type === 'section' ? 6 : 2);
   const h = newLink.h || (newLink.type === 'section' ? 4 : 2);
-  
+
   const linkWithId = {
     w,
     h,
@@ -101,7 +136,7 @@ export const saveLink = async (newLink, sectionId) => {
     await saveLinks(updatedLinks);
     return linkWithId;
   }
-  
+
   if (newLink.isHeaderLink) {
     const headerLinks = currentLinks.filter(l => l.isHeaderLink);
     const maxOrder = headerLinks.reduce((max, l) => Math.max(max, l.order || 0), -1);
@@ -112,50 +147,22 @@ export const saveLink = async (newLink, sectionId) => {
     linkWithId.x = newLink.x;
     linkWithId.y = newLink.y;
   } else {
-    // Find first available slot
-    const maxCols = 18;
-    const maxRows = 12;
-    const grid = Array(maxRows).fill(null).map(() => Array(maxCols).fill(false));
-    
-    currentLinks.forEach(link => {
-      if (link.x !== undefined && link.y !== undefined) {
-        for (let r = link.y; r < link.y + (link.h || 1) && r < maxRows; r++) {
-          for (let c = link.x; c < link.x + (link.w || 1) && c < maxCols; c++) {
-            grid[r][c] = true;
-          }
-        }
-      }
-    });
-
-    let placed = false;
-    for (let r = 0; r <= maxRows - h && !placed; r++) {
-      for (let c = 0; c <= maxCols - w && !placed; c++) {
-        let canFit = true;
-        for (let i = 0; i < h; i++) {
-          for (let j = 0; j < w; j++) {
-            if (grid[r + i][c + j]) {
-              canFit = false;
-              break;
-            }
-          }
-          if (!canFit) break;
-        }
-        if (canFit) {
-          linkWithId.x = c;
-          linkWithId.y = r;
-          placed = true;
+    let slot = findFreeSlot(currentLinks, w, h);
+    if (!slot) {
+      const { minW, minH } = getMinSize(newLink.type);
+      if (minW < w || minH < h) {
+        slot = findFreeSlot(currentLinks, minW, minH);
+        if (slot) {
+          linkWithId.w = minW;
+          linkWithId.h = minH;
         }
       }
     }
-    
-    // If no space is found within the 12 rows, just put it at bottom and let user figure it out, 
-    // or clamp it to the last row.
-    if (!placed) {
-      linkWithId.x = 0;
-      linkWithId.y = 11; 
-    }
+    if (!slot) return null;
+    linkWithId.x = slot.x;
+    linkWithId.y = slot.y;
   }
-  
+
   const updatedLinks = [...currentLinks, linkWithId];
   await saveLinks(updatedLinks);
   return linkWithId;
