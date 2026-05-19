@@ -5,24 +5,24 @@ import VoiceSearchOverlay from './VoiceSearchOverlay';
 
 const LensIcon = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path 
-      d="M4 11.5V8C4 5.79086 5.79086 4 8 4H9.5L11 2H14.5L16 4H17" 
-      stroke="#4285F4" 
-      strokeWidth="2.5" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
+    <path
+      d="M4 11.5V8C4 5.79086 5.79086 4 8 4H9.5L11 2H14.5L16 4H17"
+      stroke="#4285F4"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
-    <path 
-      d="M17.5 4C19.9853 4 22 6.01472 22 8.5V12.5" 
-      stroke="#FBBC05" 
-      strokeWidth="2.5" 
-      strokeLinecap="round" 
+    <path
+      d="M17.5 4C19.9853 4 22 6.01472 22 8.5V12.5"
+      stroke="#FBBC05"
+      strokeWidth="2.5"
+      strokeLinecap="round"
     />
-    <path 
-      d="M4 14.5V16C4 18.2091 5.79086 20 8 20H13" 
-      stroke="#EA4335" 
-      strokeWidth="2.5" 
-      strokeLinecap="round" 
+    <path
+      d="M4 14.5V16C4 18.2091 5.79086 20 8 20H13"
+      stroke="#EA4335"
+      strokeWidth="2.5"
+      strokeLinecap="round"
     />
     <circle cx="12.5" cy="12.5" r="3.5" fill="#4285F4" />
     <circle cx="18.5" cy="18.5" r="2.2" fill="#34A853" />
@@ -31,10 +31,10 @@ const LensIcon = ({ size = 20 }) => (
 
 const GoogleMicIcon = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path fill="#4285F4" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-    <path fill="#34A853" d="M11 18.92h2V22h-2z"/>
-    <path fill="#FBBC05" d="M7 11H5c0 1.93.78 3.68 2.05 4.95l1.41-1.41C7.56 13.63 7 12.38 7 11z"/>
-    <path fill="#EA4335" d="M12 17c-1.38 0-2.63-.56-3.54-1.47l-1.41 1.41A6.99 6.99 0 0 0 12 19.08c3.86 0 7-3.14 7-7h-2c0 2.76-2.24 5-5 5z"/>
+    <path fill="#4285F4" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+    <path fill="#34A853" d="M11 18.92h2V22h-2z" />
+    <path fill="#FBBC05" d="M7 11H5c0 1.93.78 3.68 2.05 4.95l1.41-1.41C7.56 13.63 7 12.38 7 11z" />
+    <path fill="#EA4335" d="M12 17c-1.38 0-2.63-.56-3.54-1.47l-1.41 1.41A6.99 6.99 0 0 0 12 19.08c3.86 0 7-3.14 7-7h-2c0 2.76-2.24 5-5 5z" />
   </svg>
 );
 
@@ -52,14 +52,14 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
   useEffect(() => {
     const fetchSuggestions = async () => {
       const q = query.trim();
-      
+
       try {
         let historyResults = [];
         if (typeof chrome !== 'undefined' && chrome.history) {
           const historyItems = await new Promise((resolve) => {
             chrome.history.search({ text: q, maxResults: q ? 5 : 8 }, resolve);
           });
-          
+
           historyResults = historyItems
             .map(h => {
               let text = h.title || h.url;
@@ -68,7 +68,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
               }
               return { text: text || h.url, type: 'history', url: h.url };
             });
-            
+
           // If there is a query, filter strictly. If empty, show recent history.
           if (q) {
             historyResults = historyResults.filter(h => h.text.toLowerCase().includes(q.toLowerCase()));
@@ -89,7 +89,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
               if (response && response.data && response.data[1]) {
                 autoResults = response.data[1].map(text => ({ text, type: 'search' }));
               }
-              
+
               // Merge, deduplicate by text (case insensitive), and slice to top 8
               const combined = [...historyResults, ...autoResults];
               const unique = [];
@@ -165,7 +165,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
     const r = new Recognizer();
     r.interimResults = true;
     r.lang = 'en-US';
-    
+
     r.onstart = () => {
       setVoiceOpen(true);
       setVoiceTranscript('');
@@ -186,7 +186,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
         }, 800);
       }
     };
-    
+
     r.onerror = () => {
       setVoiceOpen(false);
       setVoiceTranscript('');
@@ -204,15 +204,18 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
     <div className="group relative flex items-center justify-center w-full h-full">
       {isEditing && (
         <button
-          onClick={() => onDelete(item.id)}
+          onMouseDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(item.id); }}
           title="Remove widget"
-          className="absolute -top-2 -right-2 z-10 bg-bg-primary dark:bg-dark-bg-primary border border-border dark:border-border-dark rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute -top-2 -right-2 z-[100] h-6 w-6 rounded-full bg-background border border-border hover:text-red-500 shadow-md flex items-center justify-center cursor-pointer"
         >
-          <X size={12} className="text-ink dark:text-ink-dark" />
+          <X size={12} />
         </button>
       )}
-      
-      <div 
+
+      <div
         ref={containerRef}
         className={`relative w-full max-w-2xl bg-white transition-shadow z-50 ${showSuggestions && suggestions.length > 0 ? 'rounded-t-[24px] rounded-b-none shadow-xl' : 'rounded-full shadow-md hover:shadow-lg'}`}
       >
@@ -260,7 +263,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
         {showSuggestions && suggestions.length > 0 && (
           <div className="absolute top-12 left-0 right-0 bg-white border-t border-gray-100 rounded-b-[24px] py-2 overflow-hidden shadow-xl text-left">
             {suggestions.map((suggestion, idx) => (
-              <div 
+              <div
                 key={idx}
                 className="flex items-center px-5 py-1.5 hover:bg-gray-100 cursor-pointer"
                 onClick={() => {
@@ -286,10 +289,10 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }) => {
       </div>
 
       <LensSearchModal open={lensOpen} onClose={() => setLensOpen(false)} />
-      <VoiceSearchOverlay 
-        open={voiceOpen} 
-        onClose={() => setVoiceOpen(false)} 
-        transcript={voiceTranscript} 
+      <VoiceSearchOverlay
+        open={voiceOpen}
+        onClose={() => setVoiceOpen(false)}
+        transcript={voiceTranscript}
       />
     </div>
   );
