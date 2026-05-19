@@ -419,7 +419,7 @@ const DashboardGrid = ({
       >
         {displayLinks.map((item) => (
           <div key={item.id} className="rounded-card">
-            <div className={`w-full h-full ${isEditing && item.id !== 'drag-out-placeholder' ? 'animate-jiggle' : ''}`}>
+            <div className="w-full h-full">
               {renderWidget(item)}
             </div>
           </div>

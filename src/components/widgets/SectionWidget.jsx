@@ -638,7 +638,7 @@ const SectionWidget = ({
                     </span>
                   </div>
                 ) : (
-                  <div className={`w-full h-full ${isEditing ? 'animate-jiggle' : ''}`}>
+                  <div className="w-full h-full">
                     <LinkCard
                       item={subItem}
                       onDelete={handleInnerDelete}
