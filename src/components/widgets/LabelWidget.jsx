@@ -101,7 +101,7 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
       
       {/* Settings overlay (only visible in edit mode) */}
       {isEditing && !isEditingText && (
-        <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/label:opacity-100 transition-opacity duration-200 z-30">
+        <div role="toolbar" aria-label="Label actions" className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/label:opacity-100 transition-opacity duration-200 z-30">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button 

@@ -81,6 +81,7 @@ const HeaderLink = ({
 
   return (
     <div
+      role="listitem"
       className={`relative group rounded transition-all duration-150 flex items-center justify-center w-7 h-7
         ${isEditing ? 'cursor-grab active:cursor-grabbing hover:bg-secondary/70 border border-dashed border-border' : 'hover:bg-secondary/50'}
         ${isDragOver ? 'ring-2 ring-primary ring-offset-1 scale-105' : ''}
@@ -117,6 +118,8 @@ const HeaderLink = ({
 
       {isEditing && (
         <div 
+          role="toolbar"
+          aria-label="Link actions"
           className={`absolute top-0 right-0 z-30 -translate-y-[30%] translate-x-[30%] transition-all duration-200 flex items-center
             ${isMenuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto'}`}
           onMouseDown={(e) => e.stopPropagation()}
