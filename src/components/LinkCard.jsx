@@ -10,7 +10,8 @@ import {
   Home, 
   Folder, 
   Square, 
-  RectangleHorizontal 
+  RectangleHorizontal,
+  LayoutGrid
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +39,17 @@ const LinkCard = ({
 }) => {
   const { url, title, favicon, viewMode = 'icon+text', customName } = item;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const getFaviconUrl = (linkUrl) => {
+    if (!linkUrl) return '';
+    try {
+      return `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(linkUrl)}&size=128`;
+    } catch {
+      return '';
+    }
+  };
+
+  const crispFavicon = getFaviconUrl(url) || favicon;
 
   const getSiteName = (urlString) => {
     try {
@@ -138,7 +150,7 @@ const LinkCard = ({
                 </DropdownMenuPortal>
               </DropdownMenuSub>
               
-              {onMoveLink && (sections.length > 0 || parentId) && (
+              {onMoveLink && (
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="flex items-center gap-2">
                     <FolderInput size={13} className="text-muted-foreground" />
@@ -146,7 +158,7 @@ const LinkCard = ({
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent className="w-44" onMouseDown={(e) => e.stopPropagation()}>
-                      {parentId && (
+                      {(parentId || item.isHeaderLink) && (
                         <DropdownMenuItem 
                           onClick={() => {
                             onMoveLink(item.id, null);
@@ -156,6 +168,18 @@ const LinkCard = ({
                         >
                           <Home size={13} className="text-muted-foreground" />
                           <span>Main Dashboard</span>
+                        </DropdownMenuItem>
+                      )}
+                      {!item.isHeaderLink && (
+                        <DropdownMenuItem 
+                          onClick={() => {
+                            onMoveLink(item.id, 'header');
+                            setIsMenuOpen(false);
+                          }}
+                          className="flex items-center gap-2"
+                        >
+                          <LayoutGrid size={13} className="text-muted-foreground" />
+                          <span>Header</span>
                         </DropdownMenuItem>
                       )}
                       {sections
@@ -208,9 +232,9 @@ const LinkCard = ({
           }`}
       >
         {/* Favicon */}
-        {favicon ? (
+        {crispFavicon ? (
           <img
-            src={favicon}
+            src={crispFavicon}
             alt=""
             draggable={false}
             className={`object-contain flex-shrink-0 pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]

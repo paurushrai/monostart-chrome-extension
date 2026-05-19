@@ -94,7 +94,7 @@
 
 @layer components {
   .card-base {
-    @apply bg-card rounded-xl border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md;
+    @apply bg-card rounded-xl border shadow-sm transition-all duration-200 hover:shadow-md;
   }
   .icon-btn {
     @apply flex items-center justify-center w-6 h-6 rounded bg-background border text-muted-foreground cursor-pointer transition-colors hover:text-foreground hover:bg-secondary;
@@ -166,26 +166,20 @@
 
 /* ─── Subtle iOS-Style Jiggle/Shake Animation for Edit Mode ────────────────── */
 @keyframes subtle-jiggle-even {
-  0% {
-    transform: rotate(-0.12deg) translate(-0.1px, -0.1px);
+  0%, 100% {
+    transform: translate(-0.2px, -0.2px);
   }
   50% {
-    transform: rotate(0.12deg) translate(0.1px, 0.1px);
-  }
-  100% {
-    transform: rotate(-0.12deg) translate(-0.1px, -0.1px);
+    transform: translate(0.2px, 0.2px);
   }
 }
 
 @keyframes subtle-jiggle-odd {
-  0% {
-    transform: rotate(0.12deg) translate(0.1px, -0.1px);
+  0%, 100% {
+    transform: translate(0.2px, -0.2px);
   }
   50% {
-    transform: rotate(-0.12deg) translate(-0.1px, 0.1px);
-  }
-  100% {
-    transform: rotate(0.12deg) translate(0.1px, -0.1px);
+    transform: translate(-0.2px, 0.2px);
   }
 }
 
@@ -197,11 +191,11 @@
 }
 
 .react-grid-item:nth-child(even) .animate-jiggle {
-  animation: subtle-jiggle-even 0.32s ease-in-out infinite;
+  animation: subtle-jiggle-even 0.6s ease-in-out infinite;
 }
 
 .react-grid-item:nth-child(odd) .animate-jiggle {
-  animation: subtle-jiggle-odd 0.36s ease-in-out infinite;
+  animation: subtle-jiggle-odd 0.7s ease-in-out infinite;
 }
 
 /* Stop shaking when actively dragging to keep the drag stable and precise */
@@ -213,6 +207,26 @@
 /* Disable transition animations for all grid items to prevent right-to-left layout slides on mount/reload */
 .react-grid-item {
   transition: none !important;
+}
+
+/* Make pasted embed snippets (iframe / blockquote) fill the widget regardless of their hardcoded dimensions */
+.embed-html-container {
+  position: relative;
+  overflow: hidden;
+}
+.embed-html-container iframe {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+  display: block;
+}
+.embed-html-container > blockquote {
+  width: 100%;
+  max-height: 100%;
+  overflow: auto;
+  margin: 0;
 }
 
 

@@ -140,7 +140,7 @@ const SectionWidget = ({
     try {
       const urlObj = new URL(url);
       linkTitle = urlObj.hostname.replace('www.', '');
-      favicon = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=128`;
+      favicon = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(url)}&size=128`;
     } catch (err) {
       linkTitle = url;
     }
@@ -343,7 +343,7 @@ const SectionWidget = ({
     >
       {/* Header */}
       <div 
-        className={`flex items-center justify-between px-3 py-1.5 border-b bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-[10px] transition-all duration-300 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
+        className={`flex items-center justify-between px-2 py-1 border-b bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-[10px] transition-all duration-300 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
         style={{ borderBottomColor: borderMutedCssColor }}
       >
         {/* Left Side: Title & Count Badge */}
@@ -360,7 +360,7 @@ const SectionWidget = ({
           >
             {title}
           </span>
-          <span className="text-3xs font-medium px-1 bg-secondary/60 text-muted-foreground rounded-full shrink-0">
+          <span className="text-2xs font-medium leading-none px-1 py-0.5 bg-secondary/60 text-muted-foreground rounded-full shrink-0">
             {links.length}
           </span>
         </div>

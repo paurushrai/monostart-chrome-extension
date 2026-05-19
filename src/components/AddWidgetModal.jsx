@@ -7,18 +7,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
+import { isEmbedCode, extractEmbedSrc, extractEmbedTitle, sanitizeEmbed, rewriteToEmbedUrl } from '@/lib/embedSanitizer';
 
 const AddWidgetModal = ({ open, onClose, onSelect }) => {
   const [step, setStep] = useState(1);
   const [selectedWidget, setSelectedWidget] = useState(null);
-  const [url, setUrl] = useState("");
+  const [input, setInput] = useState("");
 
   const handleClose = () => {
     setStep(1);
     setSelectedWidget(null);
-    setUrl("");
+    setInput("");
     onClose();
   };
 
@@ -34,23 +34,38 @@ const AddWidgetModal = ({ open, onClose, onSelect }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!url.trim()) return;
-    
-    let hostname = 'Embed';
-    try {
-      hostname = new URL(url.trim()).hostname;
-    } catch (err) {
-      // ignore
-    }
-    
-    onSelect({
-      ...selectedWidget,
-      defaults: {
+    const trimmed = input.trim();
+    if (!trimmed) return;
+
+    let defaults;
+    if (isEmbedCode(trimmed)) {
+      const sanitized = sanitizeEmbed(trimmed);
+      if (!sanitized) return;
+      const src = extractEmbedSrc(sanitized);
+      defaults = {
         ...selectedWidget.defaults,
-        url: url.trim(),
-        title: hostname,
+        mode: 'embed',
+        embedHtml: sanitized,
+        url: src,
+        title: extractEmbedTitle(sanitized) || 'Embed',
+      };
+    } else {
+      const embedUrl = rewriteToEmbedUrl(trimmed);
+      let hostname = 'Embed';
+      try {
+        hostname = new URL(embedUrl).hostname.replace(/^www\./, '');
+      } catch {
+        // ignore
       }
-    });
+      defaults = {
+        ...selectedWidget.defaults,
+        mode: 'url',
+        url: embedUrl,
+        title: hostname,
+      };
+    }
+
+    onSelect({ ...selectedWidget, defaults });
     handleClose();
   };
 
@@ -97,20 +112,25 @@ const AddWidgetModal = ({ open, onClose, onSelect }) => {
         ) : (
           <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Website URL</label>
-              <Input
+              <label className="text-sm font-medium text-foreground">URL or embed code</label>
+              <textarea
                 autoFocus
-                type="url"
-                placeholder="https://example.com"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                rows={5}
+                placeholder={'https://example.com\nor\n<iframe src="https://www.youtube.com/embed/..." ...></iframe>'}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
               />
+              <p className="text-xs text-muted-foreground">
+                Paste a URL for simple embeds, or paste an <code className="font-mono">{'<iframe>'}</code> snippet
+                from sites that block direct loading (YouTube, Figma, Spotify, CodePen, etc.).
+              </p>
             </div>
             <div className="flex justify-end gap-2 mt-2">
               <Button type="button" variant="outline" onClick={() => setStep(1)}>
                 Back
               </Button>
-              <Button type="submit" disabled={!url.trim()}>
+              <Button type="submit" disabled={!input.trim()}>
                 Embed Widget
               </Button>
             </div>

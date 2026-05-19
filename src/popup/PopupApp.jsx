@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { saveLink, getSettings } from '../lib/storage';
-import { BookmarkPlus, Check } from 'lucide-react';
+import { BookmarkPlus, Check, ExternalLink } from 'lucide-react';
 
 function PopupApp() {
   const [saved, setSaved] = useState(false);
   const [tabInfo, setTabInfo] = useState(null);
+  const [canSave, setCanSave] = useState(false);
 
   useEffect(() => {
     if (typeof chrome !== 'undefined' && chrome.tabs) {
@@ -47,13 +48,24 @@ function PopupApp() {
       };
       applyMode(settings.themeMode || 'device');
     });
+
+    const timer = setTimeout(() => setCanSave(true), 500);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSave = async () => {
-    if (!tabInfo) return;
+    if (!tabInfo || !canSave) return;
     await saveLink({ type: 'link', url: tabInfo.url, title: tabInfo.title, favicon: tabInfo.favicon, viewMode: 'icon+text', w: 3, h: 1 });
     setSaved(true);
     setTimeout(() => window.close(), 1500);
+  };
+
+  const handleOpenDashboard = () => {
+    if (typeof chrome !== 'undefined' && chrome.tabs) {
+      chrome.tabs.create({ url: 'chrome://newtab' });
+    } else {
+      window.open('/', '_blank');
+    }
   };
 
   return (
@@ -71,14 +83,22 @@ function PopupApp() {
 
       <button
         onClick={handleSave}
-        disabled={saved}
-        className={`btn-primary w-full ${saved ? 'success' : ''}`}
+        disabled={saved || !canSave}
+        className={`btn-primary w-full ${saved ? 'success' : ''} ${!canSave && !saved ? 'opacity-60 cursor-not-allowed' : ''}`}
       >
         {saved ? (
           <><Check size={15} /> Saved!</>
         ) : (
           <><BookmarkPlus size={15} /> Save Link</>
         )}
+      </button>
+
+      <button
+        onClick={handleOpenDashboard}
+        className="btn-secondary w-full justify-center flex items-center gap-1.5"
+      >
+        <ExternalLink size={15} />
+        Open Dashboard
       </button>
     </div>
   );
