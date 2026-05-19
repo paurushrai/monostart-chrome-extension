@@ -27,7 +27,7 @@ const findNextAvailableSlot = (links, cols, itemW, itemH) => {
     const lw = Math.min(l.w ?? 1, cols);
     const lh = l.h ?? 1;
     for (let r = ly; r < ly + lh; r++) {
-      while (grid.length <= r) grid.push(Array(cols).fill(false));
+      while (grid.length <= r) grid.push(new Array(cols).fill(false));
       for (let c = lx; c < lx + lw && c < cols; c++) {
         grid[r][c] = true;
       }
@@ -41,7 +41,7 @@ const findNextAvailableSlot = (links, cols, itemW, itemH) => {
 
   while (!placed) {
     while (grid.length <= r + itemH) {
-      grid.push(Array(cols).fill(false));
+      grid.push(new Array(cols).fill(false));
     }
     for (let c = 0; c <= cols - itemW; c++) {
       let canFit = true;
@@ -166,7 +166,7 @@ const SectionWidget = ({
       const lw = Math.min(l.w ?? (l.viewMode === 'icon' ? 1 : Math.min(3, currentCols)), currentCols);
       const lh = l.h ?? 1;
       for (let r = ly; r < ly + lh; r++) {
-        while (grid.length <= r) grid.push(Array(currentCols).fill(false));
+        while (grid.length <= r) grid.push(new Array(currentCols).fill(false));
         for (let c = lx; c < lx + lw && c < currentCols; c++) {
           grid[r][c] = true;
         }

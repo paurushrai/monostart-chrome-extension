@@ -177,27 +177,31 @@ export const deleteLink = async (id) => {
   await saveLinks(updatedLinks);
 };
 
+const SETTINGS_KEY = 'dashboardSettings';
+const DEFAULT_SETTINGS = { openInNewTab: false };
+
 export const getSettings = async () => {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* fall through */ }
+
+  // One-time migration from chrome.storage for existing installs
   if (typeof chrome !== 'undefined' && chrome.storage) {
     return new Promise((resolve) => {
       chrome.storage.local.get(['dashboardSettings'], (result) => {
-        resolve(result.dashboardSettings || { openInNewTab: false });
+        const settings = result.dashboardSettings || DEFAULT_SETTINGS;
+        try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) { /* ignore */ }
+        resolve(settings);
       });
     });
-  } else {
-    const localData = localStorage.getItem('dashboardSettings');
-    return localData ? JSON.parse(localData) : { openInNewTab: false };
   }
+
+  return DEFAULT_SETTINGS;
 };
 
 export const saveSettings = async (settings) => {
-  if (typeof chrome !== 'undefined' && chrome.storage) {
-    return new Promise((resolve) => {
-      chrome.storage.local.set({ dashboardSettings: settings }, () => {
-        resolve();
-      });
-    });
-  } else {
-    localStorage.setItem('dashboardSettings', JSON.stringify(settings));
-  }
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch (e) { /* ignore */ }
 };
