@@ -99,8 +99,9 @@ export function useDashboardDrag({
     return links.some((item) => {
       const isGoogleSearch = item.type === WidgetType.GOOGLE_SEARCH;
       const isSection = item.type === WidgetType.SECTION;
-      const itemW = isGoogleSearch ? 6 : (isSection ? (item.w ?? 6) : (item.w ?? (item.viewMode === 'icon' ? 1 : 3)));
-      const itemH = isGoogleSearch ? 1 : (isSection ? (item.h ?? 4) : (item.h ?? 1));
+      // Google search defaults match its catalog entry; respect any user resize.
+      const itemW = isGoogleSearch ? (item.w ?? 6) : (isSection ? (item.w ?? 6) : (item.w ?? (item.viewMode === 'icon' ? 1 : 3)));
+      const itemH = isGoogleSearch ? (item.h ?? 1) : (isSection ? (item.h ?? 4) : (item.h ?? 1));
       const itemX = item.x ?? 0;
       const itemY = item.y ?? 0;
       return (

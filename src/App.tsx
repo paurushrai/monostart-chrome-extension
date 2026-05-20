@@ -54,11 +54,15 @@ function App() {
   }, [originalLinks, replaceLinks]);
 
   const handleAddWidget = useCallback(async (widget: AddWidgetInput) => {
+    if (widget.type === 'google-search' && links.some((l) => l.type === 'google-search')) {
+      showToast('Only one Google search widget is allowed.');
+      return;
+    }
     const saved = await addWidget(widget);
     if (!saved) {
       showToast('No room for this widget. Resize or remove something to make space.');
     }
-  }, [addWidget, showToast]);
+  }, [addWidget, showToast, links]);
 
   const sections = links
     .filter((l): l is Section => l.type === 'section')
