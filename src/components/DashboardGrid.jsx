@@ -109,16 +109,16 @@ const DashboardGrid = ({
         const scrollTop = gridEl.scrollTop || 0;
         const localX = clientX - gridRect.left + scrollLeft;
         const localY = clientY - gridRect.top + scrollTop;
-        
-        const w = item.viewMode === 'icon' ? 1 : 3;
-        const h = 1;
-        
+
+        const w = item.w ?? (item.viewMode === 'icon' ? 1 : 3);
+        const h = item.h ?? 1;
+
         let gridX = Math.floor(localX / colWidth);
         let gridY = Math.floor(localY / rowHeight);
-        
+
         gridX = Math.max(0, Math.min(18 - w, gridX));
         gridY = Math.max(0, gridY);
-        
+
         setActiveDragOutItem(item);
         
         // Block coordinate updates if there is a collision
@@ -162,16 +162,16 @@ const DashboardGrid = ({
             const scrollTop = gridEl.scrollTop || 0;
             const localX = finalX - gridRect.left + scrollLeft;
             const localY = finalY - gridRect.top + scrollTop;
-            
-            const w = item.viewMode === 'icon' ? 1 : 3;
-            const h = 1;
-            
+
+            const w = item.w ?? (item.viewMode === 'icon' ? 1 : 3);
+            const h = item.h ?? 1;
+
             let gridX = Math.floor(localX / colWidth);
             let gridY = Math.floor(localY / rowHeight);
-            
+
             gridX = Math.max(0, Math.min(18 - w, gridX));
             gridY = Math.max(0, gridY);
-            
+
             // Only drop if there is no collision
             if (!checkCollision(gridX, gridY, w, h)) {
               onMoveLink(item.id, null, { x: gridX, y: gridY });
@@ -187,8 +187,8 @@ const DashboardGrid = ({
 
   const displayLinks = [...links];
   if (activeDragOutItem && dragOutCoords) {
-    const w = activeDragOutItem.viewMode === 'icon' ? 1 : 3;
-    const h = 1;
+    const w = activeDragOutItem.w ?? (activeDragOutItem.viewMode === 'icon' ? 1 : 3);
+    const h = activeDragOutItem.h ?? 1;
     displayLinks.push({
       id: 'drag-out-placeholder',
       type: 'link',
@@ -212,10 +212,10 @@ const DashboardGrid = ({
       w:    isGoogleSearch ? 6 : (isSection ? (link.w ?? 6) : (link.w ?? (link.viewMode === 'icon' ? 1 : 3))),
       h:    isGoogleSearch ? 1 : (isSection ? (link.h ?? 4) : (link.h ?? 1)),
       minW: isGoogleSearch ? 6 : (isSection ? 3 : (link.type === 'todo' || link.type === 'timer' ? 3 : 1)),
-      maxW: isGoogleSearch ? 6 : undefined,
+      maxW: isGoogleSearch ? 6 : (link.type === 'link' ? 6 : undefined),
       minH: isGoogleSearch ? 1 : (isSection ? 4 : (link.type === 'todo' || link.type === 'timer' ? 3 : 1)),
-      maxH: isGoogleSearch ? 1 : undefined,
-      isResizable: isPlaceholder ? false : (isGoogleSearch ? false : (link.type === 'link' ? false : undefined))
+      maxH: isGoogleSearch ? 1 : (link.type === 'link' ? 2 : undefined),
+      isResizable: isPlaceholder ? false : (isGoogleSearch ? false : undefined)
     };
   });
 

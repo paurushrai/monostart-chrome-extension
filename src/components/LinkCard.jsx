@@ -66,7 +66,7 @@ const LinkCard = ({
   };
 
   const siteName = customName || getSiteName(url);
-  const isIconOnly = viewMode === 'icon' || item.w === 1;
+  const isIconOnly = item.w === 1;
   const isLarge = (item.w && item.w > 2) || (item.h && item.h > 1);
 
   const handleNameBlur = (e) => {

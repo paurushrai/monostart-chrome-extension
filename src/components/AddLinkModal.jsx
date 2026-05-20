@@ -44,8 +44,8 @@ const AddLinkModal = ({ open, onClose, sections = [] }) => {
       favicon: faviconUrl,
       type: 'link',
       theme: 'default',
-      viewMode: 'icon+text',
-      w: 3,
+      viewMode: 'icon',
+      w: 1,
       h: 1,
       isHeaderLink: isHeader
     }, sectionId);
