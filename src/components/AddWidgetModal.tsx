@@ -68,7 +68,12 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Props) => {
     if (!selectedWidget) return;
     onSelect({
       type: selectedWidget.type,
-      defaults: { ...selectedWidget.defaults, showGoogleLogo } as Partial<LinkItem>,
+      defaults: {
+        ...selectedWidget.defaults,
+        showGoogleLogo,
+        // Logo variant needs vertical room for the wordmark + bar.
+        h: showGoogleLogo ? 2 : 1,
+      } as Partial<LinkItem>,
     });
     handleClose();
   };

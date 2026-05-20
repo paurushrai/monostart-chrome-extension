@@ -292,7 +292,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
   };
 
   return (
-    <div className="group relative flex flex-col items-center justify-center w-full h-full gap-4">
+    <div className={`group relative flex flex-col items-center w-full h-full ${item.showGoogleLogo ? 'justify-between py-4' : 'justify-center'}`}>
       {isEditing && (
         <button
           onMouseDown={(e) => e.stopPropagation()}
