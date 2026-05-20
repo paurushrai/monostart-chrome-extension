@@ -31,6 +31,9 @@ interface Props {
   openInNewTab?: boolean;
   sections?: SectionRef[];
   onMoveLink: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  // Lets DashboardGrid surface "the user is dragging a grid item over the
+  // header right now" up to the App so the header can highlight itself.
+  onHeaderTargetChange?: (isOver: boolean) => void;
 }
 
 // Initial w/h for an item: prefer persisted value, fall back to catalog defaults,
@@ -78,9 +81,10 @@ const DashboardGrid = ({
   openInNewTab,
   sections = [],
   onMoveLink,
+  onHeaderTargetChange,
 }: Props) => {
   const { rowHeight } = useGridDimensions();
-  const drag = useDashboardDrag({ links, rowHeight, onMoveLink });
+  const drag = useDashboardDrag({ links, rowHeight, onMoveLink, onHeaderTargetChange });
   // Visual hover ring while a header link is being dragged over the grid.
   // The id itself rides in dataTransfer so we don't depend on cross-event
   // React state commits.

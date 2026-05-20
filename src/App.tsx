@@ -38,6 +38,7 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
   const [addLinkModalOpen, setAddLinkModalOpen] = useState(false);
+  const [isHeaderTargeted, setIsHeaderTargeted] = useState(false);
 
   const enterEditMode = useCallback(() => {
     setOriginalLinks([...links]);
@@ -85,6 +86,7 @@ function App() {
         onOpenAddLink={() => setAddLinkModalOpen(true)}
         onOpenAddWidget={() => setModalOpen(true)}
         onOpenTheme={() => setThemeModalOpen(true)}
+        isDropTarget={isHeaderTargeted}
       />
 
       <main className="flex-1 p-2">
@@ -98,6 +100,7 @@ function App() {
           openInNewTab={settings.openInNewTab}
           sections={sections}
           onMoveLink={handleMoveLink}
+          onHeaderTargetChange={setIsHeaderTargeted}
         />
       </main>
 
