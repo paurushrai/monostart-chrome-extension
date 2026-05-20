@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { saveLink, getSettings } from '../lib/storage';
+import { getSettings } from '../lib/storage';
+import { saveLink } from '../lib/linkRepository';
 import { BookmarkPlus, Check, ExternalLink } from 'lucide-react';
 
 function PopupApp() {

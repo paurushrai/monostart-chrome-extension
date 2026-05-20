@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getLinks, saveLinks, saveLink } from '../lib/storage';
+import { getLinks, saveLinks } from '../lib/storage';
+import { saveLink } from '../lib/linkRepository';
 
 const RESIZABLE_TYPES = ['section', 'todo', 'timer', 'iframe', 'note', 'image', 'label', 'link'];
 

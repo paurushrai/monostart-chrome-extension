@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { saveLink } from '../lib/storage';
+import { saveLink } from '../lib/linkRepository';
 
 const AddLinkModal = ({ open, onClose, sections = [] }) => {
   const [url, setUrl] = useState('');
