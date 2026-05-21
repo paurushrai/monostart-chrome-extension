@@ -133,7 +133,11 @@
 }
 
 .react-grid-item.react-grid-placeholder {
-  background: hsl(var(--primary));
+  /* RGL's own CSS hard-codes `background: red` and is imported after our
+     index.css (DashboardGrid.tsx does the import). Without !important the
+     placeholder paints red, which on a dark theme renders as a subtle
+     dark-tinted strip that "follows" the drop target during drag. */
+  background: hsl(var(--primary)) !important;
   opacity: 0.18;
   border-radius: var(--radius);
   z-index: 2;
