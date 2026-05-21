@@ -227,7 +227,6 @@ const SectionWidget = ({
   const borderCssColor = isHsl ? `hsl(${borderColor})` : borderColor;
   const borderMutedCssColor = isHsl ? `hsl(${borderColor} / 0.3)` : borderColor;
   const textCssColor = isHsl ? `hsl(${borderColor} / 0.85)` : borderColor;
-  const shadowCssColor = isHsl ? `hsl(${borderColor} / 0.04)` : borderColor;
 
   return (
     <div
@@ -236,7 +235,6 @@ const SectionWidget = ({
       style={{
         borderColor: borderMutedCssColor,
         borderStyle: 'dashed',
-        boxShadow: `0 8px 32px 0 rgba(0, 0, 0, 0.08), 0 0 16px -2px ${shadowCssColor}`,
       }}
       onDragOver={handleHeaderDragOver}
       onDragLeave={handleHeaderDragLeave}
