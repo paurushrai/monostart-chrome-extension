@@ -49,6 +49,10 @@ export function useTheme(): UseTheme {
       } else {
         document.documentElement.classList.remove('dark');
       }
+      // Keep <html> bg matching <body> so html doesn't show through around
+      // scrollbars or layout edges as a different shade of dark/light.
+      const cs = getComputedStyle(document.body);
+      document.documentElement.style.backgroundColor = cs.backgroundColor;
     };
 
     applyMode(settings.themeMode || 'device');
