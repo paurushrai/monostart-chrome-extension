@@ -3,6 +3,7 @@
 
 import { getLinks, saveLinks } from './storage';
 import { getMinSize, findFreeSlot, findSlotInSection, SECTION_DEFAULT_COLS } from './grid';
+import { WidgetType } from './widgetCatalog';
 
 /**
  * Save a new link/widget. Returns the saved item, or null if there's no room
@@ -11,9 +12,9 @@ import { getMinSize, findFreeSlot, findSlotInSection, SECTION_DEFAULT_COLS } fro
 export const saveLink = async (newLink, sectionId) => {
   const currentLinks = await getLinks();
 
-  const id = newLink.id || `${newLink.type || 'link'}-${Date.now()}`;
-  const w = newLink.w || (newLink.type === 'section' ? 6 : 2);
-  const h = newLink.h || (newLink.type === 'section' ? 4 : 2);
+  const id = newLink.id || `${newLink.type || WidgetType.LINK}-${Date.now()}`;
+  const w = newLink.w || (newLink.type === WidgetType.SECTION ? 6 : 2);
+  const h = newLink.h || (newLink.type === WidgetType.SECTION ? 4 : 2);
 
   const linkWithId = {
     w,
@@ -26,7 +27,7 @@ export const saveLink = async (newLink, sectionId) => {
   if (sectionId) {
     // Place inside a specific section's inner grid
     const updatedLinks = currentLinks.map(item => {
-      if (item.id === sectionId && item.type === 'section') {
+      if (item.id === sectionId && item.type === WidgetType.SECTION) {
         const innerLinks = item.links || [];
         const slot = findSlotInSection(innerLinks, w, h, item.cols ?? SECTION_DEFAULT_COLS);
         return {
@@ -85,7 +86,7 @@ export const deleteLink = async (id) => {
     return items
       .filter(item => item.id !== id)
       .map(item => {
-        if (item.type === 'section' && item.links) {
+        if (item.type === WidgetType.SECTION && item.links) {
           return { ...item, links: deleteNested(item.links) };
         }
         return item;

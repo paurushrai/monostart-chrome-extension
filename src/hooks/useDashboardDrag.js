@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { MAIN_COLS, SECTION_DEFAULT_COLS } from '../lib/grid';
+import { WidgetType } from '../lib/widgetCatalog';
 
 const ROW_MARGIN_PX = 16;
 const SECTION_INNER_ROW_HEIGHT = 58; // 50 rowHeight + 8 margin
@@ -46,8 +47,8 @@ export function useDashboardDrag({ links, rowHeight, onMoveLink }) {
 
   const checkCollision = useCallback((x, y, w, h) => {
     return links.some(item => {
-      const isGoogleSearch = item.type === 'google-search';
-      const isSection = item.type === 'section';
+      const isGoogleSearch = item.type === WidgetType.GOOGLE_SEARCH;
+      const isSection = item.type === WidgetType.SECTION;
       const itemW = isGoogleSearch ? 6 : (isSection ? (item.w ?? 6) : (item.w ?? (item.viewMode === 'icon' ? 1 : 3)));
       const itemH = isGoogleSearch ? 1 : (isSection ? (item.h ?? 4) : (item.h ?? 1));
       const itemX = item.x ?? 0;
@@ -145,7 +146,7 @@ export function useDashboardDrag({ links, rowHeight, onMoveLink }) {
   }, [links]);
 
   const handleDrag = useCallback((_layout, _oldItem, _newItem, _placeholder, e) => {
-    if (!e || draggedItemType !== 'link') return;
+    if (!e || draggedItemType !== WidgetType.LINK) return;
 
     const { x: clientX, y: clientY } = getEventCoords(e);
     if (clientX === undefined || clientY === undefined) {
@@ -178,7 +179,7 @@ export function useDashboardDrag({ links, rowHeight, onMoveLink }) {
     const targetSectionId = findSectionAtPoint(clientX, clientY);
     if (!targetSectionId) return;
 
-    const draggedLink = links.find(l => l.id === newItem.i && l.type === 'link');
+    const draggedLink = links.find(l => l.id === newItem.i && l.type === WidgetType.LINK);
     if (!draggedLink) return;
 
     // Compute drop slot inside the target section's inner container

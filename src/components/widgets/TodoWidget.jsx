@@ -1,30 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { CheckSquare, Plus, Trash2, X } from 'lucide-react';
+import { useWidgetStorage } from '../../hooks/useWidgetStorage';
 
 const TodoWidget = ({ item, onDelete, isEditing }) => {
-  const [todos, setTodos] = useState([]);
+  const [todos, saveTodos] = useWidgetStorage(`todo-widget-${item.id}`, []);
   const [newTask, setNewTask] = useState("");
-  const storageKey = `todo-widget-${item.id}`;
-
-  useEffect(() => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.local.get([storageKey], (result) => {
-        setTodos(result[storageKey] || []);
-      });
-    } else {
-      const data = localStorage.getItem(storageKey);
-      setTodos(data ? JSON.parse(data) : []);
-    }
-  }, [storageKey]);
-
-  const saveTodos = (newTodos) => {
-    setTodos(newTodos);
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.local.set({ [storageKey]: newTodos });
-    } else {
-      localStorage.setItem(storageKey, JSON.stringify(newTodos));
-    }
-  };
 
   const handleAdd = (e) => {
     e.preventDefault();

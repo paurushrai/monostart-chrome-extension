@@ -6,24 +6,43 @@ import WidgetRenderer from './WidgetRenderer';
 import { useGridDimensions } from '../hooks/useGridDimensions';
 import { useDashboardDrag } from '../hooks/useDashboardDrag';
 import { MAIN_COLS, MAIN_ROWS } from '../lib/grid';
+import { getWidgetMeta, WidgetType } from '../lib/widgetCatalog';
 
 const ReactGridLayout = WidthProvider(GridLayout);
 
+const PLACEHOLDER_ID = 'drag-out-placeholder';
+
+// Initial w/h for an item: prefer persisted value, fall back to catalog defaults,
+// with the historical link-specific viewMode rule preserved.
+const initialSize = (link, meta) => {
+  if (link.type === WidgetType.LINK) {
+    return {
+      w: link.w ?? (link.viewMode === 'icon' ? 1 : 3),
+      h: link.h ?? 1,
+    };
+  }
+  return {
+    w: link.w ?? meta?.defaults?.w ?? 1,
+    h: link.h ?? meta?.defaults?.h ?? 1,
+  };
+};
+
 const buildLayout = (displayLinks) => displayLinks.map(link => {
-  const isSection = link.type === 'section';
-  const isGoogleSearch = link.type === 'google-search';
-  const isPlaceholder = link.id === 'drag-out-placeholder';
+  const isPlaceholder = link.id === PLACEHOLDER_ID;
+  const meta = getWidgetMeta(link.type);
+  const { minW, maxW, minH, maxH, resizable } = meta?.layout ?? {};
+  const { w, h } = initialSize(link, meta);
   return {
     i:    link.id,
     x:    link.x ?? 0,
     y:    link.y ?? 0,
-    w:    isGoogleSearch ? 6 : (isSection ? (link.w ?? 6) : (link.w ?? (link.viewMode === 'icon' ? 1 : 3))),
-    h:    isGoogleSearch ? 1 : (isSection ? (link.h ?? 4) : (link.h ?? 1)),
-    minW: isGoogleSearch ? 6 : (isSection ? 3 : (link.type === 'todo' || link.type === 'timer' ? 3 : 1)),
-    maxW: isGoogleSearch ? 6 : (link.type === 'link' ? 6 : undefined),
-    minH: isGoogleSearch ? 1 : (isSection ? 4 : (link.type === 'todo' || link.type === 'timer' ? 3 : 1)),
-    maxH: isGoogleSearch ? 1 : (link.type === 'link' ? 2 : undefined),
-    isResizable: isPlaceholder ? false : (isGoogleSearch ? false : undefined),
+    w,
+    h,
+    minW,
+    maxW,
+    minH,
+    maxH,
+    isResizable: isPlaceholder ? false : (resizable === false ? false : undefined),
   };
 });
 
