@@ -210,6 +210,7 @@ export default function SectionInnerGrid({
           isDraggable={isEditing}
           isResizable={isEditing}
           draggableHandle=".inner-drag-handle"
+          measureBeforeMount={true}
           onLayoutChange={onInnerLayoutChange}
           onDragStart={onRglDragStart}
           onDrag={onRglDrag}
