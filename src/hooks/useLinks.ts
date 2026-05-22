@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Layout } from 'react-grid-layout/legacy';
-import { getLinks, saveLinks } from '../lib/storage';
+import { getLinks, getLinksSync, saveLinks } from '../lib/storage';
 import { saveLink } from '../lib/linkRepository';
 import type { NewLinkInput } from '../lib/linkRepository';
 import { RESIZABLE_TYPES, WidgetType } from '../lib/widgetCatalog';
@@ -27,10 +27,20 @@ export interface UseLinks {
 }
 
 export function useLinks(): UseLinks {
-  const [links, setLinks] = useState<LinkItem[]>([]);
+  // Seed from the synchronous localStorage mirror so first paint already
+  // has the persisted dashboard — no empty-state flash while the async
+  // chrome.storage read is in flight.
+  const [links, setLinks] = useState<LinkItem[]>(() => getLinksSync());
 
   useEffect(() => {
-    getLinks().then(setLinks);
+    // chrome.storage may have a fresher value (e.g. another tab wrote
+    // since this tab cached). Refresh and overwrite if it differs.
+    getLinks().then((stored) => {
+      setLinks((prev) => {
+        if (prev.length === stored.length && JSON.stringify(prev) === JSON.stringify(stored)) return prev;
+        return stored;
+      });
+    });
 
     // Auto-sync across extension components (popup -> tab)
     if (typeof chrome !== 'undefined' && chrome.storage) {
