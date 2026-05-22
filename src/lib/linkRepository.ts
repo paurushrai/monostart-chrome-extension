@@ -4,19 +4,29 @@
 import { getLinks, saveLinks } from './storage';
 import { getMinSize, findFreeSlot, findSlotInSection, SECTION_DEFAULT_COLS } from './grid';
 import { WidgetType } from './widgetCatalog';
+import type { LinkItem, RegularLink, Section } from '../types';
+
+/** Partial LinkItem with `type` required — what saveLink callers actually pass. */
+export type NewLinkInput = Partial<LinkItem> & { type: LinkItem['type'] };
 
 /**
  * Save a new link/widget. Returns the saved item, or null if there's no room
  * on the main dashboard for even the minimum-size variant.
  */
-export const saveLink = async (newLink, sectionId) => {
+export const saveLink = async (
+  newLink: NewLinkInput,
+  sectionId?: string,
+): Promise<LinkItem | null> => {
   const currentLinks = await getLinks();
 
   const id = newLink.id || `${newLink.type || WidgetType.LINK}-${Date.now()}`;
   const w = newLink.w || (newLink.type === WidgetType.SECTION ? 6 : 2);
   const h = newLink.h || (newLink.type === WidgetType.SECTION ? 4 : 2);
 
-  const linkWithId = {
+  // `linkWithId` accumulates fields during construction. We treat it as a
+  // mutable Partial and cast to LinkItem on return once all required fields
+  // are populated. This is the constructor-like trust boundary.
+  const linkWithId: NewLinkInput & { id: string; i: string; w: number; h: number } = {
     w,
     h,
     ...newLink,
@@ -26,26 +36,27 @@ export const saveLink = async (newLink, sectionId) => {
 
   if (sectionId) {
     // Place inside a specific section's inner grid
-    const updatedLinks = currentLinks.map(item => {
+    const updatedLinks = currentLinks.map((item) => {
       if (item.id === sectionId && item.type === WidgetType.SECTION) {
-        const innerLinks = item.links || [];
-        const slot = findSlotInSection(innerLinks, w, h, item.cols ?? SECTION_DEFAULT_COLS);
+        const section = item;
+        const innerLinks = section.links || [];
+        const slot = findSlotInSection(innerLinks, w, h, section.cols ?? SECTION_DEFAULT_COLS);
         return {
-          ...item,
+          ...section,
           links: [
             ...innerLinks,
-            { ...linkWithId, x: slot.x, y: slot.y }
-          ]
+            { ...(linkWithId as unknown as RegularLink), x: slot.x, y: slot.y },
+          ],
         };
       }
       return item;
     });
     await saveLinks(updatedLinks);
-    return linkWithId;
+    return linkWithId as unknown as LinkItem;
   }
 
   if (newLink.isHeaderLink) {
-    const headerLinks = currentLinks.filter(l => l.isHeaderLink);
+    const headerLinks = currentLinks.filter((l) => l.isHeaderLink);
     const maxOrder = headerLinks.reduce((max, l) => Math.max(max, l.order || 0), -1);
     linkWithId.order = maxOrder + 1;
     linkWithId.x = undefined;
@@ -70,9 +81,9 @@ export const saveLink = async (newLink, sectionId) => {
     linkWithId.y = slot.y;
   }
 
-  const updatedLinks = [...currentLinks, linkWithId];
+  const updatedLinks: LinkItem[] = [...currentLinks, linkWithId as unknown as LinkItem];
   await saveLinks(updatedLinks);
-  return linkWithId;
+  return linkWithId as unknown as LinkItem;
 };
 
 /**
@@ -80,14 +91,18 @@ export const saveLink = async (newLink, sectionId) => {
  * (App.handleDelete does the same filter inline for optimistic updates), but
  * kept as part of the repository's public surface for future callers.
  */
-export const deleteLink = async (id) => {
+export const deleteLink = async (id: string): Promise<void> => {
   const currentLinks = await getLinks();
-  const deleteNested = (items) => {
+  const deleteNested = (items: LinkItem[]): LinkItem[] => {
     return items
-      .filter(item => item.id !== id)
-      .map(item => {
+      .filter((item) => item.id !== id)
+      .map((item) => {
         if (item.type === WidgetType.SECTION && item.links) {
-          return { ...item, links: deleteNested(item.links) };
+          const section = item as Section;
+          return {
+            ...section,
+            links: deleteNested(section.links as unknown as LinkItem[]) as unknown as Section['links'],
+          };
         }
         return item;
       });

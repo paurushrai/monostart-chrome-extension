@@ -18,7 +18,7 @@ const ADD_ATTR = [
   'data-instgrm-version',
 ];
 
-export const isEmbedCode = (input) => {
+export const isEmbedCode = (input: string | null | undefined): boolean => {
   if (!input) return false;
   return input.trim().startsWith('<');
 };
@@ -29,7 +29,7 @@ const SPOTIFY = /open\.spotify\.com\/(track|album|playlist|episode|show|artist)\
 const TWITCH_CHANNEL = /twitch\.tv\/([A-Za-z0-9_]+)(?:$|\?|\/)/;
 const LOOM = /loom\.com\/share\/([A-Za-z0-9]+)/;
 
-export const rewriteToEmbedUrl = (rawUrl) => {
+export const rewriteToEmbedUrl = (rawUrl: string | null | undefined): string | null | undefined => {
   if (!rawUrl) return rawUrl;
   const url = rawUrl.trim();
 
@@ -54,7 +54,7 @@ export const rewriteToEmbedUrl = (rawUrl) => {
   return url;
 };
 
-export const sanitizeEmbed = (html) => {
+export const sanitizeEmbed = (html: string | null | undefined): string => {
   if (!html) return '';
   return DOMPurify.sanitize(html, {
     ADD_TAGS,
@@ -62,13 +62,13 @@ export const sanitizeEmbed = (html) => {
   });
 };
 
-export const extractEmbedSrc = (html) => {
+export const extractEmbedSrc = (html: string | null | undefined): string => {
   if (!html) return '';
   const match = html.match(/<iframe[^>]*\ssrc=["']([^"']+)["']/i);
   return match ? match[1] : '';
 };
 
-export const extractEmbedTitle = (html) => {
+export const extractEmbedTitle = (html: string | null | undefined): string => {
   if (!html) return '';
   const titleMatch = html.match(/<iframe[^>]*\stitle=["']([^"']+)["']/i);
   if (titleMatch) return titleMatch[1];

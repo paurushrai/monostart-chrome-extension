@@ -7,8 +7,12 @@
 // placement defaults, type enum, and the "Add Widget" menu all read from this.
 
 import { Search, Globe, CheckSquare, Clock, Folder, FileText, Image, Type } from 'lucide-react';
+import type { ComponentType, SVGProps } from 'react';
+import type { LinkItem } from '../types';
 
-export const WidgetType = Object.freeze({
+// `as const` gives literal-type narrowness on values; the helper type derives
+// the union from the keys so adding/removing a member only requires one edit.
+export const WidgetType = {
   LINK: 'link',
   SECTION: 'section',
   GOOGLE_SEARCH: 'google-search',
@@ -18,7 +22,31 @@ export const WidgetType = Object.freeze({
   NOTE: 'note',
   IMAGE: 'image',
   LABEL: 'label',
-});
+} as const;
+
+export type WidgetType = typeof WidgetType[keyof typeof WidgetType];
+
+// Lucide-react icon component shape.
+type LucideIcon = ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>;
+
+interface WidgetLayoutMeta {
+  minW?: number;
+  maxW?: number;
+  minH?: number;
+  maxH?: number;
+  resizable: boolean;
+  placementMin?: { minW?: number; minH?: number };
+}
+
+export interface WidgetMeta {
+  type: WidgetType;
+  addable: boolean;
+  name?: string;
+  description?: string;
+  icon?: LucideIcon;
+  defaults?: Partial<LinkItem>;
+  layout: WidgetLayoutMeta;
+}
 
 /**
  * Per-widget metadata.
@@ -28,6 +56,10 @@ export const WidgetType = Object.freeze({
  * - `layout.placementMin`: minimum size when shrink-to-fit kicks in during saveLink.
  *    Defaults to layout.minW/minH if omitted.
  * - `defaults`: initial item state on creation (passed through saveLink).
+ *
+ * `satisfies` preserves the literal-type narrowness of each entry's `type`
+ * field (so we can pattern-match on it) while also checking the entire shape
+ * against WidgetMeta at compile time.
  */
 const WIDGETS = [
   {
@@ -107,22 +139,26 @@ const WIDGETS = [
     defaults: { w: 4, h: 1, text: 'Google', align: 'left', size: 'text-3xl', fontWeight: 'font-bold', opacity: 'opacity-100' },
     layout: { minW: 1, minH: 1, resizable: true },
   },
-];
+] as const satisfies readonly WidgetMeta[];
 
-const META_BY_TYPE = Object.fromEntries(WIDGETS.map((w) => [w.type, w]));
-const FALLBACK_LAYOUT = { minW: 1, minH: 1, resizable: true };
+const META_BY_TYPE: Record<string, WidgetMeta> =
+  Object.fromEntries(WIDGETS.map((w) => [w.type, w]));
+
+const FALLBACK_LAYOUT: WidgetLayoutMeta = { minW: 1, minH: 1, resizable: true };
 
 /** Widgets shown in the "Add Widget" menu — addable=true only. */
-export const WIDGET_CATALOG = WIDGETS.filter((w) => w.addable);
+export const WIDGET_CATALOG: readonly WidgetMeta[] = WIDGETS.filter((w) => w.addable);
 
 /** Full metadata for any known widget type, including 'link'. */
-export const getWidgetMeta = (type) => META_BY_TYPE[type];
+export const getWidgetMeta = (type: string | undefined): WidgetMeta | undefined =>
+  type === undefined ? undefined : META_BY_TYPE[type];
 
 /** Layout constraints for a widget type. Returns sensible defaults for unknown types. */
-export const getWidgetLayout = (type) => META_BY_TYPE[type]?.layout ?? FALLBACK_LAYOUT;
+export const getWidgetLayout = (type: string | undefined): WidgetLayoutMeta =>
+  (type !== undefined && META_BY_TYPE[type]?.layout) || FALLBACK_LAYOUT;
 
 /** Minimum placement size for shrink-to-fit. Falls back to layout min. */
-export const getWidgetMinSize = (type) => {
+export const getWidgetMinSize = (type: string | undefined): { minW: number; minH: number } => {
   const layout = getWidgetLayout(type);
   return {
     minW: layout.placementMin?.minW ?? layout.minW ?? 1,
@@ -131,6 +167,6 @@ export const getWidgetMinSize = (type) => {
 };
 
 /** Set of types whose w/h should be persisted on layout change. */
-export const RESIZABLE_TYPES = new Set(
+export const RESIZABLE_TYPES: ReadonlySet<string> = new Set(
   WIDGETS.filter((w) => w.layout?.resizable).map((w) => w.type)
 );

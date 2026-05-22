@@ -3,12 +3,21 @@
 // hooks for placement math (e.g. drag-placeholder positioning).
 
 import { getWidgetMinSize } from './widgetCatalog';
+import type { LinkItem, RegularLink, GridSlot } from '../types';
 
 export const MAIN_COLS = 18;
 export const MAIN_ROWS = 12;
 export const SECTION_DEFAULT_COLS = 3;
 
-export const getMinSize = (type) => getWidgetMinSize(type);
+export const getMinSize = (type: string | undefined) => getWidgetMinSize(type);
+
+/** Occupied rectangle, pre-resolved (used by `findFirstFreeSlot`). */
+export interface OccupiedRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 /**
  * Core slot-finder. Given an array of occupied rectangles, find the top-left
@@ -20,11 +29,17 @@ export const getMinSize = (type) => getWidgetMinSize(type);
  *
  * Returns { x, y } or null if no fit within bounds.
  */
-export const findFirstFreeSlot = (occupied, w, h, cols, maxRows = Infinity) => {
+export const findFirstFreeSlot = (
+  occupied: readonly OccupiedRect[],
+  w: number,
+  h: number,
+  cols: number,
+  maxRows: number = Infinity,
+): GridSlot | null => {
   if (w > cols) return null;
 
-  const grid = [];
-  const ensureRow = (r) => {
+  const grid: boolean[][] = [];
+  const ensureRow = (r: number) => {
     while (grid.length <= r) grid.push(new Array(cols).fill(false));
   };
 
@@ -56,9 +71,15 @@ export const findFirstFreeSlot = (occupied, w, h, cols, maxRows = Infinity) => {
 };
 
 /** Build occupied-rectangles from a links array (skips header-only items). */
-const resolveOccupancy = (links, defaultW = 1, defaultH = 1) =>
+const resolveOccupancy = (
+  links: readonly LinkItem[],
+  defaultW = 1,
+  defaultH = 1,
+): OccupiedRect[] =>
   links
-    .filter((l) => !l.isHeaderLink && l.x !== undefined && l.y !== undefined)
+    .filter((l): l is LinkItem & { x: number; y: number } =>
+      !l.isHeaderLink && l.x !== undefined && l.y !== undefined,
+    )
     .map((l) => ({
       x: l.x,
       y: l.y,
@@ -67,19 +88,30 @@ const resolveOccupancy = (links, defaultW = 1, defaultH = 1) =>
     }));
 
 /** Find a slot on the bounded main dashboard grid. Returns null if no fit. */
-export const findFreeSlot = (links, w, h, maxCols = MAIN_COLS, maxRows = MAIN_ROWS) => {
+export const findFreeSlot = (
+  links: readonly LinkItem[],
+  w: number,
+  h: number,
+  maxCols: number = MAIN_COLS,
+  maxRows: number = MAIN_ROWS,
+): GridSlot | null => {
   if (h > maxRows) return null;
   return findFirstFreeSlot(resolveOccupancy(links), w, h, maxCols, maxRows);
 };
 
 /** Find a slot in a section's grid (grows vertically without limit). */
-export const findSlotInSection = (sectionLinks, itemW = 3, itemH = 1, cols = SECTION_DEFAULT_COLS) => {
-  const occupied = sectionLinks.map((l) => ({
+export const findSlotInSection = (
+  sectionLinks: readonly RegularLink[],
+  itemW: number = 3,
+  itemH: number = 1,
+  cols: number = SECTION_DEFAULT_COLS,
+): GridSlot => {
+  const occupied: OccupiedRect[] = sectionLinks.map((l) => ({
     x: l.x ?? 0,
     y: l.y ?? 0,
     w: Math.min(l.w ?? itemW, cols),
     h: l.h ?? 1,
   }));
   // Sections are unbounded vertically; pass Infinity. Result is never null here.
-  return findFirstFreeSlot(occupied, itemW, itemH, cols);
+  return findFirstFreeSlot(occupied, itemW, itemH, cols) as GridSlot;
 };

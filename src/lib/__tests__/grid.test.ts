@@ -8,6 +8,20 @@ import {
   MAIN_ROWS,
   SECTION_DEFAULT_COLS,
 } from '../grid';
+import type { LinkItem, RegularLink } from '../../types';
+
+// Test fixture builder for a fully-typed RegularLink.
+const link = (id: string, x: number, y: number, w = 1, h = 1, extra: Partial<RegularLink> = {}): RegularLink => ({
+  id,
+  type: 'link',
+  url: `https://example.com/${id}`,
+  title: id,
+  x,
+  y,
+  w,
+  h,
+  ...extra,
+});
 
 describe('findFirstFreeSlot', () => {
   it('places at (0,0) when the grid is empty', () => {
@@ -47,9 +61,9 @@ describe('findFirstFreeSlot', () => {
 
 describe('findFreeSlot (main grid)', () => {
   it('ignores header-only links (no x/y)', () => {
-    const links = [
-      { id: 'h1', isHeaderLink: true, x: undefined, y: undefined },
-      { id: 'a', x: 0, y: 0, w: 3, h: 1 },
+    const links: LinkItem[] = [
+      { ...link('h1', 0, 0), isHeaderLink: true, x: undefined, y: undefined },
+      link('a', 0, 0, 3, 1),
     ];
     expect(findFreeSlot(links, 3, 1)).toEqual({ x: 3, y: 0 });
   });
@@ -59,7 +73,9 @@ describe('findFreeSlot (main grid)', () => {
   });
 
   it('defaults missing w/h on existing links to 1×1', () => {
-    const links = [{ id: 'a', x: 0, y: 0 /* no w/h */ }];
+    // Build a link with x/y but explicitly missing w/h via overrides
+    const stub: LinkItem = { ...link('a', 0, 0), w: undefined, h: undefined };
+    const links: LinkItem[] = [stub];
     // Existing link occupies just (0,0); next item goes to (1,0)
     expect(findFreeSlot(links, 1, 1)).toEqual({ x: 1, y: 0 });
   });
@@ -71,20 +87,22 @@ describe('findSlotInSection', () => {
   });
 
   it('grows vertically without limit', () => {
-    const sectionLinks = Array.from({ length: 50 }, (_, y) => ({ x: 0, y, w: 3, h: 1 }));
+    const sectionLinks: RegularLink[] = Array.from({ length: 50 }, (_, y) =>
+      link(`l-${y}`, 0, y, 3, 1),
+    );
     const slot = findSlotInSection(sectionLinks, 1, 1, SECTION_DEFAULT_COLS);
     expect(slot.y).toBe(50);
   });
 
   it('respects per-section cols', () => {
     // 6-column section, place a 3-wide item next to an existing 3-wide one
-    const sectionLinks = [{ x: 0, y: 0, w: 3, h: 1 }];
+    const sectionLinks: RegularLink[] = [link('a', 0, 0, 3, 1)];
     expect(findSlotInSection(sectionLinks, 3, 1, 6)).toEqual({ x: 3, y: 0 });
   });
 
   it('clamps an oversized existing link to cols when computing occupancy', () => {
     // Link with w=10 in a 3-col section should still allow new items below it
-    const sectionLinks = [{ x: 0, y: 0, w: 10, h: 1 }];
+    const sectionLinks: RegularLink[] = [link('a', 0, 0, 10, 1)];
     expect(findSlotInSection(sectionLinks, 1, 1, 3)).toEqual({ x: 0, y: 1 });
   });
 });
