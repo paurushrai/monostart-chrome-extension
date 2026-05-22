@@ -571,6 +571,26 @@ that downstream consumers can rely on.
 | `useDashboardDrag.js` → `.ts` | Biggest hook — RGL types, cross-grid coordination state |
 | `useLinks.js` → `.ts` | `LinkItem[]` everywhere; verify discriminated union narrows |
 
+### Phase 2 pre-scan findings (recorded 2026-05-22)
+
+Specific things to address per file:
+
+| File | LOC | Notes |
+|---|---|---|
+| `useToast.ts` | 16 | Trivial. `message: string \| null` |
+| `useGridDimensions.ts` | 35 | Trivial. Returns `{ rowHeight: number }` |
+| `useHeaderDrag.ts` | 37 | `onDragOver(e, id)` — `e: React.DragEvent`; `onReorder: (a: string, b: string) => void` |
+| `useWidgetStorage.ts` | 40 | Generic `<T>(key, default): [T, (next: T \| ((prev: T) => T)) => void]` |
+| `useTheme.ts` | 66 | `MediaQueryListEvent` for the `change` listener; `Settings` type |
+| `useSectionDragOut.ts` | 81 | Wraps RGL `EventCallback`; refs need explicit types |
+| `useLinks.ts` | 184 | Biggest API surface — return interface exported, `chrome.storage.onChanged` listener types from @types/chrome |
+| `useDashboardDrag.ts` | 230 | RGL `EventCallback`, `LayoutItem`, `Layout` from `react-grid-layout/legacy`; `gridRef: RefObject<HTMLDivElement \| null>` |
+
+Common patterns:
+- **useRef(null)** → explicit type: `useRef<HTMLDivElement \| null>(null)` for DOM refs, `useRef<DragCoords \| null>(null)` for value refs, `useRef<boolean>(false)` for flag refs.
+- **RGL handlers** — import `EventCallback` from `react-grid-layout/legacy`, OR use the verbose signature `(layout: Layout, oldItem: LayoutItem \| null, newItem: LayoutItem \| null, placeholder: LayoutItem \| null, event: Event, element: HTMLElement \| null) => void`. Internal handlers can declare fewer params (callee may always have fewer than callback type allows).
+- **chrome.storage.onChanged.addListener** — listener signature `(changes: { [key: string]: chrome.storage.StorageChange }, areaName: chrome.storage.AreaName) => void`. The destructured `changes.dashboardLinks.newValue` is `unknown` from the typed API → cast to `LinkItem[] \| undefined`.
+
 ### React 19 ref typing — important
 
 React 19 changed `useRef` typing. The codebase uses `useRef(null)` in many
@@ -980,7 +1000,7 @@ Tick boxes as phases complete. PR/commit refs go in the Notes column.
 |-------|--------|-------|
 | 0. Foundation | ✅ Done | typecheck/build/tests all clean. `@types/node` also installed for `vite.config.ts`. `baseUrl` dropped (TS 6 deprecation). |
 | 1. lib/ | ✅ Done | 9 files converted (7 sources + 2 tests). 39/39 tests pass. Required adding `types: ["node","chrome","vite/client"]` to tsconfig — auto-discovery didn't pick up `@types/chrome`. |
-| 2. hooks/ | ☐ Not started | |
+| 2. hooks/ | ✅ Done | 8 hooks converted. RGL types from `react-grid-layout/legacy` work directly. `chrome.storage.StorageChange` from @types/chrome for the onChanged listener. Each hook exports a named `Use*` interface. |
 | 3. Leaf components | ☐ Not started | |
 | 4. Container components | ☐ Not started | |
 | 5. Strictness + cleanup | ☐ Not started | |

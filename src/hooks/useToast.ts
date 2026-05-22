@@ -1,7 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export function useToast(durationMs = 3500) {
-  const [toast, setToast] = useState(null);
+export interface UseToast {
+  toast: string | null;
+  showToast: (message: string) => void;
+  dismissToast: () => void;
+}
+
+export function useToast(durationMs: number = 3500): UseToast {
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     if (!toast) return;
@@ -9,7 +15,7 @@ export function useToast(durationMs = 3500) {
     return () => clearTimeout(t);
   }, [toast, durationMs]);
 
-  const showToast = useCallback((message) => setToast(message), []);
+  const showToast = useCallback((message: string) => setToast(message), []);
   const dismissToast = useCallback(() => setToast(null), []);
 
   return { toast, showToast, dismissToast };

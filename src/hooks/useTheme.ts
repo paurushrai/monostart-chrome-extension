@@ -1,10 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getSettings, saveSettings } from '../lib/storage';
+import type { Settings } from '../types';
 
-const DEFAULT_SETTINGS = { openInNewTab: false, themeMode: 'device', themeColor: '200 73% 52%' };
+const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '200 73% 52%' };
 
-export function useTheme() {
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+export interface UseTheme {
+  settings: Settings;
+  updateSettings: (next: Settings) => void;
+}
+
+export function useTheme(): UseTheme {
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
     getSettings().then((s) => setSettings({ ...DEFAULT_SETTINGS, ...s }));
@@ -36,7 +42,7 @@ export function useTheme() {
       document.documentElement.style.removeProperty('--theme-sat');
     }
 
-    const applyMode = (mode) => {
+    const applyMode = (mode: Settings['themeMode'] | undefined): void => {
       const isDark = mode === 'dark' || (mode === 'device' && window.matchMedia('(prefers-color-scheme: dark)').matches);
       if (isDark) {
         document.documentElement.classList.add('dark');
@@ -48,7 +54,7 @@ export function useTheme() {
     applyMode(settings.themeMode || 'device');
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
+    const handleChange = (): void => {
       if (settings.themeMode === 'device' || !settings.themeMode) {
         applyMode('device');
       }
@@ -57,7 +63,7 @@ export function useTheme() {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [settings.themeMode, settings.themeColor]);
 
-  const updateSettings = useCallback((next) => {
+  const updateSettings = useCallback((next: Settings) => {
     setSettings(next);
     saveSettings(next);
   }, []);
