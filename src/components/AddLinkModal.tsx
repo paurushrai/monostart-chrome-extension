@@ -1,17 +1,28 @@
-import React, { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { saveLink } from '../lib/linkRepository';
 
-const AddLinkModal = ({ open, onClose, sections = [] }) => {
+interface SectionRef {
+  id: string;
+  title: string;
+}
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  sections?: SectionRef[];
+}
+
+const AddLinkModal = ({ open, onClose, sections = [] }: Props) => {
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('dashboard');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!url) return;
 

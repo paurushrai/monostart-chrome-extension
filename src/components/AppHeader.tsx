@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import HeaderLink from './HeaderLink';
 import {
   DropdownMenu,
@@ -9,6 +8,25 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, ExternalLink, LayoutGrid } from 'lucide-react';
+import type { LinkItem, RegularLink, Section, Settings as AppSettings, GridSlot } from '../types';
+import type { UseHeaderDrag } from '../hooks/useHeaderDrag';
+
+interface Props {
+  links: LinkItem[];
+  isEditing: boolean;
+  settings: AppSettings;
+  onUpdateSettings: (next: AppSettings) => void;
+  onMoveLink: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  onDelete: (id: string) => void;
+  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
+  headerDrag: UseHeaderDrag;
+  onEnterEdit: () => void;
+  onSaveEdit: () => void;
+  onCancelEdit: () => void;
+  onOpenAddLink: () => void;
+  onOpenAddWidget: () => void;
+  onOpenTheme: () => void;
+}
 
 export default function AppHeader({
   links,
@@ -25,13 +43,13 @@ export default function AppHeader({
   onOpenAddLink,
   onOpenAddWidget,
   onOpenTheme,
-}) {
+}: Props) {
   const headerLinks = links
-    .filter(l => l.isHeaderLink)
+    .filter((l): l is RegularLink => l.isHeaderLink === true && l.type === 'link')
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 
   const sections = links
-    .filter(l => l.type === 'section')
+    .filter((l): l is Section => l.type === 'section')
     .map(s => ({ id: s.id, title: s.title }));
 
   return (

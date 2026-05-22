@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { Clock, Plus, Trash2, X, Play, Pause, RotateCcw } from 'lucide-react';
 import { useWidgetStorage } from '../../hooks/useWidgetStorage';
+import type { TimerWidget as TimerWidgetItem, TimerEntry } from '../../types';
 
 // Format milliseconds to MM:SS
-const formatTime = (ms) => {
+const formatTime = (ms: number): string => {
   if (ms <= 0) return "00:00";
   const totalSeconds = Math.floor(ms / 1000);
   const m = Math.floor(totalSeconds / 60);
@@ -11,15 +12,21 @@ const formatTime = (ms) => {
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
-const TimerItem = ({ timer, onUpdate, onDelete }) => {
+interface TimerItemProps {
+  timer: TimerEntry;
+  onUpdate: (id: number, updates: Partial<TimerEntry>) => void;
+  onDelete: (id: number) => void;
+}
+
+const TimerItem = ({ timer, onUpdate, onDelete }: TimerItemProps) => {
   const [timeLeft, setTimeLeft] = useState(timer.remainingMs);
 
   useEffect(() => {
-    let interval;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (timer.isRunning) {
       interval = setInterval(() => {
         const now = Date.now();
-        const remaining = timer.endTime - now;
+        const remaining = (timer.endTime ?? now) - now;
         if (remaining <= 0) {
           clearInterval(interval);
           setTimeLeft(0);
@@ -87,36 +94,42 @@ const TimerItem = ({ timer, onUpdate, onDelete }) => {
   );
 };
 
-const TimerWidget = ({ item, onDelete, isEditing }) => {
-  const [timers, saveTimers] = useWidgetStorage(`timer-widget-${item.id}`, []);
+interface Props {
+  item: TimerWidgetItem;
+  onDelete: (id: string) => void;
+  isEditing: boolean;
+}
+
+const TimerWidget = ({ item, onDelete, isEditing }: Props) => {
+  const [timers, saveTimers] = useWidgetStorage<TimerEntry[]>(`timer-widget-${item.id}`, []);
   const [newMinutes, setNewMinutes] = useState("");
   const [newLabel, setNewLabel] = useState("");
 
-  const handleAdd = (e) => {
+  const handleAdd = (e: FormEvent) => {
     e.preventDefault();
     const mins = parseInt(newMinutes);
     if (!mins || mins <= 0) return;
-    
+
     const durationMs = mins * 60 * 1000;
-    const newTimer = {
+    const newTimer: TimerEntry = {
       id: Date.now(),
       label: newLabel.trim() || `${mins} min Timer`,
       durationMs,
       remainingMs: durationMs,
       isRunning: false,
-      endTime: null
+      endTime: null,
     };
     saveTimers([...timers, newTimer]);
     setNewMinutes("");
     setNewLabel("");
   };
 
-  const updateTimer = (id, updates) => {
+  const updateTimer = (id: number, updates: Partial<TimerEntry>) => {
     const updated = timers.map(t => t.id === id ? { ...t, ...updates } : t);
     saveTimers(updated);
   };
 
-  const deleteTimer = (id) => {
+  const deleteTimer = (id: number) => {
     const updated = timers.filter(t => t.id !== id);
     saveTimers(updated);
   };

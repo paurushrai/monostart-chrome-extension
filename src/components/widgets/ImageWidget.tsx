@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import { Image as ImageIcon, Trash2, Settings, Upload, Check, Link } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import type { ImageWidget as ImageWidgetItem } from '../../types';
 
 const PRESET_IMAGES = [
   { name: 'Landscape', url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&auto=format&fit=crop&q=80' },
@@ -17,14 +18,21 @@ const PRESET_IMAGES = [
   { name: 'Cozy Desk', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80' },
 ];
 
-const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
+interface Props {
+  item: ImageWidgetItem;
+  onDelete: (id: string) => void;
+  onUpdateLink: (id: string, updates: Partial<ImageWidgetItem>) => void;
+  isEditing: boolean;
+}
+
+const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
   const { title = 'Image', url = '', fit = 'cover' } = item;
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [showConfig, setShowConfig] = useState(!url);
   const [inputUrl, setInputUrl] = useState(url);
   const [uploadError, setUploadError] = useState("");
-  const titleInputRef = useRef(null);
-  const fileInputRef = useRef(null);
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setInputUrl(url);
@@ -44,13 +52,13 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
     onUpdateLink(item.id, { title: newTitle });
   };
 
-  const handleSaveUrl = (targetUrl) => {
+  const handleSaveUrl = (targetUrl: string) => {
     setUploadError("");
     onUpdateLink(item.id, { url: targetUrl.trim() });
     setShowConfig(false);
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -74,7 +82,7 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
     reader.readAsDataURL(file);
   };
 
-  const selectPreset = (presetUrl) => {
+  const selectPreset = (presetUrl: string) => {
     setInputUrl(presetUrl);
     handleSaveUrl(presetUrl);
   };
@@ -100,7 +108,7 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
                 type="text"
                 defaultValue={title}
                 onBlur={handleTitleBlur}
-                onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+                onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
                 className="text-xs font-medium bg-background border border-border rounded px-1 py-0.5 outline-none max-w-[120px]"
               />
             ) : (

@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FileText, Trash2, Palette, Check } from 'lucide-react';
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { Note } from '../../types';
 
 const NOTE_COLORS = [
   { id: 'default', name: 'Default', bg: 'bg-white dark:bg-card border-border text-foreground', headerBg: 'bg-gray-50/50 dark:bg-black/10', dot: 'bg-gray-300 dark:bg-gray-600' },
@@ -17,12 +17,19 @@ const NOTE_COLORS = [
   { id: 'purple', name: 'Purple', bg: 'bg-purple-50/95 dark:bg-purple-950/20 border-purple-200/40 text-purple-950 dark:text-purple-200', headerBg: 'bg-purple-100/50 dark:bg-purple-950/40', dot: 'bg-purple-400' },
 ];
 
-const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
+interface Props {
+  item: Note;
+  onDelete: (id: string) => void;
+  onUpdateLink: (id: string, updates: Partial<Note>) => void;
+  isEditing: boolean;
+}
+
+const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
   const { title = 'Note', content = '', noteColor = 'default' } = item;
   const [text, setText] = useState(content);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const titleInputRef = useRef(null);
-  const debounceRef = useRef(null);
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sync state if item changes from outside
   useEffect(() => {
@@ -36,9 +43,9 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
     };
   }, []);
 
-  const handleTextChange = (newVal) => {
+  const handleTextChange = (newVal: string) => {
     setText(newVal);
-    
+
     // Auto-save debounced
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -79,7 +86,7 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }) => {
               type="text"
               defaultValue={title}
               onBlur={handleTitleBlur}
-              onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+              onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
               className="text-xs font-medium bg-background border border-border rounded px-1 py-0.5 outline-none max-w-[120px]"
             />
           ) : (

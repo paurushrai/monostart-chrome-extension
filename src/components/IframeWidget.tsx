@@ -1,9 +1,10 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, type MouseEvent, type PointerEvent, type TouchEvent } from 'react';
 import { X, ExternalLink } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { sanitizeEmbed, extractEmbedSrc } from '@/lib/embedSanitizer';
+import type { Iframe } from '../types';
 
-const EmbedContent = React.memo(function EmbedContent({ html }) {
+const EmbedContent = React.memo(function EmbedContent({ html }: { html: string }) {
   return (
     <div
       className="w-full h-full embed-html-container"
@@ -12,7 +13,7 @@ const EmbedContent = React.memo(function EmbedContent({ html }) {
   );
 });
 
-const UrlContent = React.memo(function UrlContent({ url, title }) {
+const UrlContent = React.memo(function UrlContent({ url, title }: { url?: string; title: string }) {
   return (
     <iframe
       src={url}
@@ -26,7 +27,13 @@ const UrlContent = React.memo(function UrlContent({ url, title }) {
   );
 });
 
-const IframeWidget = React.memo(({ item, onDelete, isEditing }) => {
+interface Props {
+  item: Iframe;
+  onDelete: (id: string) => void;
+  isEditing: boolean;
+}
+
+const IframeWidget = React.memo(({ item, onDelete, isEditing }: Props) => {
   const isEmbed = item.mode === 'embed' && !!item.embedHtml;
 
   const sanitizedHtml = useMemo(
@@ -36,13 +43,13 @@ const IframeWidget = React.memo(({ item, onDelete, isEditing }) => {
 
   const openUrl = isEmbed ? extractEmbedSrc(sanitizedHtml) || item.url : item.url;
 
-  const handleDeleteClick = useCallback((e) => {
+  const handleDeleteClick = useCallback((e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     onDelete(item.id);
   }, [onDelete, item.id]);
 
-  const stopPointer = useCallback((e) => {
+  const stopPointer = useCallback((e: MouseEvent | PointerEvent | TouchEvent) => {
     e.stopPropagation();
   }, []);
 

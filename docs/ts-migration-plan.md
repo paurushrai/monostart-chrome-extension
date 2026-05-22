@@ -698,6 +698,20 @@ dependencies.
 - `components/Toast.jsx` → `.tsx`
 - `components/AppHeader.jsx` → `.tsx`
 
+### Phase 3 pre-scan findings (recorded 2026-05-22)
+
+- **shadcn `ui/*` uses `React.forwardRef`** in 10+ places. Decision:
+  **keep `forwardRef`** (don't refactor — non-goal). Type each as
+  `React.forwardRef<RefElementType, PropsType>((props, ref) => ...)`. React
+  19 allows ref-as-prop but rewriting shadcn boilerplate is out of scope.
+- **Widget `onUpdateLink` callbacks can be narrowed per widget type.** E.g.,
+  NoteWidget: `(id: string, updates: Partial<Note>) => void` — caller's
+  wider `Partial<LinkItem>` is assignable via contravariance.
+- **TodoWidget / TimerWidget** consume `useWidgetStorage<TodoEntry[]>` /
+  `<TimerEntry[]>` (already declared in `src/types.ts`).
+- **LinkCard `parentId`** — `string | undefined`, drives icon vs full
+  rendering. Tested in §6 already.
+
 ### Conventions
 
 **Component prop types:** prefer `interface Props {}` co-located with the
@@ -1001,7 +1015,7 @@ Tick boxes as phases complete. PR/commit refs go in the Notes column.
 | 0. Foundation | ✅ Done | typecheck/build/tests all clean. `@types/node` also installed for `vite.config.ts`. `baseUrl` dropped (TS 6 deprecation). |
 | 1. lib/ | ✅ Done | 9 files converted (7 sources + 2 tests). 39/39 tests pass. Required adding `types: ["node","chrome","vite/client"]` to tsconfig — auto-discovery didn't pick up `@types/chrome`. |
 | 2. hooks/ | ✅ Done | 8 hooks converted. RGL types from `react-grid-layout/legacy` work directly. `chrome.storage.StorageChange` from @types/chrome for the onChanged listener. Each hook exports a named `Use*` interface. |
-| 3. Leaf components | ☐ Not started | |
+| 3. Leaf components | ✅ Done | 21 files (5 ui + 9 widgets + 7 cards/modals). Findings: ImageWidget needed `fit: 'fill'` added to types; SpeechRecognition API declared inline (not in lib.dom); `chrome.history.HistoryItem` from @types/chrome. shadcn forwardRef preserved per plan. |
 | 4. Container components | ☐ Not started | |
 | 5. Strictness + cleanup | ☐ Not started | |
 

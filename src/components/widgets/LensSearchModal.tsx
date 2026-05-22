@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { ImageIcon } from 'lucide-react';
 import {
   Dialog,
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 const UPLOAD_ENDPOINT = 'https://www.google.com/searchbyimage/upload';
 
-const submitFile = (file) => {
+const submitFile = (file: File) => {
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = UPLOAD_ENDPOINT;
@@ -30,21 +30,26 @@ const submitFile = (file) => {
   form.submit();
 };
 
-const submitUrl = (url) => {
+const submitUrl = (url: string) => {
   window.location.href = `https://www.google.com/searchbyimage?image_url=${encodeURIComponent(url)}&sbisrc=tg`;
 };
 
-const LensSearchModal = ({ open, onClose }) => {
+interface Props {
+  open: boolean;
+  onClose: () => void;
+}
+
+const LensSearchModal = ({ open, onClose }: Props) => {
   const [imageUrl, setImageUrl] = useState('');
   const [dragOver, setDragOver] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFile = (file) => {
+  const handleFile = (file: File | undefined) => {
     if (!file || !file.type.startsWith('image/')) return;
     submitFile(file);
   };
 
-  const handleUrlSubmit = (e) => {
+  const handleUrlSubmit = (e: FormEvent) => {
     e.preventDefault();
     const url = imageUrl.trim();
     if (url) submitUrl(url);

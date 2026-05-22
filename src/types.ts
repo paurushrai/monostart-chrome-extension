@@ -80,7 +80,7 @@ export interface ImageWidget extends BaseItem {
   type: 'image';
   title: string;
   url?: string;
-  fit?: 'cover' | 'contain';
+  fit?: 'cover' | 'contain' | 'fill';
 }
 
 export interface Label extends BaseItem {
