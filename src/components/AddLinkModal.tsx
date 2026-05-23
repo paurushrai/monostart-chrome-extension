@@ -40,7 +40,7 @@ const AddLinkModal = ({ open, onClose, sections = [] }: Props) => {
         finalTitle = urlObj.hostname.replace('www.', '');
       }
       faviconUrl = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(finalUrl)}&size=128`;
-    } catch (err) {
+    } catch {
       if (!finalTitle) finalTitle = finalUrl;
     }
 

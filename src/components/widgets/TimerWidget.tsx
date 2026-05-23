@@ -33,8 +33,8 @@ const TimerItem = ({ timer, onUpdate, onDelete }: TimerItemProps) => {
           onUpdate(timer.id, { isRunning: false, remainingMs: 0, endTime: null });
           // Play a sound or notify when done
           try {
-            new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(e => console.log(e));
-          } catch(e){}
+            new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch((e) => console.log(e));
+          } catch { /* ignore audio failures */ }
         } else {
           setTimeLeft(remaining);
         }

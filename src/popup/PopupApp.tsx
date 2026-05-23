@@ -34,7 +34,7 @@ function PopupApp() {
         document.documentElement.style.setProperty('--ring', settings.themeColor);
         
         const parts = settings.themeColor.split(' ');
-        if (parts.length >= 2) {
+        if (parts.length >= 2 && parts[0] && parts[1]) {
           document.documentElement.style.setProperty('--theme-hue', parts[0]);
           const baseSat = parseInt(parts[1], 10);
           if (baseSat === 0) {

@@ -15,7 +15,10 @@ const NOTE_COLORS = [
   { id: 'rose', name: 'Pink', bg: 'bg-rose-50/95 dark:bg-rose-950/20 border-rose-200/40 text-rose-950 dark:text-rose-200', headerBg: 'bg-rose-100/50 dark:bg-rose-950/40', dot: 'bg-rose-400' },
   { id: 'emerald', name: 'Green', bg: 'bg-emerald-50/95 dark:bg-emerald-950/20 border-emerald-200/40 text-emerald-950 dark:text-emerald-200', headerBg: 'bg-emerald-100/50 dark:bg-emerald-950/40', dot: 'bg-emerald-400' },
   { id: 'purple', name: 'Purple', bg: 'bg-purple-50/95 dark:bg-purple-950/20 border-purple-200/40 text-purple-950 dark:text-purple-200', headerBg: 'bg-purple-100/50 dark:bg-purple-950/40', dot: 'bg-purple-400' },
-];
+] as const;
+
+// Default is guaranteed to exist at runtime (first entry); `as const` preserves tuple narrowing.
+const DEFAULT_NOTE_COLOR = NOTE_COLORS[0];
 
 interface Props {
   item: Note;
@@ -71,7 +74,7 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
     onUpdateLink(item.id, { title: newTitle });
   };
 
-  const activeColor = NOTE_COLORS.find(c => c.id === noteColor) || NOTE_COLORS[0];
+  const activeColor = NOTE_COLORS.find(c => c.id === noteColor) ?? DEFAULT_NOTE_COLOR;
 
   return (
     <div className={`card-base w-full h-full relative group overflow-hidden flex flex-col transition-all duration-300 ${activeColor.bg}`}>

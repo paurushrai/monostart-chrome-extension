@@ -73,9 +73,9 @@ const LinkCard = ({
     try {
       const hostname = new URL(urlString).hostname.replace(/^www\./, '');
       const parts = hostname.split('.');
-      let name = parts[0];
+      let name = parts[0] ?? hostname;
       if (parts.length >= 3 && ['app', 'docs', 'blog', 'mail', 'm', 'web', 'my', 'api', 'dev', 'shop'].includes(name.toLowerCase())) {
-        name = parts[1];
+        name = parts[1] ?? name;
       }
       return name.charAt(0).toUpperCase() + name.slice(1);
     } catch {

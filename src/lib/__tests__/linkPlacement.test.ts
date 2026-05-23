@@ -64,7 +64,7 @@ describe('placeInHeader', () => {
       { ...linkAt('h2', 0, 0), isHeaderLink: true, order: 1 },
     ];
     const result = placeInHeader(links, linkAt('new', 0, 0));
-    const placed = result[result.length - 1];
+    const placed = result[result.length - 1]!;
     expect(placed.isHeaderLink).toBe(true);
     expect(placed.order).toBe(2);
     expect(placed.x).toBeUndefined();
@@ -73,7 +73,7 @@ describe('placeInHeader', () => {
 
   it('starts order at 0 when no existing header links', () => {
     const result = placeInHeader([], linkAt('new', 0, 0));
-    expect(result[0].order).toBe(0);
+    expect(result[0]!.order).toBe(0);
   });
 });
 
@@ -83,13 +83,13 @@ describe('placeInSection', () => {
     const result = placeInSection(links, linkAt('new', 0, 0), 's1');
     const target = result[0] as Section;
     expect(target.links).toHaveLength(1);
-    expect(target.links[0].id).toBe('new');
+    expect(target.links[0]!.id).toBe('new');
   });
 
   it('places at targetCoords when provided (clamped to section bounds)', () => {
     const links: LinkItem[] = [section('s1')];
     const result = placeInSection(links, linkAt('new', 99, 99), 's1', { x: 5, y: 2 });
-    const placed = (result[0] as Section).links[0];
+    const placed = (result[0] as Section).links[0]!;
     // cols=3 with w=1 → max x = 2
     expect(placed.x).toBe(2);
     expect(placed.y).toBe(2);
@@ -98,7 +98,7 @@ describe('placeInSection', () => {
   it('clamps link width to section cols', () => {
     const links: LinkItem[] = [section('s1', [], 2)];
     const result = placeInSection(links, { ...linkAt('new', 0, 0), w: 6, h: 1 }, 's1');
-    expect((result[0] as Section).links[0].w).toBe(2);
+    expect((result[0] as Section).links[0]!.w).toBe(2);
   });
 
   it('finds next free slot when targetCoords is omitted', () => {
@@ -120,7 +120,7 @@ describe('placeInSection', () => {
 describe('placeOnMain', () => {
   it('places at targetCoords when provided', () => {
     const result = placeOnMain([], linkAt('new', 0, 0), { x: 5, y: 3 });
-    const placed = result[result.length - 1];
+    const placed = result[result.length - 1]!;
     expect(placed.x).toBe(5);
     expect(placed.y).toBe(3);
   });
@@ -128,14 +128,14 @@ describe('placeOnMain', () => {
   it('finds free slot when targetCoords is omitted', () => {
     const occupied: LinkItem[] = [linkAt('a', 0, 0)]; // a 1×1 at (0,0)
     const result = placeOnMain(occupied, linkAt('new', 99, 99));
-    const placed = result[result.length - 1];
+    const placed = result[result.length - 1]!;
     expect(placed.x).toBe(1);
     expect(placed.y).toBe(0);
   });
 
   it('always returns isHeaderLink=false on main', () => {
     const result = placeOnMain([], { ...linkAt('new', 0, 0), isHeaderLink: true });
-    expect(result[0].isHeaderLink).toBe(false);
+    expect(result[0]!.isHeaderLink).toBe(false);
   });
 
   it('falls back to last row when no slot fits', () => {
@@ -143,7 +143,7 @@ describe('placeOnMain', () => {
     const occupied: LinkItem[] = [];
     for (let r = 0; r < 12; r++) occupied.push(linkAt(`row-${r}`, 0, r, { w: 18, h: 1 }));
     const result = placeOnMain(occupied, linkAt('overflow', 0, 0));
-    const placed = result[result.length - 1];
+    const placed = result[result.length - 1]!;
     expect(placed.y).toBe(11);
   });
 });
