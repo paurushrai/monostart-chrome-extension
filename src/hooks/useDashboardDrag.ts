@@ -134,6 +134,34 @@ export function useDashboardDrag({
     [rowHeight],
   );
 
+  // Compute drop coordinates inside an arbitrary section's inner grid.
+  // Shared by "main→section" drop (handleDragStop) and "section→section"
+  // drop (handleInnerDragStop) so the placement math stays consistent.
+  const computeSectionDropCoords = useCallback(
+    (item: RegularLink, sectionId: string, clientX: number, clientY: number): GridSlot | undefined => {
+      const sectionEl = document.querySelector(`[data-section-id="${sectionId}"]`);
+      const sectionItem = links.find((l) => l.id === sectionId) as Section | undefined;
+      if (!sectionEl || !sectionItem) return undefined;
+      const containerEl = sectionEl.querySelector<HTMLElement>('.overflow-y-auto');
+      if (!containerEl) return undefined;
+
+      const rect = containerEl.getBoundingClientRect();
+      const scrollLeft = containerEl.scrollLeft || 0;
+      const scrollTop = containerEl.scrollTop || 0;
+      const localX = clientX - rect.left + scrollLeft;
+      const localY = clientY - rect.top + scrollTop;
+
+      const cols = sectionItem.cols || SECTION_DEFAULT_COLS;
+      const w = Math.min(item.viewMode === 'icon' ? 1 : 3, cols);
+
+      const colWidth = rect.width / cols;
+      const placeholderX = Math.max(0, Math.min(cols - w, Math.floor(localX / colWidth)));
+      const placeholderY = Math.max(0, Math.floor(localY / SECTION_INNER_ROW_HEIGHT));
+      return { x: placeholderX, y: placeholderY };
+    },
+    [links],
+  );
+
   // --- Drag-out from a section -----------------------------------------------
 
   const handleInnerDragStart = useCallback((item: RegularLink, _parentSectionId: string) => {
@@ -143,21 +171,44 @@ export function useDashboardDrag({
 
   const handleInnerDrag = useCallback((item: RegularLink, parentSectionId: string, clientX: number, clientY: number) => {
     lastInnerDragCoordsRef.current = { x: clientX, y: clientY };
-    const sectionEl = document.querySelector(`[data-section-id="${parentSectionId}"]`);
-    if (!sectionEl) return;
 
-    const isOutside = !isInsideRect(clientX, clientY, sectionEl.getBoundingClientRect());
+    const hoverSectionId = findSectionAtPoint(clientX, clientY);
 
-    if (!isOutside) {
+    // Hovering over parent section — RGL handles internal reorder; clear all
+    // cross-grid drag state.
+    if (hoverSectionId === parentSectionId) {
+      setActiveDragOutItem(null);
+      setDragOutCoords(null);
+      setActiveDragSectionId(null);
+      setDragCursorCoords(null);
+      setDraggedItem(null);
+      return;
+    }
+
+    // Hovering over a DIFFERENT section — surface that section as the drop
+    // target (reuses the same activeDragSectionId / draggedItem state that
+    // main→section drag uses, so SectionInnerGrid renders the placeholder).
+    if (hoverSectionId && hoverSectionId !== parentSectionId) {
+      setActiveDragOutItem(item);
+      setDragOutCoords(null);
+      setActiveDragSectionId(hoverSectionId);
+      setDragCursorCoords({ x: clientX, y: clientY });
+      setDraggedItem(item);
+      return;
+    }
+
+    // Outside any section — show main-grid drop placeholder if there's room.
+    setActiveDragSectionId(null);
+    setDragCursorCoords(null);
+    setDraggedItem(null);
+
+    const slot = computeMainGridDropSlot(item, clientX, clientY);
+    if (!slot) {
       setDragOutCoords(null);
       return;
     }
 
-    const slot = computeMainGridDropSlot(item, clientX, clientY);
-    if (!slot) return;
-
     setActiveDragOutItem(item);
-
     if (checkCollision(slot.gridX, slot.gridY, slot.w, slot.h)) {
       setDragOutCoords(null);
     } else {
@@ -174,19 +225,31 @@ export function useDashboardDrag({
     }
 
     if (finalX !== undefined && finalY !== undefined) {
-      const sectionEl = document.querySelector(`[data-section-id="${parentSectionId}"]`);
-      if (sectionEl && !isInsideRect(finalX, finalY, sectionEl.getBoundingClientRect())) {
+      const dropSectionId = findSectionAtPoint(finalX, finalY);
+
+      if (dropSectionId && dropSectionId !== parentSectionId) {
+        // Cross-section drop — compute target coords inside the destination
+        // section and let onMoveLink handle the migration.
+        const targetCoords = computeSectionDropCoords(item, dropSectionId, finalX, finalY);
+        onMoveLink(item.id, dropSectionId, targetCoords);
+      } else if (!dropSectionId) {
+        // Dropped on bare main grid.
         const slot = computeMainGridDropSlot(item, finalX, finalY);
         if (slot && !checkCollision(slot.gridX, slot.gridY, slot.w, slot.h)) {
           onMoveLink(item.id, null, { x: slot.gridX, y: slot.gridY });
         }
       }
+      // dropSectionId === parentSectionId → RGL's own onLayoutChange handles
+      // it; nothing to do here.
     }
 
     setActiveDragOutItem(null);
     setDragOutCoords(null);
+    setActiveDragSectionId(null);
+    setDragCursorCoords(null);
+    setDraggedItem(null);
     lastInnerDragCoordsRef.current = null;
-  }, [computeMainGridDropSlot, checkCollision, onMoveLink]);
+  }, [computeMainGridDropSlot, computeSectionDropCoords, checkCollision, onMoveLink]);
 
   // --- Drag from main grid INTO a section ------------------------------------
 
@@ -234,34 +297,9 @@ export function useDashboardDrag({
     const draggedLink = links.find((l) => l.id === newItem.i && l.type === WidgetType.LINK) as RegularLink | undefined;
     if (!draggedLink) return;
 
-    // Compute drop slot inside the target section's inner container
-    const sectionEl = document.querySelector(`[data-section-id="${targetSectionId}"]`);
-    const sectionItem = links.find((l) => l.id === targetSectionId) as Section | undefined;
-
-    let targetCoords: GridSlot | undefined;
-    if (sectionEl && sectionItem) {
-      const containerEl = sectionEl.querySelector<HTMLElement>('.overflow-y-auto');
-      if (containerEl) {
-        const rect = containerEl.getBoundingClientRect();
-        const scrollLeft = containerEl.scrollLeft || 0;
-        const scrollTop = containerEl.scrollTop || 0;
-        const localX = clientX - rect.left + scrollLeft;
-        const localY = clientY - rect.top + scrollTop;
-
-        const cols = sectionItem.cols || SECTION_DEFAULT_COLS;
-        const isIcon = draggedLink.viewMode === 'icon';
-        const w = Math.min(isIcon ? 1 : 3, cols);
-
-        const colWidth = rect.width / cols;
-        const placeholderX = Math.max(0, Math.min(cols - w, Math.floor(localX / colWidth)));
-        const placeholderY = Math.max(0, Math.floor(localY / SECTION_INNER_ROW_HEIGHT));
-
-        targetCoords = { x: placeholderX, y: placeholderY };
-      }
-    }
-
+    const targetCoords = computeSectionDropCoords(draggedLink, targetSectionId, clientX, clientY);
     onMoveLink(draggedLink.id, targetSectionId, targetCoords);
-  }, [links, dragCursorCoords, onMoveLink]);
+  }, [links, dragCursorCoords, computeSectionDropCoords, onMoveLink]);
 
   return {
     gridRef,
