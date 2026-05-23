@@ -275,26 +275,16 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
           </div>
         ) : (
           /* Render Active Image */
-          <div className="w-full h-full relative group/img select-none">
-            <img 
-              src={url} 
-              alt={title} 
+          <div className="w-full h-full relative select-none">
+            <img
+              src={url}
+              alt={title}
               className={`w-full h-full pointer-events-none select-none rounded-b-xl ${fitClass}`}
               onError={() => {
                 setUploadError("Image failed to load. The URL might be broken or blocked.");
                 setShowConfig(true);
               }}
             />
-            {/* Quick Hover Configure Button (only when NOT editing the dashboard) */}
-            {!isEditing && (
-              <button
-                onClick={() => setShowConfig(true)}
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/40 backdrop-blur-sm text-white/80 hover:text-white hover:bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity duration-200 z-10 shadow-sm"
-                title="Change Image Settings"
-              >
-                <Settings size={12} />
-              </button>
-            )}
           </div>
         )}
       </div>
