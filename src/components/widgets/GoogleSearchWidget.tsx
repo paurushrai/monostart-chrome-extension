@@ -317,7 +317,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
 
       <div
         ref={containerRef}
-        className={`relative w-full max-w-2xl bg-white transition-shadow z-50 ${showSuggestions && suggestions.length > 0 ? 'rounded-t-[24px] rounded-b-none shadow-xl' : 'rounded-full shadow-md hover:shadow-lg'}`}
+        className={`relative w-full bg-white transition-shadow z-50 ${showSuggestions && suggestions.length > 0 ? 'rounded-t-[24px] rounded-b-none shadow-xl' : 'rounded-full shadow-md hover:shadow-lg'}`}
       >
         <form
           onSubmit={handleSubmit}
