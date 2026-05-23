@@ -198,6 +198,12 @@ export function useLinks(): UseLinks {
   }, []);
 
   const addWidget = useCallback(async (widget: { type: LinkItem['type']; defaults?: Partial<LinkItem> }) => {
+    // Singleton widgets: only one Google search may exist at a time.
+    if (widget.type === WidgetType.GOOGLE_SEARCH) {
+      const alreadyExists = links.some((l) => l.type === WidgetType.GOOGLE_SEARCH);
+      if (alreadyExists) return null;
+    }
+
     const input: NewLinkInput = {
       type: widget.type,
       ...widget.defaults,
@@ -206,7 +212,7 @@ export function useLinks(): UseLinks {
     if (!saved) return null;
     setLinks((prev) => [...prev, saved]);
     return saved;
-  }, []);
+  }, [links]);
 
   return {
     links,
