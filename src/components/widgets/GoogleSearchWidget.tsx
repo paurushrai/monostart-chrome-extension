@@ -327,7 +327,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
       >
         <form
           onSubmit={handleSubmit}
-          className={`relative flex items-center w-full h-11 sm:h-12 lg:h-14 px-4 sm:px-5 lg:px-6 gap-3 sm:gap-4 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
+          className={`relative flex items-center w-full h-12 px-4 sm:px-5 lg:px-6 gap-3 sm:gap-4 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
         >
           {/* Invisible overlay to prevent input/buttons from blocking drag */}
           {isEditing && <div className="absolute inset-0 z-10 bg-transparent rounded-full" />}
