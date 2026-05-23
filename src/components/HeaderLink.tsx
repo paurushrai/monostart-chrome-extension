@@ -11,7 +11,7 @@ import {
   DropdownMenuSubContent,
 } from './ui/dropdown-menu';
 import { Button } from './ui/button';
-import { MoreHorizontal, Trash2, FolderInput, Home, Folder, Edit2, Link2 } from 'lucide-react';
+import { MoreHorizontal, Trash2, FolderInput, Home, Folder, Edit2, Link2, Eye, Image as ImageIcon, Type, Check } from 'lucide-react';
 import type { RegularLink, GridSlot } from '../types';
 
 interface SectionRef {
@@ -65,6 +65,8 @@ const HeaderLink = ({
   };
 
   const favicon = getFaviconUrl(url) || item.favicon;
+  // 'text' is header-specific (renders the site name). Default = icon-only.
+  const showAsText = item.viewMode === 'text';
 
   const handleRename = (e: MouseEvent) => {
     e.stopPropagation();
@@ -104,7 +106,8 @@ const HeaderLink = ({
   return (
     <div
       role="listitem"
-      className={`relative group rounded transition-all duration-150 flex items-center justify-center w-7 h-7
+      className={`relative group rounded transition-all duration-150 flex items-center justify-center h-7
+        ${showAsText ? 'min-w-[40px] max-w-[160px] px-2' : 'w-7'}
         ${isEditing ? 'cursor-grab active:cursor-grabbing hover:bg-secondary/70 border border-dashed border-border' : 'hover:bg-secondary/50'}
         ${isDragOver ? 'ring-2 ring-primary ring-offset-1 scale-105' : ''}
         ${isDragging ? 'opacity-30 scale-95' : ''}
@@ -124,7 +127,11 @@ const HeaderLink = ({
         onClick={(e) => isEditing && e.preventDefault()}
         className="flex items-center justify-center w-full h-full select-none"
       >
-        {favicon ? (
+        {showAsText ? (
+          <span className="text-xs font-medium text-foreground truncate pointer-events-none px-0.5">
+            {siteName}
+          </span>
+        ) : favicon ? (
           <img
             src={favicon}
             alt=""
@@ -173,6 +180,43 @@ const HeaderLink = ({
                 <Link2 size={13} className="text-muted-foreground" />
                 <span>Change URL</span>
               </DropdownMenuItem>
+
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="flex items-center gap-2">
+                  <Eye size={13} className="text-muted-foreground" />
+                  <span>Show as</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent className="w-36" onMouseDown={(e) => e.stopPropagation()}>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        onUpdateLink(item.id, { viewMode: 'icon' });
+                        setIsMenuOpen(false);
+                      }}
+                      className="flex items-center justify-between cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <ImageIcon size={13} className="text-muted-foreground" />
+                        <span>Icon</span>
+                      </div>
+                      {!showAsText && <Check size={13} className="text-primary" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        onUpdateLink(item.id, { viewMode: 'text' });
+                        setIsMenuOpen(false);
+                      }}
+                      className="flex items-center justify-between cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Type size={13} className="text-muted-foreground" />
+                        <span>Text</span>
+                      </div>
+                      {showAsText && <Check size={13} className="text-primary" />}
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
 
               {onMoveLink && (
                 <DropdownMenuSub>
