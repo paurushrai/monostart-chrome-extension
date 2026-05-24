@@ -16,6 +16,9 @@ interface AddWidgetInput {
   defaults?: Partial<LinkItem>;
 }
 
+const EDIT_MODE_KEY = 'dashboardEditMode';
+const ORIGINAL_LINKS_KEY = 'dashboardEditOriginalLinks';
+
 function App() {
   const {
     links,
@@ -33,25 +36,50 @@ function App() {
   const headerDrag = useHeaderDrag(handleHeaderLinkReorder);
   const { toast, showToast, dismissToast } = useToast();
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [originalLinks, setOriginalLinks] = useState<LinkItem[]>([]);
+  // Persist edit mode across refresh so a reload mid-edit doesn't drop the user
+  // back into view mode (and lose their cancel snapshot). localStorage keeps it
+  // synchronous so the first paint already shows the correct mode.
+  const [isEditing, setIsEditing] = useState<boolean>(() => {
+    try { return localStorage.getItem(EDIT_MODE_KEY) === 'true'; } catch { return false; }
+  });
+  const [originalLinks, setOriginalLinks] = useState<LinkItem[]>(() => {
+    try {
+      const raw = localStorage.getItem(ORIGINAL_LINKS_KEY);
+      return raw ? (JSON.parse(raw) as LinkItem[]) : [];
+    } catch { return []; }
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
   const [addLinkModalOpen, setAddLinkModalOpen] = useState(false);
   const [isHeaderTargeted, setIsHeaderTargeted] = useState(false);
 
   const enterEditMode = useCallback(() => {
-    setOriginalLinks([...links]);
+    const snapshot = [...links];
+    setOriginalLinks(snapshot);
     setIsEditing(true);
+    try {
+      localStorage.setItem(EDIT_MODE_KEY, 'true');
+      localStorage.setItem(ORIGINAL_LINKS_KEY, JSON.stringify(snapshot));
+    } catch { /* quota / private mode */ }
   }, [links]);
 
   const saveEditMode = useCallback(() => {
     setIsEditing(false);
+    setOriginalLinks([]);
+    try {
+      localStorage.removeItem(EDIT_MODE_KEY);
+      localStorage.removeItem(ORIGINAL_LINKS_KEY);
+    } catch { /* ignore */ }
   }, []);
 
   const cancelEditMode = useCallback(() => {
     replaceLinks(originalLinks);
     setIsEditing(false);
+    setOriginalLinks([]);
+    try {
+      localStorage.removeItem(EDIT_MODE_KEY);
+      localStorage.removeItem(ORIGINAL_LINKS_KEY);
+    } catch { /* ignore */ }
   }, [originalLinks, replaceLinks]);
 
   const handleAddWidget = useCallback(async (widget: AddWidgetInput) => {
