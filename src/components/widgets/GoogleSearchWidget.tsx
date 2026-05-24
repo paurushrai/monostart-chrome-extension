@@ -292,7 +292,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
   };
 
   return (
-    <div className="group relative flex items-center justify-center w-full h-full">
+    <div className="group relative flex flex-col items-center justify-center w-full h-full gap-4">
       {isEditing && (
         <button
           onMouseDown={(e) => e.stopPropagation()}
@@ -304,6 +304,15 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
         >
           <X size={12} />
         </button>
+      )}
+
+      {item.showGoogleLogo && (
+        <img
+          src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"
+          alt="Google"
+          draggable={false}
+          className="h-10 sm:h-12 w-auto select-none pointer-events-none dark:brightness-110"
+        />
       )}
 
       <div

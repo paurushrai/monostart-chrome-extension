@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { WIDGET_CATALOG } from '../lib/widgetCatalog';
 import type { WidgetMeta } from '../lib/widgetCatalog';
 import {
@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { isEmbedCode, extractEmbedSrc, extractEmbedTitle, sanitizeEmbed, rewriteToEmbedUrl } from '@/lib/embedSanitizer';
 import type { LinkItem } from '../types';
 
@@ -17,6 +17,29 @@ interface Props {
   onClose: () => void;
   onSelect: (widget: { type: LinkItem['type']; defaults?: Partial<LinkItem> }) => void;
 }
+
+interface GoogleVariantCardProps {
+  label: string;
+  description: string;
+  onPick: () => void;
+  children: ReactNode;
+}
+
+const GoogleVariantCard = ({ label, description, onPick, children }: GoogleVariantCardProps) => (
+  <button
+    type="button"
+    onClick={onPick}
+    className="group flex flex-col gap-3 p-3 rounded-lg border border-border hover:border-primary hover:bg-secondary transition-all text-left"
+  >
+    <div className="h-24 rounded-md bg-gray-100 dark:bg-neutral-900 border border-border/60 flex items-center justify-center px-3 py-2">
+      {children}
+    </div>
+    <div>
+      <div className="text-sm font-semibold text-foreground">{label}</div>
+      <div className="text-xs text-muted-foreground mt-0.5">{description}</div>
+    </div>
+  </button>
+);
 
 const AddWidgetModal = ({ open, onClose, onSelect }: Props) => {
   const [step, setStep] = useState(1);
@@ -31,13 +54,23 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Props) => {
   };
 
   const handleSelect = (w: WidgetMeta) => {
-    if (w.type === 'iframe') {
+    // Widgets that need a configure step before being added.
+    if (w.type === 'iframe' || w.type === 'google-search') {
       setSelectedWidget(w);
       setStep(2);
     } else {
       onSelect(w);
       handleClose();
     }
+  };
+
+  const handlePickGoogleVariant = (showGoogleLogo: boolean) => {
+    if (!selectedWidget) return;
+    onSelect({
+      type: selectedWidget.type,
+      defaults: { ...selectedWidget.defaults, showGoogleLogo } as Partial<LinkItem>,
+    });
+    handleClose();
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -117,6 +150,50 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Props) => {
                 </Button>
               );
             })}
+          </div>
+        ) : selectedWidget?.type === 'google-search' ? (
+          <div className="p-5 flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              Pick a layout. You can always change the widget&apos;s size afterwards.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <GoogleVariantCard
+                label="With Google logo"
+                description="Logo above the bar — full Google-homepage feel."
+                onPick={() => handlePickGoogleVariant(true)}
+              >
+                <div className="flex flex-col items-center justify-center gap-2 w-full h-full">
+                  <img
+                    src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"
+                    alt="Google"
+                    draggable={false}
+                    className="h-7 w-auto select-none pointer-events-none dark:brightness-110"
+                  />
+                  <div className="flex items-center gap-2 w-[85%] h-7 px-3 rounded-full bg-white border border-gray-200 shadow-sm">
+                    <Search size={12} className="text-gray-500 flex-shrink-0" />
+                    <span className="text-[10px] text-gray-400">Search Google</span>
+                  </div>
+                </div>
+              </GoogleVariantCard>
+
+              <GoogleVariantCard
+                label="Just the search bar"
+                description="Compact — bar only, no logo."
+                onPick={() => handlePickGoogleVariant(false)}
+              >
+                <div className="flex items-center justify-center w-full h-full">
+                  <div className="flex items-center gap-2 w-[85%] h-8 px-3 rounded-full bg-white border border-gray-200 shadow-sm">
+                    <Search size={13} className="text-gray-500 flex-shrink-0" />
+                    <span className="text-[11px] text-gray-400">Search Google</span>
+                  </div>
+                </div>
+              </GoogleVariantCard>
+            </div>
+            <div className="flex justify-end mt-1">
+              <Button type="button" variant="outline" onClick={() => setStep(1)}>
+                Back
+              </Button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
