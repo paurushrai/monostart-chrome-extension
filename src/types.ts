@@ -99,9 +99,14 @@ export interface GoogleSearch extends BaseItem {
   title: string;
 }
 
+export interface Reminders extends BaseItem {
+  type: 'reminders';
+  title: string;
+}
+
 export type LinkItem =
   | RegularLink | Section | Iframe | TodoWidget | TimerWidget
-  | Note | ImageWidget | Label | GoogleSearch;
+  | Note | ImageWidget | Label | GoogleSearch | Reminders;
 
 // ---------------------------------------------------------------------------
 // Synthetic drag placeholders — never persisted, emitted only during a drag.
@@ -143,6 +148,20 @@ export interface TimerEntry {
   remainingMs: number;
   isRunning: boolean;
   endTime: number | null;
+}
+
+// `reminders-widget-${item.id}` → ReminderEntry[]
+// `dueAt` is epoch ms. For recurring entries, the background advances `dueAt`
+// after firing so the same row keeps firing on schedule without leaking alarms.
+// `lastFiredAt` dedups within a tick (notification won't re-fire if it equals
+// or exceeds `dueAt`).
+export interface ReminderEntry {
+  id: string;
+  text: string;
+  dueAt: number;
+  recurrence: 'none' | 'hourly' | 'daily' | 'weekly';
+  lastFiredAt?: number;
+  completed?: boolean;
 }
 
 // ---------------------------------------------------------------------------

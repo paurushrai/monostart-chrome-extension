@@ -6,7 +6,7 @@
 // Adding a new widget = add ONE entry here. Layout math, resize rules,
 // placement defaults, type enum, and the "Add Widget" menu all read from this.
 
-import { Search, Globe, CheckSquare, Clock, Folder, FileText, Image, Type } from 'lucide-react';
+import { Search, Globe, CheckSquare, Clock, Folder, FileText, Image, Type, Bell } from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
 import type { LinkItem } from '../types';
 
@@ -22,6 +22,7 @@ export const WidgetType = {
   NOTE: 'note',
   IMAGE: 'image',
   LABEL: 'label',
+  REMINDERS: 'reminders',
 } as const;
 
 export type WidgetType = typeof WidgetType[keyof typeof WidgetType];
@@ -93,6 +94,15 @@ const WIDGETS = [
     icon: Clock,
     defaults: { w: 3, h: 3, title: 'Timers' },
     layout: { minW: 3, minH: 3, resizable: true },
+  },
+  {
+    type: WidgetType.REMINDERS,
+    addable: true,
+    name: 'Reminders',
+    description: 'Schedule reminders with browser notifications. Hourly / daily / weekly recurrence supported.',
+    icon: Bell,
+    defaults: { w: 4, h: 4, title: 'Reminders' },
+    layout: { minW: 4, minH: 4, resizable: true },
   },
   {
     type: WidgetType.SECTION,

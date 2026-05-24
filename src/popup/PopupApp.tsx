@@ -1,8 +1,18 @@
 import { useState, useEffect } from 'react';
 import { getSettings } from '../lib/storage';
 import { saveLink } from '../lib/linkRepository';
-import { BookmarkPlus, Check, ExternalLink } from 'lucide-react';
+import { BookmarkPlus, Check, ExternalLink, Bell, X, Repeat } from 'lucide-react';
 import type { Settings } from '../types';
+
+interface PendingReminder {
+  firedId: string;
+  text: string;
+  timeLabel: string;
+  recurrence: 'none' | 'daily' | 'weekly';
+  firedAt: number;
+}
+
+const PENDING_KEY = 'pendingReminders';
 
 interface TabInfo {
   url: string;
@@ -14,8 +24,16 @@ function PopupApp() {
   const [saved, setSaved] = useState(false);
   const [tabInfo, setTabInfo] = useState<TabInfo | null>(null);
   const [canSave, setCanSave] = useState(false);
+  const [pending, setPending] = useState<PendingReminder[]>([]);
 
   useEffect(() => {
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.get([PENDING_KEY], (result) => {
+        const list = Array.isArray(result[PENDING_KEY]) ? (result[PENDING_KEY] as PendingReminder[]) : [];
+        setPending(list);
+      });
+    }
+
     if (typeof chrome !== 'undefined' && chrome.tabs) {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const tab = tabs[0];
@@ -76,8 +94,69 @@ function PopupApp() {
     }
   };
 
+  const dismissOne = (firedId: string) => {
+    setPending((prev) => prev.filter((p) => p.firedId !== firedId));
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ type: 'reminders/dismiss', firedId });
+    }
+  };
+
+  const dismissAll = () => {
+    setPending([]);
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ type: 'reminders/dismissAll' });
+    }
+  };
+
   return (
-    <div className="w-[280px] min-w-[280px] bg-bg-primary font-sans p-4 flex flex-col gap-3">
+    <div className="w-[300px] min-w-[300px] bg-bg-primary font-sans p-4 flex flex-col gap-3">
+      {pending.length > 0 && (
+        <div className="flex flex-col gap-2 -mx-1 -mt-1 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Bell size={13} className="text-red-600 dark:text-red-400" />
+              <span className="text-xs font-semibold text-red-700 dark:text-red-300">
+                {pending.length} reminder{pending.length === 1 ? '' : 's'}
+              </span>
+            </div>
+            <button
+              onClick={dismissAll}
+              className="text-2xs text-red-700 dark:text-red-300 hover:underline"
+            >
+              Clear all
+            </button>
+          </div>
+          <div className="flex flex-col gap-1 max-h-[180px] overflow-y-auto">
+            {pending.map((p) => (
+              <div
+                key={p.firedId}
+                className="group flex items-start gap-2 px-2 py-1.5 rounded-lg bg-white/60 dark:bg-black/20"
+              >
+                {p.recurrence !== 'none' ? (
+                  <Repeat size={11} className="text-primary mt-0.5 shrink-0" />
+                ) : (
+                  <span className="w-[11px]" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium text-ink break-words">{p.text}</div>
+                  <div className="text-2xs text-muted-foreground mt-0.5">
+                    {p.timeLabel}
+                    {p.recurrence !== 'none' && <span> · {p.recurrence}</span>}
+                  </div>
+                </div>
+                <button
+                  onClick={() => dismissOne(p.firedId)}
+                  className="shrink-0 text-muted-foreground hover:text-red-500 opacity-60 hover:opacity-100"
+                  title="Dismiss"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <h3 className="m-0 text-sm font-semibold text-ink">Save to MonoStart</h3>
 
       {tabInfo && (
