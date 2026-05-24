@@ -44,10 +44,22 @@ const findSectionAtPoint = (clientX: number, clientY: number): string | null => 
   return null;
 };
 
+const HEADER_TARGET = 'header';
+
+const isPointOverHeader = (clientX: number, clientY: number): boolean => {
+  const el = document.querySelector<HTMLElement>('[data-header-drop-target]');
+  if (!el) return false;
+  return isInsideRect(clientX, clientY, el.getBoundingClientRect());
+};
+
 interface UseDashboardDragOptions {
   links: readonly LinkItem[];
   rowHeight: number;
   onMoveLink: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  // Optional: notified when the cursor enters/leaves the header during an
+  // in-flight RGL drag. App-level consumers use this to highlight the header
+  // as a drop target.
+  onHeaderTargetChange?: (isOver: boolean) => void;
 }
 
 export interface UseDashboardDrag {
@@ -81,6 +93,7 @@ export function useDashboardDrag({
   links,
   rowHeight,
   onMoveLink,
+  onHeaderTargetChange,
 }: UseDashboardDragOptions): UseDashboardDrag {
   const gridRef = useRef<HTMLDivElement | null>(null);
   const lastInnerDragCoordsRef: MutableRefObject<DragCoords | null> = useRef<DragCoords | null>(null);
@@ -175,6 +188,18 @@ export function useDashboardDrag({
   const handleInnerDrag = useCallback((item: RegularLink, parentSectionId: string, clientX: number, clientY: number) => {
     lastInnerDragCoordsRef.current = { x: clientX, y: clientY };
 
+    // Header has highest priority — drop here clears the link out of any grid.
+    if (isPointOverHeader(clientX, clientY)) {
+      onHeaderTargetChange?.(true);
+      setActiveDragOutItem(item);
+      setDragOutCoords(null);
+      setActiveDragSectionId(null);
+      setDragCursorCoords(null);
+      setDraggedItem(null);
+      return;
+    }
+    onHeaderTargetChange?.(false);
+
     const hoverSectionId = findSectionAtPoint(clientX, clientY);
 
     // Hovering over parent section — RGL handles internal reorder; clear all
@@ -217,7 +242,7 @@ export function useDashboardDrag({
     } else {
       setDragOutCoords({ x: slot.gridX, y: slot.gridY });
     }
-  }, [computeMainGridDropSlot, checkCollision]);
+  }, [computeMainGridDropSlot, checkCollision, onHeaderTargetChange]);
 
   const handleInnerDragStop = useCallback((item: RegularLink, parentSectionId: string, clientX: number, clientY: number) => {
     let finalX: number | undefined = clientX;
@@ -228,31 +253,37 @@ export function useDashboardDrag({
     }
 
     if (finalX !== undefined && finalY !== undefined) {
-      const dropSectionId = findSectionAtPoint(finalX, finalY);
+      // Header takes priority over sections / main grid.
+      if (isPointOverHeader(finalX, finalY)) {
+        onMoveLink(item.id, HEADER_TARGET);
+      } else {
+        const dropSectionId = findSectionAtPoint(finalX, finalY);
 
-      if (dropSectionId && dropSectionId !== parentSectionId) {
-        // Cross-section drop — compute target coords inside the destination
-        // section and let onMoveLink handle the migration.
-        const targetCoords = computeSectionDropCoords(item, dropSectionId, finalX, finalY);
-        onMoveLink(item.id, dropSectionId, targetCoords);
-      } else if (!dropSectionId) {
-        // Dropped on bare main grid.
-        const slot = computeMainGridDropSlot(item, finalX, finalY);
-        if (slot && !checkCollision(slot.gridX, slot.gridY, slot.w, slot.h)) {
-          onMoveLink(item.id, null, { x: slot.gridX, y: slot.gridY });
+        if (dropSectionId && dropSectionId !== parentSectionId) {
+          // Cross-section drop — compute target coords inside the destination
+          // section and let onMoveLink handle the migration.
+          const targetCoords = computeSectionDropCoords(item, dropSectionId, finalX, finalY);
+          onMoveLink(item.id, dropSectionId, targetCoords);
+        } else if (!dropSectionId) {
+          // Dropped on bare main grid.
+          const slot = computeMainGridDropSlot(item, finalX, finalY);
+          if (slot && !checkCollision(slot.gridX, slot.gridY, slot.w, slot.h)) {
+            onMoveLink(item.id, null, { x: slot.gridX, y: slot.gridY });
+          }
         }
+        // dropSectionId === parentSectionId → RGL's own onLayoutChange handles
+        // it; nothing to do here.
       }
-      // dropSectionId === parentSectionId → RGL's own onLayoutChange handles
-      // it; nothing to do here.
     }
 
+    onHeaderTargetChange?.(false);
     setActiveDragOutItem(null);
     setDragOutCoords(null);
     setActiveDragSectionId(null);
     setDragCursorCoords(null);
     setDraggedItem(null);
     lastInnerDragCoordsRef.current = null;
-  }, [computeMainGridDropSlot, computeSectionDropCoords, checkCollision, onMoveLink]);
+  }, [computeMainGridDropSlot, computeSectionDropCoords, checkCollision, onMoveLink, onHeaderTargetChange]);
 
   // --- Drag from main grid INTO a section ------------------------------------
 
@@ -270,20 +301,31 @@ export function useDashboardDrag({
     if (clientX === undefined || clientY === undefined) {
       setActiveDragSectionId((prev) => (prev ? null : prev));
       setDragCursorCoords(null);
+      onHeaderTargetChange?.(false);
       return;
     }
 
     setDragCursorCoords({ x: clientX, y: clientY });
 
+    // Header check first — when the cursor's over the header, suppress any
+    // section highlight so we don't double-highlight.
+    if (isPointOverHeader(clientX, clientY)) {
+      onHeaderTargetChange?.(true);
+      setActiveDragSectionId((prev) => (prev ? null : prev));
+      return;
+    }
+    onHeaderTargetChange?.(false);
+
     const targetSectionId = findSectionAtPoint(clientX, clientY);
     setActiveDragSectionId((prev) => (prev === targetSectionId ? prev : targetSectionId));
-  }, [draggedItemType]);
+  }, [draggedItemType, onHeaderTargetChange]);
 
   const handleDragStop: RglDragHandler = useCallback((_layout, _oldItem, newItem, _placeholder, e) => {
     setActiveDragSectionId(null);
     setDraggedItemType(null);
     setDraggedItem(null);
     setDragCursorCoords(null);
+    onHeaderTargetChange?.(false);
 
     if (!e || !newItem) return;
 
@@ -294,6 +336,13 @@ export function useDashboardDrag({
     }
     if (clientX === undefined || clientY === undefined) return;
 
+    // Header has highest priority — dropping on it moves the link into the header.
+    if (isPointOverHeader(clientX, clientY)) {
+      const draggedLinkForHeader = links.find((l) => l.id === newItem.i && l.type === WidgetType.LINK) as RegularLink | undefined;
+      if (draggedLinkForHeader) onMoveLink(draggedLinkForHeader.id, HEADER_TARGET);
+      return;
+    }
+
     const targetSectionId = findSectionAtPoint(clientX, clientY);
     if (!targetSectionId) return;
 
@@ -302,7 +351,7 @@ export function useDashboardDrag({
 
     const targetCoords = computeSectionDropCoords(draggedLink, targetSectionId, clientX, clientY);
     onMoveLink(draggedLink.id, targetSectionId, targetCoords);
-  }, [links, dragCursorCoords, computeSectionDropCoords, onMoveLink]);
+  }, [links, dragCursorCoords, computeSectionDropCoords, onMoveLink, onHeaderTargetChange]);
 
   // Drop handler for items dragged in from OUTSIDE the RGL grids (currently
   // just header-link HTML5 drags). Header links never appear in the main

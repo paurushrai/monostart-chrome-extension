@@ -26,6 +26,9 @@ interface Props {
   onOpenAddLink: () => void;
   onOpenAddWidget: () => void;
   onOpenTheme: () => void;
+  // True while a main-grid or section link is being dragged over the header.
+  // Used purely for the visual highlight ring.
+  isDropTarget?: boolean;
 }
 
 export default function AppHeader({
@@ -43,6 +46,7 @@ export default function AppHeader({
   onOpenAddLink,
   onOpenAddWidget,
   onOpenTheme,
+  isDropTarget = false,
 }: Props) {
   const headerLinks = links
     .filter((l): l is RegularLink => l.isHeaderLink === true && l.type === 'link')
@@ -53,7 +57,10 @@ export default function AppHeader({
     .map(s => ({ id: s.id, title: s.title }));
 
   return (
-    <header className="grid grid-cols-3 items-center px-6 py-2 border-b border-border relative">
+    <header
+      data-header-drop-target="true"
+      className={`grid grid-cols-3 items-center px-6 py-2 border-b border-border relative transition-colors ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
+    >
       <div className="flex items-center gap-3">
         <Hexagon size={24} strokeWidth={2.5} className="text-primary" />
         <div className="flex items-baseline">

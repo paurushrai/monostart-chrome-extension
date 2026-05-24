@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type FocusEvent, type KeyboardEvent, type FormEvent } from 'react';
+import { useState, useEffect, useRef, type FocusEvent, type KeyboardEvent, type FormEvent, type DragEvent as ReactDragEvent } from 'react';
 import type { Layout } from 'react-grid-layout/legacy';
 import { X, Check } from 'lucide-react';
 import { Button } from "../ui/button";
@@ -6,6 +6,7 @@ import { Input } from "../ui/input";
 import SectionHeader from './section/SectionHeader';
 import SectionInnerGrid from './section/SectionInnerGrid';
 import { useSectionDragOut } from '../../hooks/useSectionDragOut';
+import { HEADER_LINK_DRAG_TYPE } from '../../hooks/useHeaderDrag';
 import { findFirstFreeSlot } from '../../lib/grid';
 import type { Section, RegularLink, LinkItem, DragCoords, GridSlot } from '../../types';
 
@@ -65,8 +66,35 @@ const SectionWidget = ({
   const [isAddingLink, setIsAddingLink] = useState(false);
   const [newUrl, setNewUrl] = useState('');
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [isHeaderDragOver, setIsHeaderDragOver] = useState(false);
   const addInputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Accept HTML5 drops of header links — the link gets moved into this section.
+  const isHeaderLinkDrag = (e: ReactDragEvent<HTMLDivElement>) =>
+    e.dataTransfer.types.includes(HEADER_LINK_DRAG_TYPE);
+
+  const handleHeaderDragOver = (e: ReactDragEvent<HTMLDivElement>) => {
+    if (!isHeaderLinkDrag(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!isHeaderDragOver) setIsHeaderDragOver(true);
+  };
+
+  const handleHeaderDragLeave = (e: ReactDragEvent<HTMLDivElement>) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+    setIsHeaderDragOver(false);
+  };
+
+  const handleHeaderDrop = (e: ReactDragEvent<HTMLDivElement>) => {
+    setIsHeaderDragOver(false);
+    if (!isHeaderLinkDrag(e)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const linkId = e.dataTransfer.getData(HEADER_LINK_DRAG_TYPE);
+    if (!linkId || !onMoveLink) return;
+    onMoveLink(linkId, item.id);
+  };
 
   const dragOut = useSectionDragOut({
     containerRef,
@@ -204,12 +232,15 @@ const SectionWidget = ({
   return (
     <div
       data-section-id={item.id}
-      className={`relative flex flex-col w-full h-full bg-card/65 backdrop-blur-md rounded-xl border-2 border-dashed transition-all duration-300 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
+      className={`relative flex flex-col w-full h-full bg-card/65 backdrop-blur-md rounded-xl border-2 border-dashed transition-all duration-300 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''} ${isHeaderDragOver ? 'ring-2 ring-primary/60 ring-offset-2 ring-offset-background' : ''}`}
       style={{
         borderColor: borderMutedCssColor,
         borderStyle: 'dashed',
         boxShadow: `0 8px 32px 0 rgba(0, 0, 0, 0.08), 0 0 16px -2px ${shadowCssColor}`,
       }}
+      onDragOver={handleHeaderDragOver}
+      onDragLeave={handleHeaderDragLeave}
+      onDrop={handleHeaderDrop}
     >
       <SectionHeader
         title={title}
