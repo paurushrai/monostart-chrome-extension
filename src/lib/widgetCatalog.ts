@@ -62,6 +62,10 @@ export interface WidgetMeta {
  * field (so we can pattern-match on it) while also checking the entire shape
  * against WidgetMeta at compile time.
  */
+// Order = display order in the Add Widget modal. Anchored on Google Search
+// (universal), then Section (organizational backbone), productivity cluster
+// (Reminders / Todo / Timer), content widgets (Note / Image / Label), and
+// finally the power-user Embed.
 const WIDGETS = [
   {
     type: WidgetType.LINK,
@@ -76,6 +80,24 @@ const WIDGETS = [
     icon: Search,
     defaults: { w: 6, h: 1, title: 'Google Search' },
     layout: { minW: 6, maxW: 8, minH: 1, maxH: 1, resizable: true },
+  },
+  {
+    type: WidgetType.SECTION,
+    addable: true,
+    name: 'Link Section',
+    description: 'Create an elegant, custom-colored folder container for organizing links.',
+    icon: Folder,
+    defaults: { w: 6, h: 4, title: 'New Section', borderColor: '200 73% 52%', links: [] },
+    layout: { minW: 3, minH: 4, resizable: true },
+  },
+  {
+    type: WidgetType.REMINDERS,
+    addable: true,
+    name: 'Reminders',
+    description: 'Schedule reminders with browser notifications. Hourly / daily / weekly recurrence supported.',
+    icon: Bell,
+    defaults: { w: 4, h: 4, title: 'Reminders' },
+    layout: { minW: 4, minH: 4, resizable: true },
   },
   {
     type: WidgetType.TODO,
@@ -94,33 +116,6 @@ const WIDGETS = [
     icon: Clock,
     defaults: { w: 3, h: 3, title: 'Timers' },
     layout: { minW: 3, minH: 3, resizable: true },
-  },
-  {
-    type: WidgetType.REMINDERS,
-    addable: true,
-    name: 'Reminders',
-    description: 'Schedule reminders with browser notifications. Hourly / daily / weekly recurrence supported.',
-    icon: Bell,
-    defaults: { w: 4, h: 4, title: 'Reminders' },
-    layout: { minW: 4, minH: 4, resizable: true },
-  },
-  {
-    type: WidgetType.SECTION,
-    addable: true,
-    name: 'Link Section',
-    description: 'Create an elegant, custom-colored folder container for organizing links.',
-    icon: Folder,
-    defaults: { w: 6, h: 4, title: 'New Section', borderColor: '200 73% 52%', links: [] },
-    layout: { minW: 3, minH: 4, resizable: true },
-  },
-  {
-    type: WidgetType.IFRAME,
-    addable: true,
-    name: 'Embedded Page',
-    description: 'Embed any website as a live widget.',
-    icon: Globe,
-    defaults: { w: 4, h: 4, title: 'Embed', url: 'https://www.google.com' },
-    layout: { minW: 1, minH: 1, resizable: true },
   },
   {
     type: WidgetType.NOTE,
@@ -147,6 +142,15 @@ const WIDGETS = [
     description: 'Add a clean floating text header or title to style your grid.',
     icon: Type,
     defaults: { w: 4, h: 1, text: 'Google', align: 'left', size: 'text-3xl', fontWeight: 'font-bold', opacity: 'opacity-100' },
+    layout: { minW: 1, minH: 1, resizable: true },
+  },
+  {
+    type: WidgetType.IFRAME,
+    addable: true,
+    name: 'Embedded Page',
+    description: 'Embed any website as a live widget.',
+    icon: Globe,
+    defaults: { w: 4, h: 4, title: 'Embed', url: 'https://www.google.com' },
     layout: { minW: 1, minH: 1, resizable: true },
   },
 ] as const satisfies readonly WidgetMeta[];
