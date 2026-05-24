@@ -74,9 +74,7 @@ const WIDGETS = [
     description: 'Search Google or type a URL.',
     icon: Search,
     defaults: { w: 6, h: 1, title: 'Google Search' },
-    // minH=1 covers the bar-only variant; DashboardGrid bumps it to 2 at
-    // render time when showGoogleLogo is set (logo needs the vertical room).
-    layout: { minW: 6, maxW: 8, minH: 1, maxH: 3, resizable: true },
+    layout: { minW: 6, maxW: 8, minH: 1, maxH: 2, resizable: true },
   },
   {
     type: WidgetType.TODO,

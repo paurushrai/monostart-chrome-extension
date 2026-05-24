@@ -97,10 +97,6 @@ export interface Label extends BaseItem {
 export interface GoogleSearch extends BaseItem {
   type: 'google-search';
   title: string;
-  // When true, the widget renders the Google wordmark above the search input.
-  // Defaults to false (bare search bar) for back-compat with widgets that
-  // pre-date this option.
-  showGoogleLogo?: boolean;
 }
 
 export type LinkItem =

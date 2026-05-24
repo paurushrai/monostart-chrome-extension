@@ -55,17 +55,8 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
   displayLinks.map((link) => {
     const isPlaceholder = link.id === PLACEHOLDER_ID;
     const meta = getWidgetMeta(link.type);
-    const { minW, maxW, maxH, resizable } = meta?.layout ?? {};
-    let { minH } = meta?.layout ?? {};
+    const { minW, maxW, minH, maxH, resizable } = meta?.layout ?? {};
     const { w, h } = initialSize(link, meta);
-
-    // The Google search "with logo" variant needs vertical room for the
-    // wordmark on top of the bar — force minH=2 there. The catalog's base
-    // minH=1 keeps the bar-only variant compact.
-    if (link.type === WidgetType.GOOGLE_SEARCH && 'showGoogleLogo' in link && link.showGoogleLogo) {
-      minH = Math.max(minH ?? 1, 2);
-    }
-
     return {
       i: link.id,
       x: link.x ?? 0,
