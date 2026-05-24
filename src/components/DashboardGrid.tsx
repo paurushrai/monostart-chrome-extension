@@ -163,6 +163,11 @@ const DashboardGrid = ({
         isDraggable={isEditing}
         isResizable={isEditing}
         draggableHandle=".drag-handle"
+        // Hold the first render until WidthProvider has measured the
+        // container. Without this the grid paints once at the 1280px
+        // fallback then snaps to the real width on the second render —
+        // visible as a layout shift / "glitch" on page load.
+        measureBeforeMount={true}
         onDragStart={drag.handleDragStart}
         onDrag={drag.handleDrag}
         onDragStop={drag.handleDragStop}
