@@ -74,7 +74,7 @@ const WIDGETS = [
     description: 'Search Google or type a URL.',
     icon: Search,
     defaults: { w: 6, h: 1, title: 'Google Search' },
-    layout: { minW: 6, maxW: 8, minH: 1, maxH: 2, resizable: true },
+    layout: { minW: 6, maxW: 8, minH: 1, maxH: 1, resizable: true },
   },
   {
     type: WidgetType.TODO,
