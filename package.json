@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "description": "A hyper-customizable, premium browser dashboard and start page built by Paurush Rai.",
   "author": "Paurush Rai <https://www.paurushrai.in>",
+  "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "scripts": {
     "dev": "vite",
