@@ -149,7 +149,6 @@ export default function SectionInnerGrid({
   const handleBodyMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (!isEditing) return;
 
-    // If clicked on the scrollbar track, stop propagation
     const rect = e.currentTarget.getBoundingClientRect();
     const isClickOnScrollbar = e.clientX >= rect.left + e.currentTarget.clientWidth;
     if (isClickOnScrollbar) {

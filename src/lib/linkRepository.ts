@@ -35,7 +35,6 @@ export const saveLink = async (
   };
 
   if (sectionId) {
-    // Place inside a specific section's inner grid
     const updatedLinks = currentLinks.map((item) => {
       if (item.id === sectionId && item.type === WidgetType.SECTION) {
         const section = item;
@@ -86,11 +85,7 @@ export const saveLink = async (
   return linkWithId as unknown as LinkItem;
 };
 
-/**
- * Remove a link by id, recursing into sections. Currently unused in the UI
- * (App.handleDelete does the same filter inline for optimistic updates), but
- * kept as part of the repository's public surface for future callers.
- */
+/** Remove a link by id, recursing into sections. */
 export const deleteLink = async (id: string): Promise<void> => {
   const currentLinks = await getLinks();
   const deleteNested = (items: LinkItem[]): LinkItem[] => {

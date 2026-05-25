@@ -81,7 +81,6 @@ export default function AppHeader({
         </div>
       </div>
 
-      {/* Center: Header Links */}
       <div className="flex justify-center items-center gap-2 overflow-x-auto max-w-full no-scrollbar">
         {headerLinks.map(link => (
           <HeaderLink

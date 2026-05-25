@@ -34,12 +34,10 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync state if item changes from outside
   useEffect(() => {
     setText(content);
   }, [content]);
 
-  // Clean up debounce on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -49,7 +47,6 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
   const handleTextChange = (newVal: string) => {
     setText(newVal);
 
-    // Auto-save debounced
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       onUpdateLink(item.id, { content: newVal });
@@ -79,7 +76,6 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
   return (
     <div className={`card-base w-full h-full relative group overflow-hidden flex flex-col transition-all duration-300 ${activeColor.bg}`}>
       
-      {/* Header bar */}
       <div className={`flex items-center justify-between px-2 py-1 border-b border-border/40 shrink-0 rounded-t-xl transition-all duration-300 ${activeColor.headerBg} ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
         <div className="flex items-center gap-1.5 min-w-0">
           <FileText size={12} className="text-primary shrink-0" />
@@ -103,7 +99,6 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
         </div>
 
         <div role="toolbar" aria-label="Note actions" className="flex items-center gap-1 shrink-0 relative z-20">
-          {/* Color palette selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button 
@@ -146,7 +141,6 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
 
       {isEditing && <div className="absolute inset-x-0 bottom-0 top-[45px] z-10 bg-transparent cursor-grab drag-handle" />}
 
-      {/* Editor Body */}
       <div className="flex-1 overflow-hidden p-3 rounded-b-xl">
         <textarea
           value={text}

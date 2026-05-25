@@ -36,8 +36,6 @@ interface Props {
   onHeaderTargetChange?: (isOver: boolean) => void;
 }
 
-// Initial w/h for an item: prefer persisted value, fall back to catalog defaults,
-// with the historical link-specific viewMode rule preserved.
 const initialSize = (link: DisplayItem, meta: WidgetMeta | undefined): { w: number; h: number } => {
   if (link.type === WidgetType.LINK) {
     return {
@@ -114,7 +112,6 @@ const DashboardGrid = ({
     drag.handleExternalDrop(linkId, e.clientX, e.clientY);
   };
 
-  // Add a transient drag-out placeholder while a link is being dragged out of a section
   const displayLinks: DisplayItem[] = [...links];
   if (drag.activeDragOutItem && drag.dragOutCoords) {
     const w = drag.activeDragOutItem.w ?? (drag.activeDragOutItem.viewMode === 'icon' ? 1 : 3);

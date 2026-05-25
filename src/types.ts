@@ -59,7 +59,6 @@ export interface Iframe extends BaseItem {
   embedHtml?: string;
 }
 
-// Renamed from `Todo` / `Timer` to avoid collision with TodoEntry / TimerEntry.
 export interface TodoWidget extends BaseItem {
   type: 'todo';
   title: string;

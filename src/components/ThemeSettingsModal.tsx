@@ -52,7 +52,6 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
         </DialogHeader>
 
         <div className="py-4 flex flex-col gap-6">
-          {/* Theme Mode Toggle */}
           <div className="flex bg-muted p-1 rounded-lg border border-border">
             <button
               onClick={() => setMode('light')}
@@ -80,7 +79,6 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
             </button>
           </div>
 
-          {/* Color Grid */}
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-foreground">Primary Color</h4>
             <div className="grid grid-cols-6 gap-3">
@@ -97,7 +95,6 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
               ))}
             </div>
             
-            {/* Custom Hue Slider */}
             <div className="pt-2">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-foreground">Custom Hue</span>
@@ -113,7 +110,6 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
                 value={currentColor.split(' ')[0]}
                 onChange={(e) => {
                   const hue = e.target.value;
-                  // Keep a nice vibrant saturation and lightness for the custom color
                   setColor(`${hue} 80% 55%`);
                 }}
                 className="w-full h-3 rounded-full appearance-none cursor-pointer border border-border/50 shadow-inner"

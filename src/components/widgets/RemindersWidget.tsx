@@ -26,7 +26,7 @@ const RECURRENCE_LABEL: Record<ReminderEntry['recurrence'], string> = {
 const RECURRENCE_OPTIONS: ReadonlyArray<ReminderEntry['recurrence']> = ['none', 'hourly', 'daily', 'weekly'];
 
 const defaultDueAt = (): Date => {
-  const d = new Date(Date.now() + 60 * 60 * 1000); // +1h
+  const d = new Date(Date.now() + 60 * 60 * 1000);
   d.setSeconds(0, 0);
   return d;
 };
