@@ -14,6 +14,18 @@ const SETTINGS_KEY = 'dashboardSettings';
 const hasChromeStorage = (): boolean =>
   typeof chrome !== 'undefined' && !!chrome.storage;
 
+// Synchronous read of the localStorage mirror — used to seed first paint
+// before the async chrome.storage read resolves. Returns [] on miss or
+// parse failure so the caller never has to handle null.
+export const getLinksSync = (): LinkItem[] => {
+  try {
+    const raw = localStorage.getItem(LINKS_KEY);
+    return raw ? (JSON.parse(raw) as LinkItem[]) : [];
+  } catch {
+    return [];
+  }
+};
+
 export const getLinks = async (): Promise<LinkItem[]> => {
   if (hasChromeStorage()) {
     return new Promise<LinkItem[]>((resolve) => {
@@ -22,17 +34,19 @@ export const getLinks = async (): Promise<LinkItem[]> => {
       });
     });
   }
-  const local = localStorage.getItem(LINKS_KEY);
-  return local ? (JSON.parse(local) as LinkItem[]) : [];
+  return getLinksSync();
 };
 
 export const saveLinks = async (links: readonly LinkItem[]): Promise<void> => {
+  // Always mirror to localStorage so the next page load can paint
+  // synchronously without waiting for the chrome.storage round-trip.
+  try { localStorage.setItem(LINKS_KEY, JSON.stringify(links)); } catch { /* quota / private mode */ }
+
   if (hasChromeStorage()) {
     return new Promise<void>((resolve) => {
       chrome.storage.local.set({ [LINKS_KEY]: links }, () => resolve());
     });
   }
-  localStorage.setItem(LINKS_KEY, JSON.stringify(links));
 };
 
 const DEFAULT_SETTINGS: Settings = { openInNewTab: false };

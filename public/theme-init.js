@@ -22,5 +22,17 @@
         }
         const light = isDark ? '10%' : '94%';
         document.documentElement.style.backgroundColor = 'hsl(' + hue + ', ' + sat + ', ' + light + ')';
+
+        // Apply the theme CSS variables synchronously so React's first
+        // render already paints with the user's theme. Without this the
+        // App outer div uses default --theme-hue/sat until useTheme runs,
+        // then bg-background changes — the App's `transition-colors`
+        // animates that change as a brief color flash on every load.
+        document.documentElement.style.setProperty('--theme-hue', String(hue));
+        document.documentElement.style.setProperty('--theme-sat', sat);
+        if (typeof themeColor === 'string') {
+            document.documentElement.style.setProperty('--primary', themeColor);
+            document.documentElement.style.setProperty('--ring', themeColor);
+        }
     } catch { /* fail silently — fall back to default theme */ }
 })();
