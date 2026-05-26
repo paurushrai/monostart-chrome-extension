@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getSettings, getLinks } from '../lib/storage';
 import { saveLink } from '../lib/linkRepository';
+import { disambiguateSections } from '../lib/disambiguateSections';
 import { BookmarkPlus, Check, ExternalLink, Bell, X, Repeat, LayoutGrid, Bookmark, Folder, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
@@ -109,10 +110,11 @@ function PopupApp() {
     setTimeout(() => window.close(), 1500);
   };
 
+  const displaySections = useMemo(() => disambiguateSections(sections), [sections]);
   const destinationLabel =
     destination === 'main' ? 'Main dashboard' :
     destination === 'header' ? 'Header bar' :
-    sections.find((s) => s.id === destination)?.title ?? 'Main dashboard';
+    displaySections.find((s) => s.id === destination)?.title ?? 'Main dashboard';
   const DestinationIcon =
     destination === 'main' ? LayoutGrid :
     destination === 'header' ? Bookmark :
@@ -218,8 +220,8 @@ function PopupApp() {
           <DropdownMenuItem onClick={() => setDestination('header')} className="text-xs">
             <Bookmark size={13} className="mr-2" /> Header bar
           </DropdownMenuItem>
-          {sections.length > 0 && <DropdownMenuSeparator />}
-          {sections.map((s) => (
+          {displaySections.length > 0 && <DropdownMenuSeparator />}
+          {displaySections.map((s) => (
             <DropdownMenuItem key={s.id} onClick={() => setDestination(s.id)} className="text-xs">
               <Folder size={13} className="mr-2" /> {s.title}
             </DropdownMenuItem>
