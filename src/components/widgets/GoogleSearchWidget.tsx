@@ -2,7 +2,27 @@ import { useState, useEffect, useRef, type FormEvent, type KeyboardEvent } from 
 import { Search, X, History } from 'lucide-react';
 import LensSearchModal from './LensSearchModal';
 import VoiceSearchOverlay from './VoiceSearchOverlay';
-import type { GoogleSearch } from '../../types';
+import type { GoogleSearch, LinkItem } from '../../types';
+
+const GoogleLogo = ({ className = '', mono = false }: { className?: string; mono?: boolean }) => (
+  <span
+    className={`font-medium tracking-tight select-none whitespace-nowrap leading-none ${mono ? 'text-foreground' : ''} ${className}`}
+    style={{ fontFamily: '"Product Sans","Google Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif' }}
+  >
+    {mono ? (
+      'Google'
+    ) : (
+      <>
+        <span style={{ color: '#4285F4' }}>G</span>
+        <span style={{ color: '#EA4335' }}>o</span>
+        <span style={{ color: '#FBBC05' }}>o</span>
+        <span style={{ color: '#4285F4' }}>g</span>
+        <span style={{ color: '#34A853' }}>l</span>
+        <span style={{ color: '#EA4335' }}>e</span>
+      </>
+    )}
+  </span>
+);
 
 interface Suggestion {
   text: string;
@@ -75,10 +95,22 @@ const isLikelyUrl = (text: string) => /^(https?:\/\/|[\w-]+\.[\w-]+)/.test(text.
 interface Props {
   item: GoogleSearch;
   onDelete: (id: string) => void;
+  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
   isEditing: boolean;
 }
 
-const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
+const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
+  const variant: 'bar' | 'logo' = item.variant ?? 'bar';
+  const logoStyle: 'color' | 'mono' = item.logoStyle ?? 'color';
+  const toggleVariant = () => {
+    const nextVariant = variant === 'logo' ? 'bar' : 'logo';
+    // h must follow variant: logo → 3, bar → 1. DashboardGrid pins min/max so
+    // RGL re-clamps automatically on next layout pass.
+    onUpdateLink(item.id, { variant: nextVariant, h: nextVariant === 'logo' ? 4 : 1 } as Partial<LinkItem>);
+  };
+  const toggleLogoStyle = () => {
+    onUpdateLink(item.id, { logoStyle: logoStyle === 'color' ? 'mono' : 'color' } as Partial<LinkItem>);
+  };
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -286,23 +318,51 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
   };
 
   return (
-    <div className="group relative flex items-center justify-center w-full h-full">
+    <div className={`group relative flex flex-col w-full h-full ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''} ${variant === 'logo' ? '' : 'items-center justify-center'}`}>
       {isEditing && (
-        <button
-          onMouseDown={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(item.id); }}
-          title="Remove widget"
-          className="absolute -top-2 -right-2 z-[100] h-6 w-6 rounded-full bg-background border border-border hover:text-red-500 shadow-md flex items-center justify-center cursor-pointer"
-        >
-          <X size={12} />
-        </button>
+        <>
+          <button
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(item.id); }}
+            title="Remove widget"
+            className="absolute -top-2 -right-2 z-[100] h-6 w-6 rounded-full bg-background border border-border hover:text-red-500 shadow-md flex items-center justify-center cursor-pointer"
+          >
+            <X size={12} />
+          </button>
+          <button
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleVariant(); }}
+            title={variant === 'logo' ? 'Switch to bar only' : 'Switch to logo + bar'}
+            className="absolute -top-2 -left-2 z-[100] h-6 px-2 rounded-full bg-background border border-border text-2xs font-medium text-foreground hover:border-primary shadow-md flex items-center justify-center cursor-pointer"
+          >
+            {variant === 'logo' ? 'Bar only' : 'Show logo'}
+          </button>
+        </>
       )}
 
+      {variant === 'logo' && (
+        <div className="flex-1 flex items-center justify-center w-full min-h-0">
+          <button
+            type="button"
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleLogoStyle(); }}
+            title="Toggle logo style"
+            className="bg-transparent border-0 p-0 cursor-pointer focus:outline-none"
+          >
+            <GoogleLogo mono={logoStyle === 'mono'} className="text-[clamp(3.25rem,4.5vw,7rem)]" />
+          </button>
+        </div>
+      )}
+
+      <div className={variant === 'logo' ? 'w-full flex items-center justify-center' : 'contents'}>
       <div
         ref={containerRef}
-        className={`relative w-full max-w-2xl bg-white transition-shadow z-50 ${showSuggestions && suggestions.length > 0 ? 'rounded-t-[24px] rounded-b-none shadow-xl' : 'rounded-full shadow-md hover:shadow-lg'}`}
+        className={`relative w-full bg-white transition-shadow z-50 ${showSuggestions && suggestions.length > 0 ? 'rounded-t-[24px] rounded-b-none shadow-xl' : 'rounded-full shadow-md hover:shadow-lg'}`}
       >
         <form
           onSubmit={handleSubmit}
@@ -365,6 +425,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
             ))}
           </div>
         )}
+      </div>
       </div>
 
       <LensSearchModal open={lensOpen} onClose={() => setLensOpen(false)} />

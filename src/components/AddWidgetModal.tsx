@@ -8,9 +8,32 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mic, Camera } from "lucide-react";
 import { isEmbedCode, extractEmbedSrc, extractEmbedTitle, sanitizeEmbed, rewriteToEmbedUrl } from '@/lib/embedSanitizer';
 import type { LinkItem } from '../types';
+
+const PreviewLogo = () => (
+  <span
+    className="text-3xl font-medium tracking-tight select-none whitespace-nowrap leading-none"
+    style={{ fontFamily: '"Product Sans","Google Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif' }}
+  >
+    <span style={{ color: '#4285F4' }}>G</span>
+    <span style={{ color: '#EA4335' }}>o</span>
+    <span style={{ color: '#FBBC05' }}>o</span>
+    <span style={{ color: '#4285F4' }}>g</span>
+    <span style={{ color: '#34A853' }}>l</span>
+    <span style={{ color: '#EA4335' }}>e</span>
+  </span>
+);
+
+const PreviewBar = () => (
+  <div className="w-full max-w-[220px] h-7 rounded-full bg-white shadow-sm flex items-center px-3 gap-2">
+    <span className="w-3 h-3 rounded-full border-2 border-gray-400" />
+    <span className="flex-1 text-[10px] text-gray-400 truncate">Search Google or type a URL</span>
+    <Mic size={11} className="text-gray-400" />
+    <Camera size={11} className="text-gray-400" />
+  </div>
+);
 
 interface Props {
   open: boolean;
@@ -34,10 +57,26 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Props) => {
     if (w.type === 'iframe') {
       setSelectedWidget(w);
       setStep(2);
+    } else if (w.type === 'google-search') {
+      setSelectedWidget(w);
+      setStep(3);  // variant picker
     } else {
       onSelect(w);
       handleClose();
     }
+  };
+
+  const pickGoogleVariant = (variant: 'bar' | 'logo') => {
+    if (!selectedWidget) return;
+    onSelect({
+      type: 'google-search',
+      defaults: {
+        ...selectedWidget.defaults,
+        variant,
+        h: variant === 'logo' ? 4 : 1,
+      } as Partial<LinkItem>,
+    });
+    handleClose();
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -82,13 +121,13 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Props) => {
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent aria-describedby={undefined} className="sm:max-w-2xl bg-background border-border p-0 gap-0">
         <DialogHeader className="px-5 py-4 border-b border-border flex flex-row items-center gap-3 space-y-0">
-          {step === 2 && (
+          {(step === 2 || step === 3) && (
             <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2" onClick={() => setStep(1)}>
               <ArrowLeft size={16} />
             </Button>
           )}
           <DialogTitle className="text-foreground">
-            {step === 1 ? 'Add Widget' : `Configure ${selectedWidget?.name}`}
+            {step === 1 ? 'Add Widget' : step === 3 ? 'Choose Google Search style' : `Configure ${selectedWidget?.name}`}
           </DialogTitle>
         </DialogHeader>
 
@@ -117,6 +156,43 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Props) => {
                 </Button>
               );
             })}
+          </div>
+        ) : step === 3 ? (
+          <div className="p-5 grid grid-cols-2 gap-4">
+            <button
+              type="button"
+              onClick={() => pickGoogleVariant('logo')}
+              className="group flex flex-col items-stretch gap-3 rounded-xl border border-border bg-secondary p-4 hover:border-primary hover:bg-card transition-all text-left"
+            >
+              <div className="aspect-[4/3] rounded-lg bg-background flex flex-col items-center justify-center gap-3 px-3 py-4">
+                <div className="flex-1 flex items-center justify-center">
+                  <PreviewLogo />
+                </div>
+                <PreviewBar />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-foreground">Logo + Bar</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  Big Google logo above the search bar. Takes 4 rows.
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => pickGoogleVariant('bar')}
+              className="group flex flex-col items-stretch gap-3 rounded-xl border border-border bg-secondary p-4 hover:border-primary hover:bg-card transition-all text-left"
+            >
+              <div className="aspect-[4/3] rounded-lg bg-background flex items-center justify-center px-3">
+                <PreviewBar />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-foreground">Bar only</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  Just the search bar. Takes 1 row. Compact.
+                </div>
+              </div>
+            </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
