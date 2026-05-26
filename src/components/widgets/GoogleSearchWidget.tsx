@@ -292,7 +292,13 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
   };
 
   return (
-    <div className={`group relative flex flex-col items-center w-full h-full ${item.showGoogleLogo ? 'justify-between py-4' : 'justify-center'}`}>
+    <div
+      className={`group relative flex flex-col items-center w-full h-full px-3 sm:px-6 lg:px-10 xl:px-16 ${
+        item.showGoogleLogo
+          ? 'justify-between py-3 sm:py-5 lg:py-7'
+          : 'justify-center py-2 sm:py-3'
+      }`}
+    >
       {isEditing && (
         <button
           onMouseDown={(e) => e.stopPropagation()}
@@ -311,7 +317,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
           src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"
           alt="Google"
           draggable={false}
-          className="h-10 sm:h-12 w-auto select-none pointer-events-none dark:brightness-110"
+          className="h-9 sm:h-12 md:h-14 lg:h-16 xl:h-20 w-auto select-none pointer-events-none dark:brightness-110"
         />
       )}
 
@@ -321,12 +327,12 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
       >
         <form
           onSubmit={handleSubmit}
-          className={`relative flex items-center w-full h-12 px-5 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
+          className={`relative flex items-center w-full h-11 sm:h-12 lg:h-14 px-4 sm:px-5 lg:px-6 gap-3 sm:gap-4 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
         >
           {/* Invisible overlay to prevent input/buttons from blocking drag */}
           {isEditing && <div className="absolute inset-0 z-10 bg-transparent rounded-full" />}
 
-          <Search size={18} className="text-gray-500 flex-shrink-0" />
+          <Search className="text-gray-500 flex-shrink-0 w-[18px] h-[18px] lg:w-5 lg:h-5" />
           <input
             type="text"
             value={query}
@@ -338,7 +344,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
             onKeyDown={handleInputKeyDown}
             placeholder="Search Google or type a URL"
             disabled={isEditing}
-            className="flex-1 mx-4 bg-transparent border-0 outline-none text-gray-800 placeholder-gray-500 text-base"
+            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-gray-800 placeholder-gray-500 text-sm sm:text-base lg:text-lg"
           />
           <button
             type="button"
@@ -353,7 +359,7 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
             type="button"
             onClick={() => setLensOpen(true)}
             title="Search any image with Lens"
-            className="p-1 ml-1 flex-shrink-0"
+            className="p-1 flex-shrink-0"
             tabIndex={-1}
           >
             <LensIcon size={18} />
@@ -362,21 +368,21 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
 
         {/* Suggestions Dropdown */}
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute top-12 left-0 right-0 bg-white border-t border-gray-100 rounded-b-[24px] py-2 overflow-hidden shadow-xl text-left">
+          <div className="absolute top-full left-0 right-0 bg-white border-t border-gray-100 rounded-b-[24px] py-2 overflow-hidden shadow-xl text-left">
             {suggestions.map((suggestion, idx) => (
               <div
                 key={idx}
                 ref={(el) => { suggestionRefs.current[idx] = el; }}
                 onMouseEnter={() => setActiveIndex(idx)}
-                className={`flex items-center px-5 py-1.5 cursor-pointer ${idx === activeIndex ? 'bg-gray-100' : 'hover:bg-gray-100'}`}
+                className={`flex items-center px-4 sm:px-5 lg:px-6 py-1.5 lg:py-2 cursor-pointer ${idx === activeIndex ? 'bg-gray-100' : 'hover:bg-gray-100'}`}
                 onClick={() => navigateToSuggestion(suggestion)}
               >
                 {suggestion.type === 'history' ? (
-                  <History size={16} className="text-gray-400 mr-4 flex-shrink-0" />
+                  <History size={16} className="text-gray-400 mr-3 sm:mr-4 flex-shrink-0" />
                 ) : (
-                  <Search size={16} className="text-gray-400 mr-4 flex-shrink-0" />
+                  <Search size={16} className="text-gray-400 mr-3 sm:mr-4 flex-shrink-0" />
                 )}
-                <span className="text-[15px] font-medium text-gray-800 truncate">{suggestion.text}</span>
+                <span className="text-sm sm:text-[15px] lg:text-base font-medium text-gray-800 truncate">{suggestion.text}</span>
               </div>
             ))}
           </div>
