@@ -26,19 +26,30 @@ export interface UseLinks {
   addWidget: (widget: { type: LinkItem['type']; defaults?: Partial<LinkItem> }) => Promise<LinkItem | null>;
 }
 
+// One-time clamp: Google Search widget was previously allowed h: 2 in the
+// catalog. The bound is now h: 1 — shrink any stored instance so it matches.
+const migrateGoogleSearchHeight = (items: LinkItem[]): LinkItem[] =>
+  items.map((l) =>
+    l.type === WidgetType.GOOGLE_SEARCH && (l.h ?? 1) > 1 ? { ...l, h: 1 } : l,
+  );
+
 export function useLinks(): UseLinks {
   // Seed from the synchronous localStorage mirror so first paint already
   // has the persisted dashboard — no empty-state flash while the async
   // chrome.storage read is in flight.
-  const [links, setLinks] = useState<LinkItem[]>(() => getLinksSync());
+  const [links, setLinks] = useState<LinkItem[]>(() => migrateGoogleSearchHeight(getLinksSync()));
 
   useEffect(() => {
     // chrome.storage may have a fresher value (e.g. another tab wrote
     // since this tab cached). Refresh and overwrite if it differs.
     getLinks().then((stored) => {
+      const migrated = migrateGoogleSearchHeight(stored);
+      if (JSON.stringify(migrated) !== JSON.stringify(stored)) {
+        saveLinks(migrated);
+      }
       setLinks((prev) => {
-        if (prev.length === stored.length && JSON.stringify(prev) === JSON.stringify(stored)) return prev;
-        return stored;
+        if (prev.length === migrated.length && JSON.stringify(prev) === JSON.stringify(migrated)) return prev;
+        return migrated;
       });
     });
 
