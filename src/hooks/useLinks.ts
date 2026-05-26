@@ -4,6 +4,7 @@ import { getLinks, getLinksSync, saveLinks } from '../lib/storage';
 import { saveLink } from '../lib/linkRepository';
 import type { NewLinkInput } from '../lib/linkRepository';
 import { RESIZABLE_TYPES, WidgetType } from '../lib/widgetCatalog';
+import { findFirstFreeSlot, MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import {
   removeLinkAnywhere,
   placeInHeader,
@@ -159,7 +160,39 @@ export function useLinks(): UseLinks {
           return l;
         });
       };
-      const updatedLinks = updateNested(prevLinks);
+      let updatedLinks = updateNested(prevLinks);
+
+      // If a size change at the top level introduces a collision (e.g.
+      // toggling Google Search bar → logo grows h from 1 → 4), relocate the
+      // widget to the first free slot. preventCollision=true on the grid
+      // means RGL won't shuffle for us — neighbors would otherwise overlap.
+      const isSizeChange = updates.w !== undefined || updates.h !== undefined;
+      if (isSizeChange) {
+        const updated = updatedLinks.find((l) => l.id === id);
+        if (updated && !updated.isHeaderLink && updated.x !== undefined && updated.y !== undefined) {
+          const w = updated.w ?? 1;
+          const h = updated.h ?? 1;
+          const x = updated.x;
+          const y = updated.y;
+          const others = updatedLinks
+            .filter((l) => l.id !== id && !l.isHeaderLink && l.x !== undefined && l.y !== undefined)
+            .map((l) => ({ x: l.x as number, y: l.y as number, w: l.w ?? 1, h: l.h ?? 1 }));
+          const overlaps = others.some(
+            (o) => x < o.x + o.w && x + w > o.x && y < o.y + o.h && y + h > o.y,
+          );
+          if (overlaps) {
+            const slot = findFirstFreeSlot(others, w, h, MAIN_COLS, MAIN_ROWS);
+            if (slot) {
+              updatedLinks = updatedLinks.map((l) =>
+                l.id === id ? { ...l, x: slot.x, y: slot.y } : l,
+              );
+            }
+            // No free slot → fall through; RGL will render the overlap and
+            // the user can resize/move to resolve.
+          }
+        }
+      }
+
       saveLinks(updatedLinks);
       return updatedLinks;
     });

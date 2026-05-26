@@ -86,7 +86,7 @@ export default function WidgetRenderer({
 
   switch (linkItem.type) {
     case WidgetType.GOOGLE_SEARCH:
-      return <GoogleSearchWidget item={linkItem as GoogleSearch} onDelete={onDelete} isEditing={isEditing} />;
+      return <GoogleSearchWidget item={linkItem as GoogleSearch} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
     case WidgetType.IFRAME:
       return <IframeWidget item={linkItem as Iframe} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.TODO:

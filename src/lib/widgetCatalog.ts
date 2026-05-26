@@ -74,8 +74,9 @@ const WIDGETS = [
     name: 'Google Search',
     description: 'Search Google or type a URL.',
     icon: Search,
-    defaults: { w: 6, h: 1, title: 'Google Search' },
-    layout: { minW: 6, maxW: 8, minH: 1, maxH: 1, resizable: true },
+    defaults: { w: 6, h: 1, title: 'Google Search', variant: 'bar' },
+    // Overall range. DashboardGrid pins min/max per-item by variant: bar=1, logo=4.
+    layout: { minW: 6, maxW: 8, minH: 1, maxH: 4, resizable: true },
   },
   {
     type: WidgetType.SECTION,

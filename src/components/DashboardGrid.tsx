@@ -10,7 +10,7 @@ import { HEADER_LINK_DRAG_TYPE } from '../hooks/useHeaderDrag';
 import { MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import { getWidgetMeta, WidgetType } from '../lib/widgetCatalog';
 import type { WidgetMeta } from '../lib/widgetCatalog';
-import type { LinkItem, DisplayItem, DragPlaceholder, GridSlot } from '../types';
+import type { LinkItem, DisplayItem, DragPlaceholder, GridSlot, GoogleSearch } from '../types';
 
 const ReactGridLayout = WidthProvider(GridLayout);
 
@@ -53,8 +53,22 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
   displayLinks.map((link) => {
     const isPlaceholder = link.id === PLACEHOLDER_ID;
     const meta = getWidgetMeta(link.type);
-    const { minW, maxW, minH, maxH, resizable } = meta?.layout ?? {};
-    const { w, h } = initialSize(link, meta);
+    let { minW, maxW, minH, maxH } = meta?.layout ?? {};
+    const { resizable } = meta?.layout ?? {};
+    let { w, h } = initialSize(link, meta);
+
+    // Google Search has two variants with different heights — pin per item.
+    // Clamp h to the variant's bounds so a stale stored value (e.g. an old
+    // h:1 saved before the user toggled to logo) auto-corrects on render.
+    // Other widgets are not clamped — they keep their existing stored size.
+    if (link.type === WidgetType.GOOGLE_SEARCH) {
+      const v = (link as GoogleSearch).variant ?? 'bar';
+      if (v === 'logo') { minH = 4; maxH = 4; }
+      else { minH = 1; maxH = 1; }
+      if (h < minH) h = minH;
+      if (h > maxH) h = maxH;
+    }
+
     return {
       i: link.id,
       x: link.x ?? 0,

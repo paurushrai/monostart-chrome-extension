@@ -96,6 +96,8 @@ export interface Label extends BaseItem {
 export interface GoogleSearch extends BaseItem {
   type: 'google-search';
   title: string;
+  variant?: 'bar' | 'logo';
+  logoStyle?: 'color' | 'mono';
 }
 
 export interface Reminders extends BaseItem {
