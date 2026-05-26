@@ -9,6 +9,7 @@ import { useLinks } from './hooks/useLinks';
 import { useTheme } from './hooks/useTheme';
 import { useHeaderDrag } from './hooks/useHeaderDrag';
 import { useToast } from './hooks/useToast';
+import { disambiguateSections } from './lib/disambiguateSections';
 import type { LinkItem, Section } from './types';
 
 interface AddWidgetInput {
@@ -93,9 +94,9 @@ function App() {
     }
   }, [addWidget, showToast, links]);
 
-  const sections = links
-    .filter((l): l is Section => l.type === 'section')
-    .map((s) => ({ id: s.id, title: s.title }));
+  const sections = disambiguateSections(
+    links.filter((l): l is Section => l.type === 'section'),
+  );
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-background transition-colors duration-200">
