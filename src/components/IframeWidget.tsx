@@ -91,7 +91,6 @@ const IframeWidget = React.memo(({ item, onDelete, isEditing }: Props) => {
   return (
     <div className="group card-base flex flex-col w-full h-full overflow-hidden">
 
-      {/* Drag handle / header */}
       <div className={`flex items-center justify-between px-2 py-1
                       bg-secondary
                       border-b border-border flex-shrink-0

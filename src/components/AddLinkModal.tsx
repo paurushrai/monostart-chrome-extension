@@ -31,7 +31,6 @@ const AddLinkModal = ({ open, onClose, sections = [] }: Props) => {
       finalUrl = 'https://' + finalUrl;
     }
 
-    // Try to extract a sensible title and favicon if none is provided
     let finalTitle = title.trim();
     let faviconUrl = '';
     try {

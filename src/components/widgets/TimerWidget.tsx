@@ -3,7 +3,6 @@ import { Clock, Plus, Trash2, X, Play, Pause, RotateCcw } from 'lucide-react';
 import { useWidgetStorage } from '../../hooks/useWidgetStorage';
 import type { TimerWidget as TimerWidgetItem, TimerEntry } from '../../types';
 
-// Format milliseconds to MM:SS
 const formatTime = (ms: number): string => {
   if (ms <= 0) return "00:00";
   const totalSeconds = Math.floor(ms / 1000);
@@ -31,7 +30,6 @@ const TimerItem = ({ timer, onUpdate, onDelete }: TimerItemProps) => {
           clearInterval(interval);
           setTimeLeft(0);
           onUpdate(timer.id, { isRunning: false, remainingMs: 0, endTime: null });
-          // Play a sound or notify when done
           try {
             new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch((e) => console.log(e));
           } catch { /* ignore audio failures */ }
@@ -136,7 +134,6 @@ const TimerWidget = ({ item, onDelete, isEditing }: Props) => {
 
   return (
     <div className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
-      {/* Header */}
       <div className={`flex items-center justify-between px-2 py-1 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
         <div className="flex items-center gap-1.5">
           <Clock size={12} className="text-primary" />
@@ -156,7 +153,6 @@ const TimerWidget = ({ item, onDelete, isEditing }: Props) => {
 
       {isEditing && <div className="absolute inset-x-0 bottom-0 top-[45px] z-10 bg-transparent cursor-grab drag-handle" />}
 
-      {/* Timers List (Scrollable) */}
       <div className="flex-1 overflow-y-auto p-1 space-y-1">
         {timers.length === 0 && (
           <div className="text-xs text-muted-foreground text-center mt-4">No timers set.</div>
@@ -171,7 +167,6 @@ const TimerWidget = ({ item, onDelete, isEditing }: Props) => {
         ))}
       </div>
 
-      {/* Add New */}
       <form onSubmit={handleAdd} className="p-2 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl">
         <div className="flex gap-2">
           <input

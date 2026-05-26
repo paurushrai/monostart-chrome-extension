@@ -111,7 +111,6 @@ const LinkCard = ({
   return (
     <div className={`group card-base relative w-full h-full ${!isEditing ? 'overflow-hidden' : ''}`}>
 
-      {/* Action buttons */}
       {isEditing && (
         <div 
           role="toolbar"
@@ -251,7 +250,6 @@ const LinkCard = ({
             : `flex-row items-center justify-start gap-3 pl-4 py-2 ${isEditing ? 'pr-9' : 'pr-4'}`
           }`}
       >
-        {/* Favicon */}
         {crispFavicon ? (
           <img
             src={crispFavicon}
@@ -267,7 +265,6 @@ const LinkCard = ({
           </div>
         )}
 
-        {/* Text content */}
         {!isIconOnly && (
           <div className="text-left flex flex-col justify-center flex-1 min-w-0 overflow-hidden">
             <h4
@@ -295,7 +292,6 @@ const LinkCard = ({
           </div>
         )}
 
-        {/* Glassmorphism Hover Overlay for Icon Only Mode */}
         {isIconOnly && !isEditing && (
           <div className="absolute inset-0 bg-background/70 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center p-2 z-10 pointer-events-none">
             <span className="text-2xs font-semibold text-foreground text-center truncate w-full drop-shadow-sm">

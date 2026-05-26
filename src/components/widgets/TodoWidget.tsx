@@ -32,7 +32,6 @@ const TodoWidget = ({ item, onDelete, isEditing }: Props) => {
 
   return (
     <div className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
-      {/* Header */}
       <div className={`flex items-center justify-between px-2 py-1 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
         <div className="flex items-center gap-1.5">
           <CheckSquare size={12} className="text-primary" />
@@ -52,7 +51,6 @@ const TodoWidget = ({ item, onDelete, isEditing }: Props) => {
 
       {isEditing && <div className="absolute inset-x-0 bottom-0 top-[45px] z-10 bg-transparent cursor-grab drag-handle" />}
 
-      {/* Todo List (Scrollable) */}
       <div className="flex-1 overflow-y-auto p-1 space-y-1">
         {todos.length === 0 && (
           <div className="text-xs text-muted-foreground text-center mt-4">No tasks yet.</div>
@@ -78,7 +76,6 @@ const TodoWidget = ({ item, onDelete, isEditing }: Props) => {
         ))}
       </div>
 
-      {/* Add New */}
       <form onSubmit={handleAdd} className="p-2 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl">
         <div className="relative">
           <input

@@ -87,8 +87,7 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
     handleSaveUrl(presetUrl);
   };
 
-  // Determine fit class
-  const fitClass = fit === 'contain' 
+  const fitClass = fit === 'contain'
     ? 'object-contain' 
     : fit === 'fill' 
       ? 'object-fill' 
@@ -97,7 +96,6 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
   return (
     <div className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
       
-      {/* Header bar - visible in Edit Mode, or when url is empty, or when showConfig is active */}
       {(isEditing || showConfig || !url) && (
         <div className={`flex items-center justify-between px-2 py-1 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl z-20 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
           <div className="flex items-center gap-1.5 min-w-0">
@@ -182,10 +180,8 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
 
       {isEditing && !showConfig && <div className="absolute inset-x-0 bottom-0 top-[45px] z-10 bg-transparent cursor-grab drag-handle" />}
 
-      {/* Main Content Area */}
       <div className="flex-1 relative min-h-0 w-full h-full bg-gray-50/50 dark:bg-black/5 flex flex-col items-center justify-center rounded-b-xl overflow-hidden">
-        
-        {/* Setup Config Screen */}
+
         {showConfig ? (
           <div className="w-full h-full p-4 flex flex-col justify-center overflow-y-auto space-y-3 z-20 bg-background/95 backdrop-blur-sm">
             <div className="space-y-1.5 text-center">
@@ -195,7 +191,6 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
               <p className="text-xs font-medium text-foreground">Configure Widget Image</p>
             </div>
 
-            {/* Input field */}
             <div className="flex gap-1.5">
               <Input
                 type="text"
@@ -215,14 +210,12 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
               </Button>
             </div>
 
-            {/* File Upload & Presets Divider */}
             <div className="flex items-center text-[10px] text-muted-foreground/60 uppercase tracking-wider font-semibold">
               <div className="flex-1 h-px bg-border" />
               <span className="px-2">Or Choose</span>
               <div className="flex-1 h-px bg-border" />
             </div>
 
-            {/* Upload Button */}
             <div>
               <input
                 type="file"
@@ -245,7 +238,6 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
               )}
             </div>
 
-            {/* Presets Grid */}
             <div className="grid grid-cols-2 gap-1.5">
               {PRESET_IMAGES.map((preset) => (
                 <button
@@ -261,7 +253,6 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
               ))}
             </div>
 
-            {/* Cancel Button (only if url already exists) */}
             {url && (
               <Button 
                 variant="ghost" 
@@ -274,7 +265,6 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
             )}
           </div>
         ) : (
-          /* Render Active Image */
           <div className="w-full h-full relative select-none">
             <img
               src={url}

@@ -85,8 +85,7 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
     onUpdateLink(item.id, { text: trimmed || 'Text' });
   };
 
-  // Alignment classes
-  const alignClass = align === 'center' 
+  const alignClass = align === 'center'
     ? 'text-center justify-center' 
     : align === 'right' 
       ? 'text-right justify-end' 
@@ -105,7 +104,6 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
       }`}
     >
       
-      {/* Settings overlay (only visible in edit mode) */}
       {isEditing && !isEditingText && (
         <div role="toolbar" aria-label="Label actions" className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/label:opacity-100 transition-opacity duration-200 z-30">
           <DropdownMenu>
@@ -144,7 +142,6 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
 
               <DropdownMenuSeparator />
 
-              {/* Size sub-menu */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-2 py-1 cursor-pointer text-xs">
                   <Sparkles size={12} className="text-muted-foreground" />
@@ -164,7 +161,6 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
 
-              {/* Alignment sub-menu */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-2 py-1 cursor-pointer text-xs">
                   <AlignLeft size={12} className="text-muted-foreground" />
@@ -204,7 +200,6 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
 
-              {/* Weight sub-menu */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-2 py-1 cursor-pointer text-xs">
                   <Bold size={12} className="text-muted-foreground" />
@@ -224,7 +219,6 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
 
-              {/* Opacity sub-menu */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-2 py-1 cursor-pointer text-xs">
                   <div className="w-3 h-3 rounded-full border border-current opacity-60" />
@@ -266,7 +260,6 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
         </div>
       )}
 
-      {/* Text Render/Input */}
       <div className={`px-4 py-2 w-full truncate leading-none ${size} ${fontWeight} ${opacity}`}>
         {isEditingText ? (
           <input

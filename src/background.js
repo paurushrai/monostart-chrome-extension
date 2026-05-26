@@ -26,8 +26,6 @@ const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 const WEEK_MS = 7 * DAY_MS;
 
-// ---------------- Message proxy (Google suggestions) ---------------------
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'fetchSuggestions') {
     fetch(`https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(request.query)}`)
@@ -38,7 +36,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// ---------------- Notification icon (PNG data URL) -----------------------
 // chrome.notifications.create silently rejects SVG iconUrls. Synthesize a PNG
 // once at SW boot via OffscreenCanvas, cache the data URL.
 
@@ -79,8 +76,6 @@ const generateIconUrl = async () => {
   }
 };
 
-// ---------------- Offscreen audio ---------------------------------------
-
 const ensureOffscreen = async () => {
   if (!chrome.offscreen) return false;
   const existing = await chrome.offscreen.hasDocument?.();
@@ -116,8 +111,6 @@ const playReminderChime = async () => {
   await new Promise((r) => setTimeout(r, 300));
   await trySend();
 };
-
-// ---------------- Badge management ---------------------------------------
 
 const getPending = () => new Promise((resolve) => {
   chrome.storage.local.get([PENDING_KEY], (result) => {
@@ -155,8 +148,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 });
-
-// ---------------- Alarm scheduling --------------------------------------
 
 const findEarliestDueAt = async () => {
   const all = await new Promise((r) => chrome.storage.local.get(null, r));
@@ -209,8 +200,6 @@ chrome.runtime.onStartup.addListener(() => {
   refreshBadge();
   runReminderTick().then(rescheduleNextTick).catch((err) => console.error('[reminders] startup failed', err));
 });
-
-// ---------------- Tick processing ---------------------------------------
 
 const advanceDueAt = (dueAt, recurrence, now) => {
   const step =

@@ -62,10 +62,6 @@ export interface WidgetMeta {
  * field (so we can pattern-match on it) while also checking the entire shape
  * against WidgetMeta at compile time.
  */
-// Order = display order in the Add Widget modal. Anchored on Google Search
-// (universal), then Section (organizational backbone), productivity cluster
-// (Reminders / Todo / Timer), content widgets (Note / Image / Label), and
-// finally the power-user Embed.
 const WIDGETS = [
   {
     type: WidgetType.LINK,

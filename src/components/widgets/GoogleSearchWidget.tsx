@@ -119,13 +119,11 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
             return true;
           });
 
-          // If there is a query, filter strictly. If empty, show recent history.
           if (q) {
             historyResults = historyResults.filter(h => h.text.toLowerCase().includes(q.toLowerCase()));
           }
         }
 
-        // If query is empty, only show history. Don't fetch autocomplete.
         if (!q) {
           setSuggestions(historyResults.slice(0, 8));
           return;
@@ -140,7 +138,6 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
                 autoResults = response.data[1].map((text): Suggestion => ({ text, type: 'search' }));
               }
 
-              // Merge, deduplicate by text (case insensitive), and slice to top 8
               const combined: Suggestion[] = [...historyResults, ...autoResults];
               const unique: Suggestion[] = [];
               const seen = new Set<string>();
@@ -155,7 +152,6 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
             }
           );
         } else {
-          // Fallback
           const res = await fetch(`https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(q)}`);
           const data = (await res.json()) as [string, string[]];
           if (data && data[1]) {
@@ -177,7 +173,6 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
     setActiveIndex(-1);
   }, [query]);
 
-  // Keep the keyboard-selected suggestion visible inside the dropdown.
   useEffect(() => {
     if (activeIndex < 0) return;
     suggestionRefs.current[activeIndex]?.scrollIntoView({ block: 'nearest' });
@@ -284,7 +279,6 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
     };
 
     r.onend = () => {
-      // If it ends without a final result, we can close it
       setTimeout(() => setVoiceOpen(false), 500);
     };
 
@@ -351,7 +345,6 @@ const GoogleSearchWidget = ({ item, onDelete, isEditing }: Props) => {
           </button>
         </form>
 
-        {/* Suggestions Dropdown */}
         {showSuggestions && suggestions.length > 0 && (
           <div className="absolute top-12 left-0 right-0 bg-white border-t border-gray-100 rounded-b-[24px] py-2 overflow-hidden shadow-xl text-left">
             {suggestions.map((suggestion, idx) => (

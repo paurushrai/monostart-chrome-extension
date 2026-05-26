@@ -51,7 +51,6 @@ export default function SectionHeader({
       className={`flex items-center justify-between px-2 py-1 border-b bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-[10px] transition-all duration-300 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
       style={{ borderBottomColor: borderMutedCssColor }}
     >
-      {/* Left Side: Title & Count Badge */}
       <div className="flex items-center gap-1.5 min-w-0">
         <Folder size={12} className="shrink-0" style={{ color: textCssColor }} />
         <span
@@ -70,7 +69,6 @@ export default function SectionHeader({
         </span>
       </div>
 
-      {/* Right Side: Action Controls (Visible in edit mode) */}
       {isEditing && (
         <div
           role="toolbar"

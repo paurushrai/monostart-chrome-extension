@@ -222,7 +222,6 @@ const SectionWidget = ({
     onUpdateLink(item.id, { cols: newCols, links: updatedLinks });
   };
 
-  // HSL format support (preset / custom)
   const isHsl = borderColor.split(' ').length >= 2;
   const borderCssColor = isHsl ? `hsl(${borderColor})` : borderColor;
   const borderMutedCssColor = isHsl ? `hsl(${borderColor} / 0.3)` : borderColor;
@@ -256,7 +255,6 @@ const SectionWidget = ({
         onDelete={() => onDelete(item.id)}
       />
 
-      {/* Color Preset Palette Selection Panel */}
       {showColorPicker && isEditing && (
         <div
           className="mt-4 mx-3 px-3 py-2 bg-secondary/40 border border-border/40 rounded-lg flex flex-wrap gap-1.5 justify-center items-center select-none"
@@ -287,7 +285,6 @@ const SectionWidget = ({
         </div>
       )}
 
-      {/* Inline Quick Add Link Input */}
       {isAddingLink && (
         <form
           onSubmit={handleAddLinkSubmit}
