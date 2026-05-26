@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { getSettings, saveSettings } from '../lib/storage';
 import type { Settings } from '../types';
 
-const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '200 73% 52%' };
+// First-install default. Neutral (0 saturation) renders a monochrome dashboard
+// — non-committal until the user picks a color from ThemeSettingsModal.
+const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '0 0% 50%' };
 
 export interface UseTheme {
   settings: Settings;
