@@ -17,6 +17,7 @@ export default defineConfig({
       input: {
         index: path.resolve(import.meta.dirname, 'index.html'),
         popup: path.resolve(import.meta.dirname, 'popup.html'),
+        offscreen: path.resolve(import.meta.dirname, 'offscreen.html'),
         background: path.resolve(import.meta.dirname, 'src/background.js'),
       },
       output: {

@@ -25,6 +25,27 @@ export function useWidgetStorage<T>(key: string, defaultValue: T): [T, SetValue<
       setValue(stored);
       isLoadedRef.current = true;
     });
+
+    // Subscribe to writes from other contexts (notably the SW advancing
+    // dueAt / lastFiredAt on recurring reminders). Without this, widget UI
+    // is stale until reload.
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      const listener = (
+        changes: { [k: string]: chrome.storage.StorageChange },
+        area: chrome.storage.AreaName,
+      ): void => {
+        if (area !== 'local') return;
+        if (!changes[key]) return;
+        const newValue = changes[key].newValue as T | undefined;
+        if (newValue !== undefined) setValue(newValue);
+      };
+      chrome.storage.onChanged.addListener(listener);
+      return () => {
+        cancelled = true;
+        chrome.storage.onChanged.removeListener(listener);
+      };
+    }
+
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);

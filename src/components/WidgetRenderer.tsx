@@ -3,6 +3,7 @@ import IframeWidget from './IframeWidget';
 import GoogleSearchWidget from './widgets/GoogleSearchWidget';
 import TodoWidget from './widgets/TodoWidget';
 import TimerWidget from './widgets/TimerWidget';
+import RemindersWidget from './widgets/RemindersWidget';
 import SectionWidget from './widgets/SectionWidget';
 import NoteWidget from './widgets/NoteWidget';
 import ImageWidget from './widgets/ImageWidget';
@@ -17,6 +18,7 @@ import type {
   Iframe,
   TodoWidget as TodoWidgetItem,
   TimerWidget as TimerWidgetItem,
+  Reminders as RemindersItem,
   Note,
   ImageWidget as ImageWidgetItem,
   Label,
@@ -91,6 +93,8 @@ export default function WidgetRenderer({
       return <TodoWidget item={linkItem as TodoWidgetItem} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.TIMER:
       return <TimerWidget item={linkItem as TimerWidgetItem} onDelete={onDelete} isEditing={isEditing} />;
+    case WidgetType.REMINDERS:
+      return <RemindersWidget item={linkItem as RemindersItem} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.NOTE:
       return <NoteWidget item={linkItem as Note} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
     case WidgetType.IMAGE:
