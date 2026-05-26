@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import DashboardGrid from './components/DashboardGrid';
 import AddWidgetModal from './components/AddWidgetModal';
 import ThemeSettingsModal from './components/ThemeSettingsModal';
@@ -10,6 +10,7 @@ import { useTheme } from './hooks/useTheme';
 import { useHeaderDrag } from './hooks/useHeaderDrag';
 import { useToast } from './hooks/useToast';
 import { disambiguateSections } from './lib/disambiguateSections';
+import { getLinksSync } from './lib/storage';
 import type { LinkItem, Section } from './types';
 
 interface AddWidgetInput {
@@ -54,15 +55,36 @@ function App() {
   const [addLinkModalOpen, setAddLinkModalOpen] = useState(false);
   const [isHeaderTargeted, setIsHeaderTargeted] = useState(false);
 
-  const enterEditMode = useCallback(() => {
-    const snapshot = [...links];
+  // Captured at the moment the user opens Add Link / Add Widget. We use this
+  // (not the post-add storage state) for originalLinks so that Cancel reverts
+  // the add itself, not just subsequent moves.
+  const preAddSnapshotRef = useRef<LinkItem[] | null>(null);
+
+  const enterEditModeWithSnapshot = useCallback((snapshot: LinkItem[]) => {
     setOriginalLinks(snapshot);
     setIsEditing(true);
     try {
       localStorage.setItem(EDIT_MODE_KEY, 'true');
       localStorage.setItem(ORIGINAL_LINKS_KEY, JSON.stringify(snapshot));
     } catch { /* quota / private mode */ }
-  }, [links]);
+  }, []);
+
+  const enterEditMode = useCallback(() => {
+    enterEditModeWithSnapshot(getLinksSync());
+  }, [enterEditModeWithSnapshot]);
+
+  // After an Add: enter edit mode using the PRE-add snapshot so Cancel
+  // reverts the add too. If the user is already editing, originalLinks is
+  // already set to the true pre-edit state — don't overwrite it.
+  const enterEditModeAfterAdd = useCallback(() => {
+    if (isEditing) {
+      preAddSnapshotRef.current = null;
+      return;
+    }
+    const snapshot = preAddSnapshotRef.current ?? getLinksSync();
+    preAddSnapshotRef.current = null;
+    enterEditModeWithSnapshot(snapshot);
+  }, [isEditing, enterEditModeWithSnapshot]);
 
   const saveEditMode = useCallback(() => {
     setIsEditing(false);
@@ -88,11 +110,16 @@ function App() {
       showToast('Only one Google search widget is allowed.');
       return;
     }
+    // Capture state BEFORE the add so cancel can undo the add itself.
+    if (!isEditing) preAddSnapshotRef.current = getLinksSync();
     const saved = await addWidget(widget);
     if (!saved) {
+      preAddSnapshotRef.current = null;
       showToast('No room for this widget. Resize or remove something to make space.');
+      return;
     }
-  }, [addWidget, showToast, links]);
+    enterEditModeAfterAdd();
+  }, [addWidget, showToast, links, isEditing, enterEditModeAfterAdd]);
 
   const sections = disambiguateSections(
     links.filter((l): l is Section => l.type === 'section'),
@@ -112,7 +139,10 @@ function App() {
         onEnterEdit={enterEditMode}
         onSaveEdit={saveEditMode}
         onCancelEdit={cancelEditMode}
-        onOpenAddLink={() => setAddLinkModalOpen(true)}
+        onOpenAddLink={() => {
+          if (!isEditing) preAddSnapshotRef.current = getLinksSync();
+          setAddLinkModalOpen(true);
+        }}
         onOpenAddWidget={() => setModalOpen(true)}
         onOpenTheme={() => setThemeModalOpen(true)}
         isDropTarget={isHeaderTargeted}
@@ -148,7 +178,12 @@ function App() {
 
       <AddLinkModal
         open={addLinkModalOpen}
-        onClose={() => setAddLinkModalOpen(false)}
+        onClose={() => {
+          // If they cancel the modal without adding, drop the captured snapshot.
+          if (preAddSnapshotRef.current && !isEditing) preAddSnapshotRef.current = null;
+          setAddLinkModalOpen(false);
+        }}
+        onAfterAdd={enterEditModeAfterAdd}
         sections={sections}
       />
 
