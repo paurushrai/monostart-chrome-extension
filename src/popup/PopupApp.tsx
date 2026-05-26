@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react';
-import { getSettings } from '../lib/storage';
+import { getSettings, getLinks } from '../lib/storage';
 import { saveLink } from '../lib/linkRepository';
-import { BookmarkPlus, Check, ExternalLink, Bell, X, Repeat } from 'lucide-react';
-import type { Settings } from '../types';
+import { BookmarkPlus, Check, ExternalLink, Bell, X, Repeat, LayoutGrid, Bookmark, Folder, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import type { Settings, Section } from '../types';
 
 interface PendingReminder {
   firedId: string;
@@ -20,13 +27,22 @@ interface TabInfo {
   favicon: string;
 }
 
+// 'main' = top-level grid · 'header' = header bar · section.id = inside that section
+type Destination = 'main' | 'header' | string;
+
 function PopupApp() {
   const [saved, setSaved] = useState(false);
   const [tabInfo, setTabInfo] = useState<TabInfo | null>(null);
   const [canSave, setCanSave] = useState(false);
   const [pending, setPending] = useState<PendingReminder[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [destination, setDestination] = useState<Destination>('main');
 
   useEffect(() => {
+    getLinks().then((links) => {
+      setSections(links.filter((l): l is Section => l.type === 'section'));
+    });
+
     if (typeof chrome !== 'undefined' && chrome.storage) {
       chrome.storage.local.get([PENDING_KEY], (result) => {
         const list = Array.isArray(result[PENDING_KEY]) ? (result[PENDING_KEY] as PendingReminder[]) : [];
@@ -81,10 +97,26 @@ function PopupApp() {
 
   const handleSave = async () => {
     if (!tabInfo || !canSave) return;
-    await saveLink({ type: 'link', url: tabInfo.url, title: tabInfo.title, favicon: tabInfo.favicon, viewMode: 'icon', w: 1, h: 1 });
+    const base = { type: 'link' as const, url: tabInfo.url, title: tabInfo.title, favicon: tabInfo.favicon };
+    if (destination === 'header') {
+      await saveLink({ ...base, isHeaderLink: true });
+    } else if (destination === 'main') {
+      await saveLink({ ...base, viewMode: 'icon', w: 1, h: 1 });
+    } else {
+      await saveLink({ ...base, viewMode: 'icon', w: 1, h: 1 }, destination);
+    }
     setSaved(true);
     setTimeout(() => window.close(), 1500);
   };
+
+  const destinationLabel =
+    destination === 'main' ? 'Main dashboard' :
+    destination === 'header' ? 'Header bar' :
+    sections.find((s) => s.id === destination)?.title ?? 'Main dashboard';
+  const DestinationIcon =
+    destination === 'main' ? LayoutGrid :
+    destination === 'header' ? Bookmark :
+    Folder;
 
   const handleOpenDashboard = () => {
     if (typeof chrome !== 'undefined' && chrome.tabs) {
@@ -167,6 +199,33 @@ function PopupApp() {
           <span className="text-sm font-medium text-ink truncate">{tabInfo.title}</span>
         </div>
       )}
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-xl bg-bg-hover border border-border text-sm text-ink hover:border-primary transition-colors"
+          >
+            <DestinationIcon size={14} className="text-muted-foreground shrink-0" />
+            <span className="flex-1 text-left truncate">{destinationLabel}</span>
+            <ChevronDown size={12} className="text-muted-foreground shrink-0" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-[268px] max-h-[260px] overflow-y-auto">
+          <DropdownMenuItem onClick={() => setDestination('main')} className="text-xs">
+            <LayoutGrid size={13} className="mr-2" /> Main dashboard
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setDestination('header')} className="text-xs">
+            <Bookmark size={13} className="mr-2" /> Header bar
+          </DropdownMenuItem>
+          {sections.length > 0 && <DropdownMenuSeparator />}
+          {sections.map((s) => (
+            <DropdownMenuItem key={s.id} onClick={() => setDestination(s.id)} className="text-xs">
+              <Folder size={13} className="mr-2" /> {s.title}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <button
         onClick={handleSave}
