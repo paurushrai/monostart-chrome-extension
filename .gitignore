@@ -42,3 +42,8 @@ Thumbs.db
 
 # Graphify outputs
 graphify-out/
+
+# Extension icons — override the global `Icon?` rule so regenerated PNGs
+# are tracked and show up in `git status` (no more `git add -f`).
+!public/icons/
+!public/icons/*
