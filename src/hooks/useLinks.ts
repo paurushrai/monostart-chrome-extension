@@ -5,6 +5,7 @@ import { saveLink } from '../lib/linkRepository';
 import type { NewLinkInput } from '../lib/linkRepository';
 import { RESIZABLE_TYPES, WidgetType } from '../lib/widgetCatalog';
 import { findFirstFreeSlot, MAIN_COLS, MAIN_ROWS } from '../lib/grid';
+import { cleanupOrphanedWidgetData, removeWidgetDataForId } from '../lib/widgetDataCleanup';
 import {
   removeLinkAnywhere,
   placeInHeader,
@@ -52,6 +53,11 @@ export function useLinks(): UseLinks {
         if (prev.length === migrated.length && JSON.stringify(prev) === JSON.stringify(migrated)) return prev;
         return migrated;
       });
+      // Boot sweep: remove storage keys (todo/timer/reminders) for widgets
+      // that no longer exist on the dashboard. Catches orphans left behind by
+      // deletions before this cleanup existed.
+      const liveIds = new Set<string>(migrated.map((l) => l.id));
+      cleanupOrphanedWidgetData(liveIds).catch(() => { /* best-effort */ });
     });
 
     // Auto-sync across extension components (popup -> tab)
@@ -110,6 +116,9 @@ export function useLinks(): UseLinks {
     setLinks((prev) => {
       const next = deleteNested(prev);
       saveLinks(next);
+      // Free per-widget data keys (todo/timer/reminders) tied to this id.
+      // No-op when the deleted item is a section or link with no data keys.
+      removeWidgetDataForId(id);
       return next;
     });
   }, []);
