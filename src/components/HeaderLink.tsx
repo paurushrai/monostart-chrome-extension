@@ -12,6 +12,7 @@ import {
 } from './ui/dropdown-menu';
 import { Button } from './ui/button';
 import { MoreHorizontal, Trash2, FolderInput, Home, Folder, Edit2, Link2, Eye, Image as ImageIcon, Type, Check } from 'lucide-react';
+import { resolveFavicon, buildFaviconUrl } from '../lib/favicon';
 import type { RegularLink, GridSlot } from '../types';
 
 interface SectionRef {
@@ -55,16 +56,7 @@ const HeaderLink = ({
   const siteName = item.customName || item.title || 'Link';
   const url = item.url;
 
-  const getFaviconUrl = (linkUrl: string | undefined) => {
-    if (!linkUrl) return '';
-    try {
-      return `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(linkUrl)}&size=128`;
-    } catch {
-      return '';
-    }
-  };
-
-  const favicon = getFaviconUrl(url) || item.favicon;
+  const favicon = resolveFavicon(item);
   // 'text' is header-specific (renders the site name). Default = icon-only.
   const showAsText = item.viewMode === 'text';
 
@@ -89,10 +81,10 @@ const HeaderLink = ({
         if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
           trimmed = 'https://' + trimmed;
         }
-        try {
-          const newFavicon = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(trimmed)}&size=128`;
+        const newFavicon = buildFaviconUrl(trimmed);
+        if (newFavicon) {
           onUpdateLink(item.id, { url: trimmed, favicon: newFavicon });
-        } catch {
+        } else {
           onUpdateLink(item.id, { url: trimmed });
         }
       }
@@ -103,9 +95,32 @@ const HeaderLink = ({
   const isDragging = draggedHeaderLinkId === item.id;
   const isDragOver = dragOverHeaderLinkId === item.id;
 
+  let linkContent: React.ReactNode;
+  if (showAsText) {
+    linkContent = (
+      <span className="text-xs font-medium text-foreground truncate pointer-events-none px-0.5">
+        {siteName}
+      </span>
+    );
+  } else if (favicon) {
+    linkContent = (
+      <img
+        src={favicon}
+        alt=""
+        draggable={false}
+        className="w-4 h-4 object-contain rounded-[3px] pointer-events-none"
+      />
+    );
+  } else {
+    linkContent = (
+      <div className="flex items-center justify-center text-muted-foreground w-4 h-4 pointer-events-none">
+        <Link2 size={12} />
+      </div>
+    );
+  }
+
   return (
-    <div
-      role="listitem"
+    <li
       className={`relative group rounded transition-all duration-150 flex items-center justify-center h-7
         ${showAsText ? 'min-w-[40px] max-w-[160px] px-2' : 'w-7'}
         ${isEditing ? 'cursor-grab active:cursor-grabbing hover:bg-secondary/70 border border-dashed border-border' : 'hover:bg-secondary/50'}
@@ -127,22 +142,7 @@ const HeaderLink = ({
         onClick={(e) => isEditing && e.preventDefault()}
         className="flex items-center justify-center w-full h-full select-none"
       >
-        {showAsText ? (
-          <span className="text-xs font-medium text-foreground truncate pointer-events-none px-0.5">
-            {siteName}
-          </span>
-        ) : favicon ? (
-          <img
-            src={favicon}
-            alt=""
-            draggable={false}
-            className="w-4 h-4 object-contain pointer-events-none"
-          />
-        ) : (
-          <div className="flex items-center justify-center text-muted-foreground w-4 h-4 pointer-events-none">
-            <Link2 size={12} />
-          </div>
-        )}
+        {linkContent}
       </a>
 
       {isEditing && (
@@ -270,7 +270,7 @@ const HeaderLink = ({
           </DropdownMenu>
         </div>
       )}
-    </div>
+    </li>
   );
 };
 
