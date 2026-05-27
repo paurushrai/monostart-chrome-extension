@@ -24,6 +24,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
+import { resolveFavicon } from '../lib/favicon';
 import type { RegularLink, GridSlot } from '../types';
 
 interface SectionRef {
@@ -54,19 +55,10 @@ const LinkCard = ({
   onMoveLink,
   parentId,
 }: Props) => {
-  const { url, title, favicon, customName } = item;
+  const { url, title, customName } = item;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const getFaviconUrl = (linkUrl: string | undefined) => {
-    if (!linkUrl) return '';
-    try {
-      return `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(linkUrl)}&size=128`;
-    } catch {
-      return '';
-    }
-  };
-
-  const crispFavicon = getFaviconUrl(url) || favicon;
+  const crispFavicon = resolveFavicon(item);
 
   const getSiteName = (urlString: string | undefined) => {
     if (!urlString) return title ? title.split(' - ')[0] : 'Link';
@@ -256,10 +248,10 @@ const LinkCard = ({
             alt=""
             draggable={false}
             className={`object-contain flex-shrink-0 pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]
-              ${isIconOnly ? 'w-9 h-9 rounded-lg' : 'w-8 h-8 rounded-lg'}`}
+              ${isIconOnly ? 'w-9 h-9 rounded-sm' : 'w-8 h-8 rounded-sm'}`}
           />
         ) : (
-          <div className={`flex items-center justify-center rounded-lg bg-secondary text-muted-foreground flex-shrink-0 pointer-events-none
+          <div className={`flex items-center justify-center rounded-sm bg-secondary text-muted-foreground flex-shrink-0 pointer-events-none
             ${isIconOnly ? 'w-9 h-9' : 'w-8 h-8'}`}>
             <ExternalLink size={isIconOnly ? 20 : 18} />
           </div>
