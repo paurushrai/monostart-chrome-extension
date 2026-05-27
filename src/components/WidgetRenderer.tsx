@@ -71,7 +71,7 @@ export default function WidgetRenderer({
   onInnerDragStart,
   onInnerDrag,
   onInnerDragStop,
-}: Props) {
+}: Readonly<Props>) {
   if (isPlaceholder(item)) {
     return (
       <div className="w-full h-full rounded-lg border-2 border-dashed flex items-center justify-center bg-primary/5 transition-all duration-300 animate-pulse border-primary px-3 text-center select-none">

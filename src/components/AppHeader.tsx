@@ -47,7 +47,7 @@ export default function AppHeader({
   onOpenAddWidget,
   onOpenTheme,
   isDropTarget = false,
-}: Props) {
+}: Readonly<Props>) {
   const headerLinks = links
     .filter((l): l is RegularLink => l.isHeaderLink === true && l.type === 'link')
     .sort((a, b) => (a.order || 0) - (b.order || 0));

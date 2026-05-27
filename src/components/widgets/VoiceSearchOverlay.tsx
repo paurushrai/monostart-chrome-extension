@@ -16,7 +16,7 @@ interface Props {
   transcript: string;
 }
 
-const VoiceSearchOverlay = ({ open, onClose, transcript }: Props) => {
+const VoiceSearchOverlay = ({ open, onClose, transcript }: Readonly<Props>) => {
   if (!open) return null;
 
   return createPortal(

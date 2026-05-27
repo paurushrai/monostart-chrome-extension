@@ -21,7 +21,7 @@ export function DateTimePicker({
   onChange,
   placeholder = "Pick a date",
   className,
-}: DateTimePickerProps) {
+}: Readonly<DateTimePickerProps>) {
   const [open, setOpen] = useState(false)
 
   const hours12 = useMemo(() => Array.from({ length: 12 }, (_, i) => i + 1), [])
@@ -128,7 +128,7 @@ function TimeColumn<T extends string | number>({
   onSelect,
   format: formatFn,
   centerVertically = false,
-}: TimeColumnProps<T>) {
+}: Readonly<TimeColumnProps<T>>) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const activeRef = useRef<HTMLButtonElement | null>(null)
 

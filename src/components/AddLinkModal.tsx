@@ -17,7 +17,7 @@ interface Props {
   sections?: SectionRef[];
 }
 
-const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Props) => {
+const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Readonly<Props>) => {
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('dashboard');

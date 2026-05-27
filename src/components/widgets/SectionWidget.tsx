@@ -60,7 +60,7 @@ const SectionWidget = ({
   onInnerDrag,
   onInnerDragStop,
   draggedItem,
-}: Props) => {
+}: Readonly<Props>) => {
   const { title, borderColor = '200 73% 52%', links = [], cols = 3 } = item;
 
   const [isAddingLink, setIsAddingLink] = useState(false);

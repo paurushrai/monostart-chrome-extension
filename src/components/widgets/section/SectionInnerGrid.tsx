@@ -77,7 +77,7 @@ export default function SectionInnerGrid({
   onInnerViewModeChange,
   onInnerUpdateLink,
   onAddFirstLink,
-}: Props) {
+}: Readonly<Props>) {
   // displayLinks holds real RegularLinks; the drop-placeholder is tracked
   // separately to avoid mixing it into the RegularLink array (it would fail
   // type narrowing as a Section sub-link).

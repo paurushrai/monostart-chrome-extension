@@ -99,7 +99,7 @@ interface Props {
   isEditing: boolean;
 }
 
-const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
+const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>) => {
   const variant: 'bar' | 'logo' = item.variant ?? 'bar';
   const logoStyle: 'color' | 'mono' = item.logoStyle ?? 'color';
   const toggleVariant = () => {

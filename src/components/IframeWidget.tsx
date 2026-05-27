@@ -33,7 +33,7 @@ interface Props {
   isEditing: boolean;
 }
 
-const IframeWidget = React.memo(({ item, onDelete, isEditing }: Props) => {
+const IframeWidget = React.memo(({ item, onDelete, isEditing }: Readonly<Props>) => {
   const isEmbed = item.mode === 'embed' && !!item.embedHtml;
 
   const sanitizedHtml = useMemo(

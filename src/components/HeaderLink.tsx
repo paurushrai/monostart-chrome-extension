@@ -50,7 +50,7 @@ const HeaderLink = ({
   onDragOver,
   onDrop,
   onDragEnd,
-}: Props) => {
+}: Readonly<Props>) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const siteName = item.customName || item.title || 'Link';

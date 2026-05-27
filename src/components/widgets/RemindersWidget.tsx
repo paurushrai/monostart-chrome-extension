@@ -50,7 +50,7 @@ const formatDue = (epochMs: number): string => {
   return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${time}`;
 };
 
-const RemindersWidget = ({ item, onDelete, isEditing }: Props) => {
+const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
   const [reminders, saveReminders] = useWidgetStorage<ReminderEntry[]>(`reminders-widget-${item.id}`, []);
   const [text, setText] = useState('');
   const [dueAt, setDueAt] = useState<Date>(defaultDueAt);
