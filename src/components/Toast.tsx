@@ -3,7 +3,7 @@ interface Props {
   onDismiss: () => void;
 }
 
-export default function Toast({ message, onDismiss }: Props) {
+export default function Toast({ message, onDismiss }: Readonly<Props>) {
   if (!message) return null;
   return (
     <div

@@ -54,7 +54,7 @@ interface Props {
   isEditing: boolean;
 }
 
-const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
+const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>) => {
   const {
     text = 'Google',
     align = 'left',

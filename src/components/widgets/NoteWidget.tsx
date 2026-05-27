@@ -27,7 +27,7 @@ interface Props {
   isEditing: boolean;
 }
 
-const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
+const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>) => {
   const { title = 'Note', content = '', noteColor = 'default' } = item;
   const [text, setText] = useState(content);
   const [isEditingTitle, setIsEditingTitle] = useState(false);

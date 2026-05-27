@@ -54,7 +54,7 @@ const LinkCard = ({
   sections = [],
   onMoveLink,
   parentId,
-}: Props) => {
+}: Readonly<Props>) => {
   const { url, title, customName } = item;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 

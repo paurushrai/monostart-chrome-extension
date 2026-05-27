@@ -45,7 +45,7 @@ export default function SectionHeader({
   onTogglePalette,
   onUpdateCols,
   onDelete,
-}: Props) {
+}: Readonly<Props>) {
   return (
     <div
       className={`flex items-center justify-between px-2 py-1 border-b bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-[10px] transition-all duration-300 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}

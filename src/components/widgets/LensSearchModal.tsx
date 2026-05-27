@@ -31,7 +31,7 @@ const submitFile = (file: File) => {
 };
 
 const submitUrl = (url: string) => {
-  window.location.href = `https://www.google.com/searchbyimage?image_url=${encodeURIComponent(url)}&sbisrc=tg`;
+  globalThis.location.href = `https://www.google.com/searchbyimage?image_url=${encodeURIComponent(url)}&sbisrc=tg`;
 };
 
 interface Props {
@@ -39,7 +39,7 @@ interface Props {
   onClose: () => void;
 }
 
-const LensSearchModal = ({ open, onClose }: Props) => {
+const LensSearchModal = ({ open, onClose }: Readonly<Props>) => {
   const [imageUrl, setImageUrl] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -66,6 +66,16 @@ const LensSearchModal = ({ open, onClose }: Props) => {
 
         <div className="px-5 pb-5">
           <div
+            role="button"
+            tabIndex={0}
+            aria-label="Image drop zone – drag an image here or press Enter to upload a file"
+            onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
             onDragOver={(e) => {
               e.preventDefault();
               setDragOver(true);
@@ -78,7 +88,7 @@ const LensSearchModal = ({ open, onClose }: Props) => {
             }}
             className={`rounded-lg bg-[#1f1f23] border ${
               dragOver ? 'border-blue-400' : 'border-transparent'
-            } px-6 py-10 flex items-center justify-center gap-4 transition-colors`}
+            } px-6 py-10 flex items-center justify-center gap-4 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400`}
           >
             <ImageIcon size={36} className="text-gray-400 flex-shrink-0" />
             <p className="text-sm">

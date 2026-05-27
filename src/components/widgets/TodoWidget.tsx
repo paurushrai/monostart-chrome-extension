@@ -9,7 +9,7 @@ interface Props {
   isEditing: boolean;
 }
 
-const TodoWidget = ({ item, onDelete, isEditing }: Props) => {
+const TodoWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
   const [todos, saveTodos] = useWidgetStorage<TodoEntry[]>(`todo-widget-${item.id}`, []);
   const [newTask, setNewTask] = useState("");
 

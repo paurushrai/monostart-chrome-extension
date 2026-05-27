@@ -41,7 +41,7 @@ interface Props {
   onSelect: (widget: { type: LinkItem['type']; defaults?: Partial<LinkItem> }) => void;
 }
 
-const AddWidgetModal = ({ open, onClose, onSelect }: Props) => {
+const AddWidgetModal = ({ open, onClose, onSelect }: Readonly<Props>) => {
   const [step, setStep] = useState(1);
   const [selectedWidget, setSelectedWidget] = useState<WidgetMeta | null>(null);
   const [input, setInput] = useState("");

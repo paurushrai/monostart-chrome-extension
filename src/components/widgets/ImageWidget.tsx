@@ -25,7 +25,7 @@ interface Props {
   isEditing: boolean;
 }
 
-const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Props) => {
+const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>) => {
   const { title = 'Image', url = '', fit = 'cover' } = item;
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [showConfig, setShowConfig] = useState(!url);

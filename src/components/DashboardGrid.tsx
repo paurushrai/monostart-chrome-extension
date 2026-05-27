@@ -94,7 +94,7 @@ const DashboardGrid = ({
   sections = [],
   onMoveLink,
   onHeaderTargetChange,
-}: Props) => {
+}: Readonly<Props>) => {
   const { rowHeight } = useGridDimensions();
   const drag = useDashboardDrag({ links, rowHeight, onMoveLink, onHeaderTargetChange });
   // Visual hover ring while a header link is being dragged over the grid.

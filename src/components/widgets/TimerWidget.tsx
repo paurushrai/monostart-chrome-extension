@@ -17,7 +17,7 @@ interface TimerItemProps {
   onDelete: (id: number) => void;
 }
 
-const TimerItem = ({ timer, onUpdate, onDelete }: TimerItemProps) => {
+const TimerItem = ({ timer, onUpdate, onDelete }: Readonly<TimerItemProps>) => {
   const [timeLeft, setTimeLeft] = useState(timer.remainingMs);
 
   useEffect(() => {
@@ -98,7 +98,7 @@ interface Props {
   isEditing: boolean;
 }
 
-const TimerWidget = ({ item, onDelete, isEditing }: Props) => {
+const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
   const [timers, saveTimers] = useWidgetStorage<TimerEntry[]>(`timer-widget-${item.id}`, []);
   const [newMinutes, setNewMinutes] = useState("");
   const [newLabel, setNewLabel] = useState("");
