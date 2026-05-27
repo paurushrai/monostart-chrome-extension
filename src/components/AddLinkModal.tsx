@@ -13,10 +13,11 @@ interface SectionRef {
 interface Props {
   open: boolean;
   onClose: () => void;
+  onAfterAdd?: () => void;
   sections?: SectionRef[];
 }
 
-const AddLinkModal = ({ open, onClose, sections = [] }: Props) => {
+const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Props) => {
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('dashboard');
@@ -65,6 +66,7 @@ const AddLinkModal = ({ open, onClose, sections = [] }: Props) => {
     setTitle('');
     setLocation('dashboard');
     onClose();
+    onAfterAdd?.();
   };
 
   return (
