@@ -110,6 +110,15 @@ function PopupApp() {
     setTimeout(() => window.close(), 1500);
   };
 
+  const pageHost = useMemo(() => {
+    if (!tabInfo?.url) return '';
+    try {
+      return new URL(tabInfo.url).hostname.replace(/^www\./, '');
+    } catch {
+      return '';
+    }
+  }, [tabInfo?.url]);
+
   const displaySections = useMemo(() => disambiguateSections(sections), [sections]);
   const destinationLabel =
     destination === 'main' ? 'Main dashboard' :
@@ -194,15 +203,26 @@ function PopupApp() {
       <h3 className="m-0 text-sm font-semibold text-ink">Save to MonoStart</h3>
 
       {tabInfo && (
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-bg-hover border border-border overflow-hidden">
-          {tabInfo.favicon && (
-            <img src={tabInfo.favicon} alt="" className="w-5 h-5 rounded flex-shrink-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]" />
-          )}
-          <span className="text-sm font-medium text-ink truncate">{tabInfo.title}</span>
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="w-9 h-9 rounded-lg bg-bg-hover flex items-center justify-center shrink-0 overflow-hidden">
+            {tabInfo.favicon ? (
+              <img src={tabInfo.favicon} alt="" className="w-5 h-5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]" />
+            ) : (
+              <Bookmark size={16} className="text-muted-foreground" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium text-ink truncate leading-tight">{tabInfo.title}</div>
+            {pageHost && <div className="text-2xs text-muted-foreground truncate mt-0.5">{pageHost}</div>}
+          </div>
         </div>
       )}
 
-      <DropdownMenu>
+      <div className="h-px bg-border -mx-1" />
+
+      <div className="flex flex-col gap-1.5">
+        <span className="text-2xs font-medium uppercase tracking-wide text-muted-foreground">Destination</span>
+        <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
@@ -213,7 +233,11 @@ function PopupApp() {
             <ChevronDown size={12} className="text-muted-foreground shrink-0" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-[268px] max-h-[260px] overflow-y-auto">
+        <DropdownMenuContent
+          align="start"
+          collisionPadding={8}
+          className="w-[268px] max-h-[min(260px,var(--radix-dropdown-menu-content-available-height))] overflow-y-auto"
+        >
           <DropdownMenuItem onClick={() => setDestination('main')} className="text-xs">
             <LayoutGrid size={13} className="mr-2" /> Main dashboard
           </DropdownMenuItem>
@@ -228,6 +252,7 @@ function PopupApp() {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
+      </div>
 
       <button
         onClick={handleSave}
