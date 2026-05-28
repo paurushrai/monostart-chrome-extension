@@ -262,27 +262,27 @@ function PopupApp() {
       </DropdownMenu>
       </div>
 
-      <Button
+      <button
         type="button"
         onClick={handleSave}
         disabled={saved || !canSave}
         className={`btn-primary w-full ${saved ? 'success' : ''} ${!canSave && !saved ? 'opacity-60 cursor-not-allowed' : ''}`}
       >
         {saved ? (
-          <><Check size={15} className="mr-1.5" aria-hidden="true" /> Saved!</>
+          <><Check size={15} aria-hidden="true" /> Saved!</>
         ) : (
-          <><BookmarkPlus size={15} className="mr-1.5" aria-hidden="true" /> Save Link</>
+          <><BookmarkPlus size={15} aria-hidden="true" /> Save Link</>
         )}
-      </Button>
+      </button>
 
-      <Button
+      <button
         type="button"
         onClick={handleOpenDashboard}
         className="btn-secondary w-full justify-center flex items-center gap-1.5"
       >
         <ExternalLink size={15} aria-hidden="true" />
         Open Dashboard
-      </Button>
+      </button>
     </main>
   );
 }
