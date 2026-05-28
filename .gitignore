@@ -36,7 +36,7 @@ Thumbs.db
 
 # Local agent / CLI scratch
 .antigravitycli/
-.claude/settings.local.json
+.claude/
 .aider*
 .cursor/
 
