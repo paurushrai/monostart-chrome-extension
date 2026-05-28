@@ -81,7 +81,7 @@ export default function AppHeader({
         </div>
       </div>
 
-      <div className="flex justify-center items-center gap-2 overflow-x-auto max-w-full no-scrollbar">
+      <nav aria-label="Header links" className="flex justify-center items-center gap-2 overflow-x-auto max-w-full no-scrollbar">
         {headerLinks.map(link => (
           <HeaderLink
             key={link.id}
@@ -100,7 +100,7 @@ export default function AppHeader({
             onDragEnd={headerDrag.onDragEnd}
           />
         ))}
-      </div>
+      </nav>
 
       <div className="flex items-center justify-end gap-3 relative">
         {isEditing && (

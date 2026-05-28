@@ -10,6 +10,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { Label as LabelItem } from '../../types';
 
 const FONT_SIZES = [
@@ -92,29 +94,32 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
       : 'text-left justify-start';
 
   return (
-    <div 
+    <article
       className={`w-full h-full relative group/label flex items-center transition-all duration-200 rounded-lg ${alignClass} ${
-        cardStyle 
+        cardStyle
           ? 'card-base bg-white dark:bg-card border border-border'
           : `bg-transparent border border-dashed ${isEditing && !isEditingText ? 'border-transparent hover:border-border/40' : 'border-transparent'}`
       } ${
-        isEditing && !isEditingText 
-          ? 'drag-handle cursor-grab active:cursor-grabbing' 
+        isEditing && !isEditingText
+          ? 'drag-handle cursor-grab active:cursor-grabbing'
           : ''
       }`}
     >
-      
+
       {isEditing && !isEditingText && (
         <div role="toolbar" aria-label="Label actions" className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/label:opacity-100 transition-opacity duration-200 z-30">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
                 onMouseDown={(e) => e.stopPropagation()}
                 title="Text Settings"
-                className="flex items-center justify-center h-7 w-7 rounded bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-foreground"
+                className="h-7 w-7 rounded bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-foreground hover:text-foreground"
               >
                 <Settings size={14} />
-              </button>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 p-1">
               <DropdownMenuItem 
@@ -249,20 +254,23 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-            className="flex items-center justify-center h-7 w-7 rounded bg-red-500/10 hover:bg-red-500/20 text-red-500"
+            className="h-7 w-7 rounded bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-500"
             title="Delete Widget"
           >
             <Trash2 size={14} />
-          </button>
+          </Button>
         </div>
       )}
 
       <div className={`px-4 py-2 w-full truncate leading-none ${size} ${fontWeight} ${opacity}`}>
         {isEditingText ? (
-          <input
+          <Input
             ref={inputRef}
             type="text"
             value={inputText}
@@ -277,16 +285,17 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                 setInputText(text);
               }
             }}
-            className="w-full text-foreground p-0 m-0 focus:ring-0 focus:outline-none focus-visible:ring-0 outline-none leading-none bg-transparent border-none"
-            style={{ 
-              fontSize: 'inherit', 
-              fontWeight: 'inherit', 
+            aria-label="Label text"
+            className="h-auto w-full text-foreground p-0 m-0 focus-visible:ring-0 focus-visible:ring-offset-0 outline-none leading-none bg-transparent border-none rounded-none"
+            style={{
+              fontSize: 'inherit',
+              fontWeight: 'inherit',
               textAlign: align,
               fontFamily: 'inherit'
             }}
           />
         ) : (
-          <span 
+          <span
             onClick={handleTextClick}
             className={`truncate select-none ${isEditing ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded px-1' : ''}`}
           >
@@ -295,7 +304,7 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
         )}
       </div>
 
-    </div>
+    </article>
   );
 };
 

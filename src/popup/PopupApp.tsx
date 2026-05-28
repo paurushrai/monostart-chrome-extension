@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import type { Settings, Section } from '../types';
 
 interface PendingReminder {
@@ -152,52 +153,57 @@ function PopupApp() {
   };
 
   return (
-    <div className="w-[300px] min-w-[300px] bg-bg-primary font-sans p-4 flex flex-col gap-3">
+    <main className="w-[300px] min-w-[300px] bg-bg-primary font-sans p-4 flex flex-col gap-3">
       {pending.length > 0 && (
-        <div className="flex flex-col gap-2 -mx-1 -mt-1 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40">
-          <div className="flex items-center justify-between">
+        <section aria-label="Pending reminders" className="flex flex-col gap-2 -mx-1 -mt-1 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40">
+          <header className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <Bell size={13} className="text-red-600 dark:text-red-400" />
-              <span className="text-xs font-semibold text-red-700 dark:text-red-300">
+              <Bell size={13} className="text-red-600 dark:text-red-400" aria-hidden="true" />
+              <h3 className="text-xs font-semibold text-red-700 dark:text-red-300">
                 {pending.length} reminder{pending.length === 1 ? '' : 's'}
-              </span>
+              </h3>
             </div>
-            <button
+            <Button
+              type="button"
+              variant="link"
               onClick={dismissAll}
-              className="text-2xs text-red-700 dark:text-red-300 hover:underline"
+              className="h-auto p-0 text-2xs text-red-700 dark:text-red-300 hover:text-red-700"
             >
               Clear all
-            </button>
-          </div>
-          <div className="flex flex-col gap-1 max-h-[180px] overflow-y-auto">
+            </Button>
+          </header>
+          <ul className="flex flex-col gap-1 max-h-[180px] overflow-y-auto list-none">
             {pending.map((p) => (
-              <div
+              <li
                 key={p.firedId}
                 className="group flex items-start gap-2 px-2 py-1.5 rounded-lg bg-white/60 dark:bg-black/20"
               >
                 {p.recurrence !== 'none' ? (
-                  <Repeat size={11} className="text-primary mt-0.5 shrink-0" />
+                  <Repeat size={11} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
                 ) : (
-                  <span className="w-[11px]" />
+                  <span className="w-[11px]" aria-hidden="true" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium text-ink break-words">{p.text}</div>
-                  <div className="text-2xs text-muted-foreground mt-0.5">
+                  <p className="text-xs font-medium text-ink break-words">{p.text}</p>
+                  <p className="text-2xs text-muted-foreground mt-0.5">
                     {p.timeLabel}
                     {p.recurrence !== 'none' && <span> · {p.recurrence}</span>}
-                  </div>
+                  </p>
                 </div>
-                <button
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => dismissOne(p.firedId)}
-                  className="shrink-0 text-muted-foreground hover:text-red-500 opacity-60 hover:opacity-100"
                   title="Dismiss"
+                  className="h-5 w-5 shrink-0 text-muted-foreground hover:text-red-500 hover:bg-transparent opacity-60 hover:opacity-100"
                 >
                   <X size={12} />
-                </button>
-              </div>
+                </Button>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </section>
       )}
 
       <h3 className="m-0 text-sm font-semibold text-ink">Save to MonoStart</h3>
@@ -221,17 +227,19 @@ function PopupApp() {
       <div className="h-px bg-border -mx-1" />
 
       <div className="flex flex-col gap-1.5">
-        <span className="text-2xs font-medium uppercase tracking-wide text-muted-foreground">Destination</span>
+        <label htmlFor="popup-destination-trigger" className="text-2xs font-medium uppercase tracking-wide text-muted-foreground">Destination</label>
         <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
+          <Button
+            id="popup-destination-trigger"
             type="button"
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-sm bg-bg-hover border border-border text-sm text-ink hover:border-primary transition-colors"
+            variant="outline"
+            className="flex items-center gap-2 w-full h-auto px-3 py-2 rounded-sm bg-bg-hover border border-border text-sm text-ink hover:border-primary hover:bg-bg-hover transition-colors"
           >
-            <DestinationIcon size={14} className="text-muted-foreground shrink-0" />
+            <DestinationIcon size={14} className="text-muted-foreground shrink-0" aria-hidden="true" />
             <span className="flex-1 text-left truncate">{destinationLabel}</span>
-            <ChevronDown size={12} className="text-muted-foreground shrink-0" />
-          </button>
+            <ChevronDown size={12} className="text-muted-foreground shrink-0" aria-hidden="true" />
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="start"
@@ -239,41 +247,43 @@ function PopupApp() {
           className="w-[268px] max-h-[min(260px,var(--radix-dropdown-menu-content-available-height))] overflow-y-auto"
         >
           <DropdownMenuItem onClick={() => setDestination('main')} className="text-xs">
-            <LayoutGrid size={13} className="mr-2" /> Main dashboard
+            <LayoutGrid size={13} className="mr-2" aria-hidden="true" /> Main dashboard
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setDestination('header')} className="text-xs">
-            <Bookmark size={13} className="mr-2" /> Header bar
+            <Bookmark size={13} className="mr-2" aria-hidden="true" /> Header bar
           </DropdownMenuItem>
           {displaySections.length > 0 && <DropdownMenuSeparator />}
           {displaySections.map((s) => (
             <DropdownMenuItem key={s.id} onClick={() => setDestination(s.id)} className="text-xs">
-              <Folder size={13} className="mr-2" /> {s.title}
+              <Folder size={13} className="mr-2" aria-hidden="true" /> {s.title}
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
       </div>
 
-      <button
+      <Button
+        type="button"
         onClick={handleSave}
         disabled={saved || !canSave}
         className={`btn-primary w-full ${saved ? 'success' : ''} ${!canSave && !saved ? 'opacity-60 cursor-not-allowed' : ''}`}
       >
         {saved ? (
-          <><Check size={15} /> Saved!</>
+          <><Check size={15} className="mr-1.5" aria-hidden="true" /> Saved!</>
         ) : (
-          <><BookmarkPlus size={15} /> Save Link</>
+          <><BookmarkPlus size={15} className="mr-1.5" aria-hidden="true" /> Save Link</>
         )}
-      </button>
+      </Button>
 
-      <button
+      <Button
+        type="button"
         onClick={handleOpenDashboard}
         className="btn-secondary w-full justify-center flex items-center gap-1.5"
       >
-        <ExternalLink size={15} />
+        <ExternalLink size={15} aria-hidden="true" />
         Open Dashboard
-      </button>
-    </div>
+      </Button>
+    </main>
   );
 }
 

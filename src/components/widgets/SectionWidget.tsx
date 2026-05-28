@@ -257,17 +257,23 @@ const SectionWidget = ({
 
       {showColorPicker && isEditing && (
         <div
+          role="radiogroup"
+          aria-label="Section border color"
           className="mt-4 mx-3 px-3 py-2 bg-secondary/40 border border-border/40 rounded-lg flex flex-wrap gap-1.5 justify-center items-center select-none"
           onMouseDown={(e) => e.stopPropagation()}
         >
           {PRESET_COLORS.map((color) => (
-            <button
+            <Button
               key={color.name}
+              type="button"
+              variant="ghost"
+              role="radio"
+              aria-checked={borderColor === color.hsl}
               onClick={() => {
                 onUpdateLink(item.id, { borderColor: color.hsl });
                 setShowColorPicker(false);
               }}
-              className={`w-5 h-5 rounded-full transition-transform hover:scale-110 flex items-center justify-center ring-offset-background ${
+              className={`w-5 h-5 p-0 rounded-full transition-transform hover:scale-110 ring-offset-background ${
                 borderColor === color.hsl ? 'ring-1.5 ring-foreground' : 'border border-border/60'
               }`}
               style={{ backgroundColor: `hsl(${color.hsl})` }}

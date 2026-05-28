@@ -2,6 +2,8 @@ import { useState, useMemo, useEffect, type FormEvent } from 'react';
 import { Bell, Plus, Trash2, X, Repeat, ChevronDown, Check } from 'lucide-react';
 import { useWidgetStorage } from '../../hooks/useWidgetStorage';
 import { DateTimePicker } from '@/components/ui/date-time-picker';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -106,34 +108,37 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
   };
 
   return (
-    <div className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
-      <div className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
+    <article className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
+      <header className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
         <div className="flex items-center gap-1.5">
-          <Bell size={isEditing ? 14 : 12} className="text-primary" />
-          <span className={`font-medium text-foreground pointer-events-none ${isEditing ? 'text-sm' : 'text-xs'}`}>{item.title || 'Reminders'}</span>
+          <Bell size={isEditing ? 14 : 12} className="text-primary" aria-hidden="true" />
+          <h3 className={`font-medium text-foreground pointer-events-none ${isEditing ? 'text-sm' : 'text-xs'}`}>{item.title || 'Reminders'}</h3>
         </div>
         {isEditing && (
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-            className="flex items-center justify-center h-7 w-7 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 relative z-20"
+            className="h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 relative z-20"
             title="Delete Widget"
           >
             <Trash2 size={14} />
-          </button>
+          </Button>
         )}
-      </div>
+      </header>
 
       {isEditing && <div className="absolute inset-x-0 bottom-0 top-[48px] z-10 bg-transparent cursor-grab drag-handle" />}
 
-      <div className="flex-1 overflow-y-auto p-1 space-y-1">
+      <ul className="flex-1 overflow-y-auto p-1 space-y-1 list-none">
         {sorted.length === 0 && (
-          <div className="text-xs text-muted-foreground text-center mt-4">No reminders yet.</div>
+          <li className="text-xs text-muted-foreground text-center mt-4">No reminders yet.</li>
         )}
         {sorted.map((r) => {
           const overdue = !r.completed && r.dueAt <= now;
           return (
-            <div
+            <li
               key={r.id}
               className={`flex items-start gap-2 px-2 py-1 rounded group/item ${overdue ? 'bg-red-50 dark:bg-red-900/15' : 'hover:bg-gray-50 dark:hover:bg-white/5'}`}
             >
@@ -142,39 +147,44 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
                   type="checkbox"
                   checked={!!r.completed}
                   onChange={() => toggleComplete(r.id)}
+                  aria-label={`Mark "${r.text}" as ${r.completed ? 'incomplete' : 'complete'}`}
                   className="mt-1 accent-primary cursor-pointer w-3.5 h-3.5 shrink-0"
                 />
               ) : (
-                <Repeat size={12} className="text-primary mt-1 shrink-0" />
+                <Repeat size={12} className="text-primary mt-1 shrink-0" aria-hidden="true" />
               )}
               <div className="flex-1 min-w-0">
-                <div className={`text-sm break-words ${r.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                <p className={`text-sm break-words ${r.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                   {r.text}
-                </div>
-                <div className={`text-2xs mt-0.5 ${overdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-muted-foreground'}`}>
-                  {formatDue(r.dueAt)}
+                </p>
+                <p className={`text-2xs mt-0.5 ${overdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-muted-foreground'}`}>
+                  <time dateTime={new Date(r.dueAt).toISOString()}>{formatDue(r.dueAt)}</time>
                   {r.recurrence !== 'none' && <span className="ml-1.5">· {RECURRENCE_LABEL[r.recurrence]}</span>}
-                </div>
+                </p>
               </div>
-              <button
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => removeOne(r.id)}
-                className="opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-red-500 transition-opacity shrink-0 mt-0.5"
+                className="h-5 w-5 opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-red-500 hover:bg-transparent transition-opacity shrink-0 mt-0.5"
                 title="Delete reminder"
               >
                 <X size={14} />
-              </button>
-            </div>
+              </Button>
+            </li>
           );
         })}
-      </div>
+      </ul>
 
       <form onSubmit={handleAdd} className="p-2 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl space-y-1.5">
-        <input
+        <Input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Remind me to..."
-          className="h-8 w-full bg-gray-100 dark:bg-white/5 border-none rounded-sm px-3 text-sm focus:ring-1 focus:ring-primary outline-none"
+          aria-label="Reminder text"
+          className="h-8 w-full bg-gray-100 dark:bg-white/5 border-none rounded-sm px-3 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
         />
         <div className="flex items-center gap-1.5">
           <div className="flex-1 min-w-0">
@@ -182,14 +192,16 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 title="Recurrence"
-                className="flex items-center gap-1 h-8 px-2 rounded-sm text-xs font-medium bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 outline-none focus:ring-1 focus:ring-primary shrink-0"
+                className="h-8 px-2 rounded-sm text-xs font-medium bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 shrink-0"
               >
                 {RECURRENCE_LABEL[recurrence]}
-                <ChevronDown size={12} className="opacity-60" />
-              </button>
+                <ChevronDown size={12} className="ml-1 opacity-60" aria-hidden="true" />
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-[110px]">
               {RECURRENCE_OPTIONS.map((opt) => (
@@ -206,17 +218,18 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <button
+          <Button
             type="submit"
+            size="icon"
             disabled={!text.trim()}
-            className="flex items-center justify-center h-8 w-8 rounded-sm bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+            className="h-8 w-8 rounded-sm bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80 disabled:opacity-40 shrink-0"
             title="Add reminder"
           >
             <Plus size={16} strokeWidth={3} />
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </article>
   );
 };
 

@@ -159,10 +159,11 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Readonly<Props>) => {
           </div>
         ) : step === 3 ? (
           <div className="p-5 grid grid-cols-2 gap-4">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() => pickGoogleVariant('logo')}
-              className="group flex flex-col items-stretch gap-3 rounded-xl border border-border bg-secondary p-4 hover:border-primary hover:bg-card transition-all text-left"
+              className="group h-auto flex flex-col items-stretch gap-3 rounded-xl border border-border bg-secondary p-4 hover:border-primary hover:bg-card transition-all text-left whitespace-normal"
             >
               <div className="aspect-[4/3] rounded-lg bg-background flex flex-col items-center justify-center gap-3 px-3 py-4">
                 <div className="flex-1 flex items-center justify-center">
@@ -176,12 +177,13 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Readonly<Props>) => {
                   Big Google logo above the search bar. Takes 4 rows.
                 </div>
               </div>
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() => pickGoogleVariant('bar')}
-              className="group flex flex-col items-stretch gap-3 rounded-xl border border-border bg-secondary p-4 hover:border-primary hover:bg-card transition-all text-left"
+              className="group h-auto flex flex-col items-stretch gap-3 rounded-xl border border-border bg-secondary p-4 hover:border-primary hover:bg-card transition-all text-left whitespace-normal"
             >
               <div className="aspect-[4/3] rounded-lg bg-background flex items-center justify-center px-3">
                 <PreviewBar />
@@ -192,7 +194,7 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Readonly<Props>) => {
                   Just the search bar. Takes 1 row. Compact.
                 </div>
               </div>
-            </button>
+            </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">

@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const RedMicIcon = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -20,25 +21,28 @@ const VoiceSearchOverlay = ({ open, onClose, transcript }: Readonly<Props>) => {
   if (!open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] bg-[#202124] flex items-center justify-center overflow-hidden animate-in fade-in duration-200">
-      <button 
+    <dialog open aria-modal="true" aria-label="Voice search" className="fixed inset-0 z-[100] bg-[#202124] w-screen h-screen max-w-none max-h-none flex items-center justify-center overflow-hidden animate-in fade-in duration-200">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
         onClick={onClose}
-        className="absolute top-6 right-6 p-2 text-[#9aa0a6] hover:text-white transition-colors"
         title="Close"
+        className="absolute top-6 right-6 h-10 w-10 p-2 text-[#9aa0a6] hover:text-white hover:bg-transparent transition-colors"
       >
         <X size={28} />
-      </button>
+      </Button>
 
       <div className="flex items-center gap-10">
-        <span className="text-[#9aa0a6] text-3xl font-light min-w-[200px] text-right">
+        <p className="text-[#9aa0a6] text-3xl font-light min-w-[200px] text-right" aria-live="polite">
           {transcript || 'Listening...'}
-        </span>
+        </p>
         <div className="w-24 h-24 rounded-full border border-[#5f6368] flex items-center justify-center bg-[#202124] shadow-lg relative">
           <div className="absolute inset-0 rounded-full border border-[#5f6368] animate-ping opacity-20"></div>
           <RedMicIcon size={40} />
         </div>
       </div>
-    </div>,
+    </dialog>,
     document.body
   );
 };

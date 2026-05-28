@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, type FormEvent, type KeyboardEvent } from 
 import { Search, X, History } from 'lucide-react';
 import LensSearchModal from './LensSearchModal';
 import VoiceSearchOverlay from './VoiceSearchOverlay';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import type { GoogleSearch, LinkItem } from '../../types';
 
 const GoogleLogo = ({ className = '', mono = false }: { className?: string; mono?: boolean }) => (
@@ -318,44 +320,50 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
   };
 
   return (
-    <div className={`group relative flex flex-col w-full h-full ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''} ${variant === 'logo' ? '' : 'items-center justify-center'}`}>
+    <article className={`group relative flex flex-col w-full h-full ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''} ${variant === 'logo' ? '' : 'items-center justify-center'}`}>
       {isEditing && (
         <>
-          <button
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
             onMouseDown={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(item.id); }}
             title="Remove widget"
-            className="absolute -top-2 -right-2 z-[100] h-6 w-6 rounded-full bg-background border border-border hover:text-red-500 shadow-md flex items-center justify-center cursor-pointer"
+            className="absolute -top-2 -right-2 z-[100] h-6 w-6 rounded-full bg-background border border-border hover:text-red-500 shadow-md"
           >
             <X size={12} />
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
             onMouseDown={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleVariant(); }}
             title={variant === 'logo' ? 'Switch to bar only' : 'Switch to logo + bar'}
-            className="absolute -top-2 -left-2 z-[100] h-6 px-2 rounded-full bg-background border border-border text-2xs font-medium text-foreground hover:border-primary shadow-md flex items-center justify-center cursor-pointer"
+            className="absolute -top-2 -left-2 z-[100] h-6 px-2 rounded-full bg-background border border-border text-2xs font-medium text-foreground hover:border-primary hover:bg-background shadow-md"
           >
             {variant === 'logo' ? 'Bar only' : 'Show logo'}
-          </button>
+          </Button>
         </>
       )}
 
       {variant === 'logo' && (
         <div className="flex-1 flex items-center justify-center w-full min-h-0">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onMouseDown={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleLogoStyle(); }}
             title="Toggle logo style"
-            className="bg-transparent border-0 p-0 cursor-pointer focus:outline-none"
+            className="h-auto bg-transparent border-0 p-0 hover:bg-transparent"
           >
             <GoogleLogo mono={logoStyle === 'mono'} className="text-[clamp(3.25rem,4.5vw,7rem)]" />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -366,14 +374,15 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
       >
         <form
           onSubmit={handleSubmit}
+          role="search"
           className={`relative flex items-center w-full h-12 px-5 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
         >
           {/* Invisible overlay to prevent input/buttons from blocking drag */}
           {isEditing && <div className="absolute inset-0 z-10 bg-transparent rounded-full" />}
 
-          <Search size={18} className="text-gray-500 flex-shrink-0" />
-          <input
-            type="text"
+          <Search size={18} className="text-gray-500 flex-shrink-0" aria-hidden="true" />
+          <Input
+            type="search"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -383,26 +392,31 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
             onKeyDown={handleInputKeyDown}
             placeholder="Search Google or type a URL"
             disabled={isEditing}
-            className="flex-1 mx-4 bg-transparent border-0 outline-none text-gray-800 placeholder-gray-500 text-base"
+            aria-label="Search query"
+            className="h-auto flex-1 mx-4 bg-transparent border-0 outline-none text-gray-800 placeholder:text-gray-500 text-base rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
           />
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={handleVoice}
             title="Voice search"
-            className="p-1 flex-shrink-0"
+            className="h-auto p-1 flex-shrink-0 hover:bg-transparent"
             tabIndex={-1}
           >
             <GoogleMicIcon size={20} />
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setLensOpen(true)}
             title="Search any image with Lens"
-            className="p-1 ml-1 flex-shrink-0"
+            className="h-auto p-1 ml-1 flex-shrink-0 hover:bg-transparent"
             tabIndex={-1}
           >
             <LensIcon size={18} />
-          </button>
+          </Button>
         </form>
 
         {showSuggestions && suggestions.length > 0 && (
@@ -434,7 +448,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
         onClose={() => setVoiceOpen(false)}
         transcript={voiceTranscript}
       />
-    </div>
+    </article>
   );
 };
 
