@@ -150,7 +150,7 @@
   z-index: 60;
 }
 
-.react-grid-item:hover .react-resizable-handle {
+.react-grid-item:hover > .react-resizable-handle {
   opacity: 1;
 }
 

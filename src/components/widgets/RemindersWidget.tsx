@@ -222,7 +222,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             type="submit"
             size="icon"
             disabled={!text.trim()}
-            className="h-8 w-8 rounded-sm bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80 disabled:opacity-40 shrink-0"
+            className="h-8 w-8 rounded-sm bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 dark:active:bg-primary/80 disabled:opacity-40 shrink-0"
             title="Add reminder"
           >
             <Plus size={16} strokeWidth={3} />
