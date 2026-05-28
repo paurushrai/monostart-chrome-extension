@@ -32,24 +32,24 @@ const TodoWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
 
   return (
     <div className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
-      <div className={`flex items-center justify-between px-2 py-1 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
+      <div className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
         <div className="flex items-center gap-1.5">
-          <CheckSquare size={12} className="text-primary" />
-          <span className="text-xs font-medium text-foreground pointer-events-none">{item.title || 'Todos'}</span>
+          <CheckSquare size={isEditing ? 14 : 12} className="text-primary" />
+          <span className={`font-medium text-foreground pointer-events-none ${isEditing ? 'text-sm' : 'text-xs'}`}>{item.title || 'Todos'}</span>
         </div>
         {isEditing && (
           <button
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-            className="flex items-center justify-center h-5 w-5 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 relative z-20"
+            className="flex items-center justify-center h-7 w-7 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 relative z-20"
             title="Delete Widget"
           >
-            <Trash2 size={10} />
+            <Trash2 size={14} />
           </button>
         )}
       </div>
 
-      {isEditing && <div className="absolute inset-x-0 bottom-0 top-[45px] z-10 bg-transparent cursor-grab drag-handle" />}
+      {isEditing && <div className="absolute inset-x-0 bottom-0 top-[48px] z-10 bg-transparent cursor-grab drag-handle" />}
 
       <div className="flex-1 overflow-y-auto p-1 space-y-1">
         {todos.length === 0 && (

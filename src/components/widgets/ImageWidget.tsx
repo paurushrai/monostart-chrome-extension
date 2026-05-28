@@ -97,9 +97,9 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
     <div className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
       
       {(isEditing || showConfig || !url) && (
-        <div className={`flex items-center justify-between px-2 py-1 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl z-20 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
+        <div className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl z-20 ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
           <div className="flex items-center gap-1.5 min-w-0">
-            <ImageIcon size={12} className="text-primary shrink-0" />
+            <ImageIcon size={isEditing ? 14 : 12} className="text-primary shrink-0" />
             {isEditingTitle ? (
               <input
                 ref={titleInputRef}
@@ -107,12 +107,12 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                 defaultValue={title}
                 onBlur={handleTitleBlur}
                 onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-                className="text-xs font-medium bg-background border border-border rounded px-1 py-0.5 outline-none max-w-[120px]"
+                className={`font-medium bg-background border border-border rounded px-1 py-0.5 outline-none ${isEditing ? 'text-sm max-w-[140px]' : 'text-xs max-w-[120px]'}`}
               />
             ) : (
-              <span 
+              <span
                 onClick={handleTitleClick}
-                className={`text-xs font-medium truncate select-none ${isEditing ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 px-1 rounded' : 'pointer-events-none'}`}
+                className={`font-medium truncate select-none ${isEditing ? 'text-sm cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 px-1 rounded' : 'text-xs pointer-events-none'}`}
               >
                 {title}
               </span>
@@ -123,11 +123,11 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
             {url && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button 
+                  <button
                     title="Image Settings"
-                    className="flex items-center justify-center h-5 w-5 rounded-md text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground"
+                    className={`flex items-center justify-center rounded-md text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground ${isEditing ? 'h-7 w-7' : 'h-5 w-5'}`}
                   >
-                    <Settings size={11} />
+                    <Settings size={isEditing ? 14 : 11} />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-40 p-1">
@@ -168,17 +168,17 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
               <button
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-                className="flex items-center justify-center h-5 w-5 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                className="flex items-center justify-center h-7 w-7 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
                 title="Delete Widget"
               >
-                <Trash2 size={10} />
+                <Trash2 size={14} />
               </button>
             )}
           </div>
         </div>
       )}
 
-      {isEditing && !showConfig && <div className="absolute inset-x-0 bottom-0 top-[45px] z-10 bg-transparent cursor-grab drag-handle" />}
+      {isEditing && !showConfig && <div className="absolute inset-x-0 bottom-0 top-[48px] z-10 bg-transparent cursor-grab drag-handle" />}
 
       <div className="flex-1 relative min-h-0 w-full h-full bg-gray-50/50 dark:bg-black/5 flex flex-col items-center justify-center rounded-b-xl overflow-hidden">
 

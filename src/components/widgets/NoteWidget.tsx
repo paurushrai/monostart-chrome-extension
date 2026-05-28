@@ -76,9 +76,9 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
   return (
     <div className={`card-base w-full h-full relative group overflow-hidden flex flex-col transition-all duration-300 ${activeColor.bg}`}>
       
-      <div className={`flex items-center justify-between px-2 py-1 border-b border-border/40 shrink-0 rounded-t-xl transition-all duration-300 ${activeColor.headerBg} ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
+      <div className={`flex items-center justify-between px-2 border-b border-border/40 shrink-0 rounded-t-xl transition-all duration-300 ${activeColor.headerBg} ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
         <div className="flex items-center gap-1.5 min-w-0">
-          <FileText size={12} className="text-primary shrink-0" />
+          <FileText size={isEditing ? 14 : 12} className="text-primary shrink-0" />
           {isEditingTitle ? (
             <input
               ref={titleInputRef}
@@ -86,12 +86,12 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
               defaultValue={title}
               onBlur={handleTitleBlur}
               onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-              className="text-xs font-medium bg-background border border-border rounded px-1 py-0.5 outline-none max-w-[120px]"
+              className={`font-medium bg-background border border-border rounded px-1 py-0.5 outline-none ${isEditing ? 'text-sm max-w-[140px]' : 'text-xs max-w-[120px]'}`}
             />
           ) : (
-            <span 
+            <span
               onClick={handleTitleClick}
-              className={`text-xs font-medium truncate select-none ${isEditing ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 px-1 rounded' : 'pointer-events-none'}`}
+              className={`font-medium truncate select-none ${isEditing ? 'text-sm cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 px-1 rounded' : 'text-xs pointer-events-none'}`}
             >
               {title}
             </span>
@@ -101,12 +101,12 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
         <div role="toolbar" aria-label="Note actions" className="flex items-center gap-1 shrink-0 relative z-20">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button 
+              <button
                 onMouseDown={(e) => e.stopPropagation()}
                 title="Change Color"
-                className="flex items-center justify-center h-5 w-5 rounded-md text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground"
+                className={`flex items-center justify-center rounded-md text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground ${isEditing ? 'h-7 w-7' : 'h-5 w-5'}`}
               >
-                <Palette size={11} />
+                <Palette size={isEditing ? 14 : 11} />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="p-1 min-w-[120px]">
@@ -130,16 +130,16 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
             <button
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-              className="flex items-center justify-center h-5 w-5 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+              className="flex items-center justify-center h-7 w-7 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
               title="Delete Widget"
             >
-              <Trash2 size={10} />
+              <Trash2 size={14} />
             </button>
           )}
         </div>
       </div>
 
-      {isEditing && <div className="absolute inset-x-0 bottom-0 top-[45px] z-10 bg-transparent cursor-grab drag-handle" />}
+      {isEditing && <div className="absolute inset-x-0 bottom-0 top-[48px] z-10 bg-transparent cursor-grab drag-handle" />}
 
       <div className="flex-1 overflow-hidden p-3 rounded-b-xl">
         <textarea

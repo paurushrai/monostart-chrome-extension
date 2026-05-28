@@ -48,18 +48,18 @@ export default function SectionHeader({
 }: Readonly<Props>) {
   return (
     <div
-      className={`flex items-center justify-between px-2 py-1 border-b bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-[10px] transition-all duration-300 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
+      className={`flex items-center justify-between px-2 border-b bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-[10px] transition-all duration-300 ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}
       style={{ borderBottomColor: borderMutedCssColor }}
     >
       <div className="flex items-center gap-1.5 min-w-0">
-        <Folder size={12} className="shrink-0" style={{ color: textCssColor }} />
+        <Folder size={isEditing ? 14 : 12} className="shrink-0" style={{ color: textCssColor }} />
         <span
           contentEditable={isEditing}
           suppressContentEditableWarning
           onBlur={onTitleBlur}
           onKeyDown={onTitleKeyDown}
           onMouseDown={(e) => isEditing && e.stopPropagation()}
-          className={`text-xs font-semibold outline-none truncate select-text ${isEditing ? 'cursor-text px-1 bg-secondary/40 rounded focus:bg-secondary/80 min-w-[50px] max-w-[120px]' : 'max-w-[200px]'}`}
+          className={`font-semibold outline-none truncate select-text ${isEditing ? 'text-sm cursor-text px-1 bg-secondary/40 rounded focus:bg-secondary/80 min-w-[60px] max-w-[140px]' : 'text-xs max-w-[200px]'}`}
           style={{ color: textCssColor }}
         >
           {title}
@@ -79,11 +79,11 @@ export default function SectionHeader({
           <Button
             variant="ghost"
             size="icon"
-            className="w-5 h-5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
+            className="w-7 h-7 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
             title="Add Link"
             onClick={onAddLink}
           >
-            <Plus size={12} />
+            <Plus size={14} />
           </Button>
 
           <DropdownMenu>
@@ -91,9 +91,9 @@ export default function SectionHeader({
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-5 h-5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
+                className="w-7 h-7 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
               >
-                <MoreVertical size={12} />
+                <MoreVertical size={14} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40" onMouseDown={(e) => e.stopPropagation()}>
