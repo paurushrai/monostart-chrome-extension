@@ -360,7 +360,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleLogoStyle(); }}
             title="Toggle logo style"
-            className="h-auto bg-transparent border-0 p-0 hover:bg-transparent"
+            className="h-auto bg-transparent border-0 p-0 hover:bg-transparent hover:text-inherit dark:hover:bg-transparent dark:hover:text-inherit transition-none"
           >
             <GoogleLogo mono={logoStyle === 'mono'} className="text-[clamp(3.25rem,4.5vw,7rem)]" />
           </Button>
@@ -393,7 +393,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
             placeholder="Search Google or type a URL"
             disabled={isEditing}
             aria-label="Search query"
-            className="h-auto flex-1 mx-4 bg-transparent border-0 outline-none text-gray-800 placeholder:text-gray-500 text-base rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 disabled:opacity-100 disabled:cursor-default"
+            className="h-auto flex-1 mx-4 bg-transparent dark:bg-transparent border-0 outline-none text-gray-800 placeholder:text-gray-500 text-base rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 disabled:opacity-100 disabled:cursor-default"
           />
           <Button
             type="button"
