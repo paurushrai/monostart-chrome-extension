@@ -17,19 +17,18 @@ const TodoWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
 
   const handleAdd = (e: FormEvent) => {
     e.preventDefault();
-    if (!newTask.trim()) return;
-    saveTodos([...todos, { id: Date.now(), text: newTask.trim(), completed: false }]);
+    const text = newTask.trim();
+    if (!text) return;
+    saveTodos((current) => [...current, { id: Date.now(), text, completed: false }]);
     setNewTask("");
   };
 
   const toggleTodo = (id: number) => {
-    const updated = todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
-    saveTodos(updated);
+    saveTodos((current) => current.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   };
 
   const deleteTodo = (id: number) => {
-    const updated = todos.filter(t => t.id !== id);
-    saveTodos(updated);
+    saveTodos((current) => current.filter(t => t.id !== id));
   };
 
   return (

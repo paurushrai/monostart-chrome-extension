@@ -79,27 +79,28 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
 
   const handleAdd = (e: FormEvent) => {
     e.preventDefault();
-    if (!text.trim()) return;
+    const trimmed = text.trim();
+    if (!trimmed) return;
     const due = dueAt.getTime();
     if (Number.isNaN(due)) return;
     const entry: ReminderEntry = {
       id: `r-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      text: text.trim(),
+      text: trimmed,
       dueAt: due,
       recurrence,
     };
-    saveReminders([...reminders, entry]);
+    saveReminders((current) => [...current, entry]);
     setText('');
     setDueAt(defaultDueAt());
     setRecurrence('none');
   };
 
   const toggleComplete = (id: string) => {
-    saveReminders(reminders.map((r) => (r.id === id ? { ...r, completed: !r.completed } : r)));
+    saveReminders((current) => current.map((r) => (r.id === id ? { ...r, completed: !r.completed } : r)));
   };
 
   const removeOne = (id: string) => {
-    saveReminders(reminders.filter((r) => r.id !== id));
+    saveReminders((current) => current.filter((r) => r.id !== id));
   };
 
   return (

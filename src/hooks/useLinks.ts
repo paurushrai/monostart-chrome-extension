@@ -33,12 +33,25 @@ const migrateGoogleSearchHeight = (items: LinkItem[]): LinkItem[] =>
     l.type === WidgetType.GOOGLE_SEARCH && (l.h ?? 1) > 1 ? { ...l, h: 1 } : l,
   );
 
+const dedupeById = (items: LinkItem[]): LinkItem[] => {
+  const seen = new Set<string>();
+  const out: LinkItem[] = [];
+  for (const item of items) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    out.push(item);
+  }
+  return out;
+};
+
+const normalize = (items: LinkItem[]): LinkItem[] => dedupeById(migrateGoogleSearchHeight(items));
+
 export function useLinks(): UseLinks {
-  const [links, setLinks] = useState<LinkItem[]>(() => migrateGoogleSearchHeight(getLinksSync()));
+  const [links, setLinks] = useState<LinkItem[]>(() => normalize(getLinksSync()));
 
   useEffect(() => {
     getLinks().then((stored) => {
-      const migrated = migrateGoogleSearchHeight(stored);
+      const migrated = normalize(stored);
       if (JSON.stringify(migrated) !== JSON.stringify(stored)) {
         saveLinks(migrated);
       }
@@ -55,9 +68,14 @@ export function useLinks(): UseLinks {
         changes: { [key: string]: chrome.storage.StorageChange },
         area: chrome.storage.AreaName,
       ): void => {
-        if (area === 'local' && changes.dashboardLinks) {
-          setLinks((changes.dashboardLinks.newValue as LinkItem[] | undefined) ?? []);
-        }
+        if (area !== 'local' || !changes.dashboardLinks) return;
+        const incoming = dedupeById((changes.dashboardLinks.newValue as LinkItem[] | undefined) ?? []);
+        setLinks((prev) => {
+          if (prev.length === incoming.length && JSON.stringify(prev) === JSON.stringify(incoming)) {
+            return prev;
+          }
+          return incoming;
+        });
       };
       chrome.storage.onChanged.addListener(listener);
       return () => chrome.storage.onChanged.removeListener(listener);
@@ -65,16 +83,26 @@ export function useLinks(): UseLinks {
   }, []);
 
   const replaceLinks = useCallback((next: LinkItem[]) => {
-    setLinks(next);
-    saveLinks(next);
+    const clean = dedupeById(next);
+    setLinks(clean);
+    saveLinks(clean);
   }, []);
 
   const handleLayoutChange = useCallback((layout: Layout) => {
     setLinks((prevLinks) => {
+      const layoutById = new Map(layout.map((l) => [l.i, l]));
+      let mutated = false;
       const updatedLinks = prevLinks.map((link) => {
-        const item = layout.find((l) => l.i === link.id);
+        if (link.isHeaderLink) return link;
+        const item = layoutById.get(link.id);
         if (!item) return link;
         const isResizableType = RESIZABLE_TYPES.has(link.type);
+        const nextW = isResizableType ? item.w : link.w;
+        const nextH = isResizableType ? item.h : link.h;
+        if (link.x === item.x && link.y === item.y && link.w === nextW && link.h === nextH) {
+          return link;
+        }
+        mutated = true;
         return {
           ...link,
           x: item.x,
@@ -82,6 +110,7 @@ export function useLinks(): UseLinks {
           ...(isResizableType ? { w: item.w, h: item.h } : {}),
         };
       });
+      if (!mutated) return prevLinks;
       saveLinks(updatedLinks);
       return updatedLinks;
     });
@@ -253,7 +282,7 @@ export function useLinks(): UseLinks {
     };
     const saved = await saveLink(input);
     if (!saved) return null;
-    setLinks((prev) => [...prev, saved]);
+    setLinks((prev) => (prev.some((l) => l.id === saved.id) ? prev : [...prev, saved]));
     return saved;
   }, [links]);
 

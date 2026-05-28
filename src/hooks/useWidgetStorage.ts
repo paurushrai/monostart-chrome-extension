@@ -5,15 +5,15 @@ type SetValue<T> = (next: T | ((prev: T) => T)) => void;
 
 export function useWidgetStorage<T>(key: string, defaultValue: T): [T, SetValue<T>] {
   const [value, setValue] = useState<T>(defaultValue);
-  const isLoadedRef = useRef<boolean>(false);
+  const isUserDirtyRef = useRef<boolean>(false);
+  const lastWriteSerializedRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    isLoadedRef.current = false;
+
     getStoredValue<T>(key, defaultValue).then((stored) => {
-      if (cancelled) return;
+      if (cancelled || isUserDirtyRef.current) return;
       setValue(stored);
-      isLoadedRef.current = true;
     });
 
     if (typeof chrome !== 'undefined' && chrome.storage) {
@@ -24,7 +24,12 @@ export function useWidgetStorage<T>(key: string, defaultValue: T): [T, SetValue<
         if (area !== 'local') return;
         if (!changes[key]) return;
         const newValue = changes[key].newValue as T | undefined;
-        if (newValue !== undefined) setValue(newValue);
+        if (newValue === undefined) return;
+        const serialized = JSON.stringify(newValue);
+        if (serialized === lastWriteSerializedRef.current) {
+          return;
+        }
+        setValue(newValue);
       };
       chrome.storage.onChanged.addListener(listener);
       return () => {
@@ -38,11 +43,11 @@ export function useWidgetStorage<T>(key: string, defaultValue: T): [T, SetValue<
   }, [key]);
 
   const persistedSetValue = useCallback<SetValue<T>>((next) => {
+    isUserDirtyRef.current = true;
     setValue((prev) => {
       const resolved = typeof next === 'function' ? (next as (p: T) => T)(prev) : next;
-      if (isLoadedRef.current) {
-        setStoredValue(key, resolved);
-      }
+      lastWriteSerializedRef.current = JSON.stringify(resolved);
+      setStoredValue(key, resolved);
       return resolved;
     });
   }, [key]);
