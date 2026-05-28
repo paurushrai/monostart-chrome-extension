@@ -174,7 +174,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Remind me to..."
-          className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-md py-1.5 px-3 text-sm focus:ring-1 focus:ring-primary outline-none"
+          className="h-8 w-full bg-gray-100 dark:bg-white/5 border-none rounded-sm px-3 text-sm focus:ring-1 focus:ring-primary outline-none"
         />
         <div className="flex items-center gap-1.5">
           <div className="flex-1 min-w-0">
@@ -185,7 +185,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
               <button
                 type="button"
                 title="Recurrence"
-                className="flex items-center gap-1 h-8 px-2 rounded-md text-xs font-medium bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 outline-none focus:ring-1 focus:ring-primary shrink-0"
+                className="flex items-center gap-1 h-8 px-2 rounded-sm text-xs font-medium bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 outline-none focus:ring-1 focus:ring-primary shrink-0"
               >
                 {RECURRENCE_LABEL[recurrence]}
                 <ChevronDown size={12} className="opacity-60" />
@@ -209,7 +209,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
           <button
             type="submit"
             disabled={!text.trim()}
-            className="flex items-center justify-center h-7 w-7 rounded-lg bg-green-500 text-white shadow-sm hover:bg-green-600 active:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+            className="flex items-center justify-center h-8 w-8 rounded-sm bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
             title="Add reminder"
           >
             <Plus size={16} strokeWidth={3} />

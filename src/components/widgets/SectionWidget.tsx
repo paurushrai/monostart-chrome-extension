@@ -300,7 +300,7 @@ const SectionWidget = ({
             className="h-8 text-xs flex-1 bg-background"
           />
           <div className="flex gap-1">
-            <Button type="submit" size="icon" className="h-8 w-8 bg-green-600 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700">
+            <Button type="submit" size="icon" className="h-8 w-8 bg-primary hover:bg-primary/90 text-primary-foreground dark:bg-primary dark:hover:bg-primary/90">
               <Check size={12} />
             </Button>
             <Button

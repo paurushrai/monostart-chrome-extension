@@ -226,7 +226,7 @@ function PopupApp() {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-xl bg-bg-hover border border-border text-sm text-ink hover:border-primary transition-colors"
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-sm bg-bg-hover border border-border text-sm text-ink hover:border-primary transition-colors"
           >
             <DestinationIcon size={14} className="text-muted-foreground shrink-0" />
             <span className="flex-1 text-left truncate">{destinationLabel}</span>

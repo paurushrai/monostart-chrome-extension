@@ -104,7 +104,7 @@ const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Readonly<Pro
               id="location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-border bg-bg-primary dark:border-border-dark dark:bg-dark-bg-primary px-3 py-2 text-sm text-ink dark:text-ink-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+              className="flex h-8 w-full rounded-sm border border-border bg-bg-primary dark:border-border-dark dark:bg-dark-bg-primary px-3 py-1 text-sm text-ink dark:text-ink-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
               <option value="dashboard">Main Dashboard</option>
               <option value="header">Header (Favicon only)</option>
