@@ -91,13 +91,13 @@ const IframeWidget = React.memo(({ item, onDelete, isEditing }: Readonly<Props>)
   return (
     <div className="group card-base flex flex-col w-full h-full overflow-hidden">
 
-      <div className={`flex items-center justify-between px-2 py-1
+      <div className={`flex items-center justify-between px-2
                       bg-secondary
                       border-b border-border flex-shrink-0
                       rounded-t-xl
-                      ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}>
+                      ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
 
-        <span className="text-xs font-medium text-foreground truncate mr-2">
+        <span className={`font-medium text-foreground truncate mr-2 ${isEditing ? 'text-sm' : 'text-xs'}`}>
           {item.title}
         </span>
 
@@ -108,11 +108,11 @@ const IframeWidget = React.memo(({ item, onDelete, isEditing }: Readonly<Props>)
               size="icon"
               asChild
               onMouseDown={(e) => e.stopPropagation()}
-              className="h-5 w-5 rounded-md hover:bg-background"
+              className={`rounded-md hover:bg-background ${isEditing ? 'h-7 w-7' : 'h-5 w-5'}`}
               title="Open in new tab"
             >
               <a href={openUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink size={10} />
+                <ExternalLink size={isEditing ? 14 : 10} />
               </a>
             </Button>
           )}
@@ -125,9 +125,9 @@ const IframeWidget = React.memo(({ item, onDelete, isEditing }: Readonly<Props>)
               onTouchStart={stopPointer}
               onClick={handleDeleteClick}
               title="Remove widget"
-              className="h-5 w-5 rounded-md hover:text-red-500 hover:bg-background"
+              className="h-7 w-7 rounded-md hover:text-red-500 hover:bg-background"
             >
-              <X size={10} />
+              <X size={14} />
             </Button>
           )}
         </div>

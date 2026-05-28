@@ -108,12 +108,12 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
         <div role="toolbar" aria-label="Label actions" className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/label:opacity-100 transition-opacity duration-200 z-30">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button 
+              <button
                 onMouseDown={(e) => e.stopPropagation()}
                 title="Text Settings"
-                className="flex items-center justify-center h-5 w-5 rounded bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-foreground"
+                className="flex items-center justify-center h-7 w-7 rounded bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-foreground"
               >
-                <Settings size={11} />
+                <Settings size={14} />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 p-1">
@@ -252,10 +252,10 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
           <button
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-            className="flex items-center justify-center h-5 w-5 rounded bg-red-500/10 hover:bg-red-500/20 text-red-500"
+            className="flex items-center justify-center h-7 w-7 rounded bg-red-500/10 hover:bg-red-500/20 text-red-500"
             title="Delete Widget"
           >
-            <Trash2 size={10} />
+            <Trash2 size={14} />
           </button>
         </div>
       )}
