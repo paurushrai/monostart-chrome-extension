@@ -21,20 +21,20 @@ const VoiceSearchOverlay = ({ open, onClose, transcript }: Readonly<Props>) => {
   if (!open) return null;
 
   return createPortal(
-    <dialog open aria-modal="true" aria-label="Voice search" className="fixed inset-0 z-[100] bg-[#202124] w-screen h-screen max-w-none max-h-none flex items-center justify-center overflow-hidden animate-in fade-in duration-200">
+    <div role="dialog" aria-modal="true" aria-label="Voice search" className="fixed inset-0 z-[100] bg-[#202124] flex items-center justify-center overflow-hidden animate-in fade-in duration-200">
       <Button
         type="button"
         variant="ghost"
         size="icon"
         onClick={onClose}
         title="Close"
-        className="absolute top-6 right-6 h-10 w-10 p-2 text-[#9aa0a6] hover:text-white hover:bg-transparent transition-colors"
+        className="absolute top-6 right-6 h-auto w-auto p-2 text-[#9aa0a6] hover:text-white hover:bg-transparent transition-colors"
       >
         <X size={28} />
       </Button>
 
       <div className="flex items-center gap-10">
-        <p className="text-[#9aa0a6] text-3xl font-light min-w-[200px] text-right" aria-live="polite">
+        <p className="text-[#9aa0a6] text-3xl font-light min-w-[200px] text-right m-0" aria-live="polite">
           {transcript || 'Listening...'}
         </p>
         <div className="w-24 h-24 rounded-full border border-[#5f6368] flex items-center justify-center bg-[#202124] shadow-lg relative">
@@ -42,7 +42,7 @@ const VoiceSearchOverlay = ({ open, onClose, transcript }: Readonly<Props>) => {
           <RedMicIcon size={40} />
         </div>
       </div>
-    </dialog>,
+    </div>,
     document.body
   );
 };

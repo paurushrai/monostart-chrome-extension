@@ -332,7 +332,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
             onTouchStart={(e) => e.stopPropagation()}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(item.id); }}
             title="Remove widget"
-            className="absolute -top-2 -right-2 z-[100] h-6 w-6 rounded-full bg-background border border-border hover:text-red-500 shadow-md"
+            className="absolute -top-2 -right-2 z-[100] h-6 w-6 rounded-full bg-background border border-border hover:bg-background hover:text-red-500 shadow-md"
           >
             <X size={12} />
           </Button>
@@ -382,7 +382,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
 
           <Search size={18} className="text-gray-500 flex-shrink-0" aria-hidden="true" />
           <Input
-            type="search"
+            type="text"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -393,7 +393,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
             placeholder="Search Google or type a URL"
             disabled={isEditing}
             aria-label="Search query"
-            className="h-auto flex-1 mx-4 bg-transparent border-0 outline-none text-gray-800 placeholder:text-gray-500 text-base rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
+            className="h-auto flex-1 mx-4 bg-transparent border-0 outline-none text-gray-800 placeholder:text-gray-500 text-base rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 disabled:opacity-100 disabled:cursor-default"
           />
           <Button
             type="button"
