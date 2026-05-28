@@ -204,7 +204,7 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Readonly<Props>) => {
                 placeholder={'https://example.com\nor\n<iframe src="https://www.youtube.com/embed/..." ...></iframe>'}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                className="w-full rounded-sm border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
               />
               <p className="text-xs text-muted-foreground">
                 Paste a URL for simple embeds, or paste an <code className="font-mono">{'<iframe>'}</code> snippet

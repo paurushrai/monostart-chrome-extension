@@ -83,7 +83,7 @@ const TodoWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
             placeholder="Add a task..."
-            className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-md py-1.5 pl-3 pr-8 text-sm focus:ring-1 focus:ring-primary outline-none"
+            className="h-8 w-full bg-gray-100 dark:bg-white/5 border-none rounded-sm pl-3 pr-8 text-sm focus:ring-1 focus:ring-primary outline-none"
           />
           <button type="submit" disabled={!newTask.trim()} className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-primary disabled:opacity-50 hover:bg-primary/10 rounded">
             <Plus size={14} />

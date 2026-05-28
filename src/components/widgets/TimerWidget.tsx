@@ -176,16 +176,16 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             value={newMinutes}
             onChange={(e) => setNewMinutes(e.target.value)}
             placeholder="Min"
-            className="w-16 bg-gray-100 dark:bg-white/5 border-none rounded-md py-1.5 px-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+            className="h-8 w-16 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-sm focus:ring-1 focus:ring-primary outline-none"
           />
           <input
             type="text"
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
             placeholder="Label (opt)"
-            className="flex-1 min-w-0 bg-gray-100 dark:bg-white/5 border-none rounded-md py-1.5 px-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+            className="h-8 flex-1 min-w-0 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-sm focus:ring-1 focus:ring-primary outline-none"
           />
-          <button type="submit" disabled={!newMinutes} className="shrink-0 flex items-center justify-center p-1.5 bg-primary text-white disabled:opacity-50 hover:bg-primary/90 rounded-md">
+          <button type="submit" disabled={!newMinutes} className="h-8 w-8 shrink-0 flex items-center justify-center bg-primary text-white disabled:opacity-50 hover:bg-primary/90 rounded-sm">
             <Plus size={16} />
           </button>
         </div>

@@ -160,7 +160,7 @@ function TimeColumn<T extends string | number>({
               type="button"
               onClick={() => onSelect(v)}
               className={cn(
-                "h-8 w-full rounded-md text-sm font-medium transition-colors",
+                "h-8 w-full rounded-sm text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-accent text-foreground",

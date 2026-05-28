@@ -111,7 +111,7 @@ export default function AppHeader({
             <Button
               size="sm"
               onClick={onSaveEdit}
-              className="bg-green-600 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground dark:bg-primary dark:hover:bg-primary/90 dark:text-primary-foreground"
             >
               <Check size={16} className="mr-1.5" />
               Save
