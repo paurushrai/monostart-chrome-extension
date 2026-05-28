@@ -1,8 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { DragEvent as ReactDragEvent } from 'react';
 
-// Custom MIME type — lets the main grid recognize a header-link drag
-// without confusing it with arbitrary text drops.
 export const HEADER_LINK_DRAG_TYPE = 'application/x-monostart-header-link';
 
 export interface UseHeaderDrag {
@@ -21,9 +19,6 @@ export function useHeaderDrag(
   const [dragOverHeaderLinkId, setDragOverHeaderLinkId] = useState<string | null>(null);
 
   const onDragStart = useCallback((id: string, e: ReactDragEvent) => {
-    // Stash the link id in dataTransfer — the canonical HTML5 way to ferry
-    // data across a drop boundary. React state isn't reliable here because
-    // it may not commit before the drop event fires.
     e.dataTransfer.setData(HEADER_LINK_DRAG_TYPE, id);
     e.dataTransfer.effectAllowed = 'move';
     setDraggedHeaderLinkId(id);

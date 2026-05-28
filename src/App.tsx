@@ -38,9 +38,6 @@ function App() {
   const headerDrag = useHeaderDrag(handleHeaderLinkReorder);
   const { toast, showToast, dismissToast } = useToast();
 
-  // Persist edit mode across refresh so a reload mid-edit doesn't drop the user
-  // back into view mode (and lose their cancel snapshot). localStorage keeps it
-  // synchronous so the first paint already shows the correct mode.
   const [isEditing, setIsEditing] = useState<boolean>(() => {
     try { return localStorage.getItem(EDIT_MODE_KEY) === 'true'; } catch { return false; }
   });
@@ -55,9 +52,6 @@ function App() {
   const [addLinkModalOpen, setAddLinkModalOpen] = useState(false);
   const [isHeaderTargeted, setIsHeaderTargeted] = useState(false);
 
-  // Captured at the moment the user opens Add Link / Add Widget. We use this
-  // (not the post-add storage state) for originalLinks so that Cancel reverts
-  // the add itself, not just subsequent moves.
   const preAddSnapshotRef = useRef<LinkItem[] | null>(null);
 
   const enterEditModeWithSnapshot = useCallback((snapshot: LinkItem[]) => {
@@ -66,16 +60,13 @@ function App() {
     try {
       localStorage.setItem(EDIT_MODE_KEY, 'true');
       localStorage.setItem(ORIGINAL_LINKS_KEY, JSON.stringify(snapshot));
-    } catch { /* quota / private mode */ }
+    } catch { /* empty */ }
   }, []);
 
   const enterEditMode = useCallback(() => {
     enterEditModeWithSnapshot(getLinksSync());
   }, [enterEditModeWithSnapshot]);
 
-  // After an Add: enter edit mode using the PRE-add snapshot so Cancel
-  // reverts the add too. If the user is already editing, originalLinks is
-  // already set to the true pre-edit state — don't overwrite it.
   const enterEditModeAfterAdd = useCallback(() => {
     if (isEditing) {
       preAddSnapshotRef.current = null;
@@ -92,7 +83,7 @@ function App() {
     try {
       localStorage.removeItem(EDIT_MODE_KEY);
       localStorage.removeItem(ORIGINAL_LINKS_KEY);
-    } catch { /* ignore */ }
+    } catch { /* empty */ }
   }, []);
 
   const cancelEditMode = useCallback(() => {
@@ -102,7 +93,7 @@ function App() {
     try {
       localStorage.removeItem(EDIT_MODE_KEY);
       localStorage.removeItem(ORIGINAL_LINKS_KEY);
-    } catch { /* ignore */ }
+    } catch { /* empty */ }
   }, [originalLinks, replaceLinks]);
 
   const handleAddWidget = useCallback(async (widget: AddWidgetInput) => {
@@ -110,7 +101,6 @@ function App() {
       showToast('Only one Google search widget is allowed.');
       return;
     }
-    // Capture state BEFORE the add so cancel can undo the add itself.
     if (!isEditing) preAddSnapshotRef.current = getLinksSync();
     const saved = await addWidget(widget);
     if (!saved) {
@@ -179,7 +169,6 @@ function App() {
       <AddLinkModal
         open={addLinkModalOpen}
         onClose={() => {
-          // If they cancel the modal without adding, drop the captured snapshot.
           if (preAddSnapshotRef.current && !isEditing) preAddSnapshotRef.current = null;
           setAddLinkModalOpen(false);
         }}

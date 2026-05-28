@@ -19,7 +19,6 @@ const NOTE_COLORS = [
   { id: 'purple', name: 'Purple', bg: 'bg-purple-50/95 dark:bg-purple-950/20 border-purple-200/40 text-purple-950 dark:text-purple-200', headerBg: 'bg-purple-100/50 dark:bg-purple-950/40', dot: 'bg-purple-400' },
 ] as const;
 
-// Default is guaranteed to exist at runtime (first entry); `as const` preserves tuple narrowing.
 const DEFAULT_NOTE_COLOR = NOTE_COLORS[0];
 
 interface Props {

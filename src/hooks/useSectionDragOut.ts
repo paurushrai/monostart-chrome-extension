@@ -11,7 +11,6 @@ type RglDragHandler = (
   element: HTMLElement | null,
 ) => void;
 
-/** Callback the consumer (DashboardGrid) wires in. */
 type InnerDragCallback = (link: RegularLink, sectionId: string) => void;
 type InnerDragMoveCallback = (link: RegularLink, sectionId: string, clientX: number, clientY: number) => void;
 
@@ -31,14 +30,6 @@ export interface UseSectionDragOut {
   handleRglDragStop: RglDragHandler;
 }
 
-/**
- * Wraps a section's inner-RGL drag callbacks with "is the cursor outside this
- * section?" tracking. The wrapped callbacks forward to the consumer's outer
- * callbacks (handleInnerDragStart / handleInnerDrag / handleInnerDragStop in
- * DashboardGrid) AND mark `isMovingOutRef.current = true` if the drag ends
- * outside the section, so the section's own onLayoutChange knows to skip
- * persisting the now-stale inner layout.
- */
 export function useSectionDragOut({
   containerRef,
   sectionId,

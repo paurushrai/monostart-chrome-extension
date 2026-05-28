@@ -52,10 +52,6 @@ interface Props {
 const isPlaceholder = (item: DisplayItem): item is DragPlaceholder =>
   item.id === 'drag-out-placeholder' || item.id === 'drag-placeholder';
 
-/**
- * Renders the appropriate widget for a top-level grid item. Section widgets
- * receive extra drag-coordination props so they can react to drag-into-section.
- */
 export default function WidgetRenderer({
   item,
   isEditing,

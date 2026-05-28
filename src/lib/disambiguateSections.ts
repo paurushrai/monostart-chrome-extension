@@ -1,11 +1,5 @@
 import type { Section } from '../types';
 
-/**
- * Produces a display-ready section list: dedupes by id (defensive against
- * any data-layer bug that double-counts), falls back to "Untitled" for
- * empty titles, and suffixes identically-titled sections with #1, #2, ...
- * so users can pick them apart in dropdowns.
- */
 export function disambiguateSections(sections: readonly Section[]): Array<{ id: string; title: string }> {
   const seenIds = new Set<string>();
   const unique = sections.filter((s) => {

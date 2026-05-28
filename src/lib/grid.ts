@@ -1,7 +1,3 @@
-// Pure grid layout utilities — no I/O, no React.
-// Used by linkPlacement / linkRepository to place new widgets, and by UI
-// hooks for placement math (e.g. drag-placeholder positioning).
-
 import { getWidgetMinSize } from './widgetCatalog';
 import type { LinkItem, RegularLink, GridSlot } from '../types';
 
@@ -11,7 +7,6 @@ export const SECTION_DEFAULT_COLS = 3;
 
 export const getMinSize = (type: string | undefined) => getWidgetMinSize(type);
 
-/** Occupied rectangle, pre-resolved (used by `findFirstFreeSlot`). */
 export interface OccupiedRect {
   x: number;
   y: number;
@@ -19,16 +14,6 @@ export interface OccupiedRect {
   h: number;
 }
 
-/**
- * Core slot-finder. Given an array of occupied rectangles, find the top-left
- * position where a (w × h) item fits inside a `cols`-wide grid.
- *
- *  occupied: [{ x, y, w, h }, ...]  — already-resolved rectangles
- *  cols:     width of the grid (column count)
- *  maxRows:  row cap. Pass Infinity for grids that grow vertically (sections).
- *
- * Returns { x, y } or null if no fit within bounds.
- */
 export const findFirstFreeSlot = (
   occupied: readonly OccupiedRect[],
   w: number,
@@ -72,7 +57,6 @@ export const findFirstFreeSlot = (
   return null;
 };
 
-/** Build occupied-rectangles from a links array (skips header-only items). */
 const resolveOccupancy = (
   links: readonly LinkItem[],
   defaultW = 1,
@@ -89,7 +73,6 @@ const resolveOccupancy = (
       h: l.h ?? defaultH,
     }));
 
-/** Find a slot on the bounded main dashboard grid. Returns null if no fit. */
 export const findFreeSlot = (
   links: readonly LinkItem[],
   w: number,
@@ -101,7 +84,6 @@ export const findFreeSlot = (
   return findFirstFreeSlot(resolveOccupancy(links), w, h, maxCols, maxRows);
 };
 
-/** Find a slot in a section's grid (grows vertically without limit). */
 export const findSlotInSection = (
   sectionLinks: readonly RegularLink[],
   itemW: number = 3,
@@ -114,6 +96,5 @@ export const findSlotInSection = (
     w: Math.min(l.w ?? itemW, cols),
     h: l.h ?? 1,
   }));
-  // Sections are unbounded vertically; pass Infinity. Result is never null here.
   return findFirstFreeSlot(occupied, itemW, itemH, cols) as GridSlot;
 };

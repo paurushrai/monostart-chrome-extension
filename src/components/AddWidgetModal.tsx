@@ -102,9 +102,7 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Readonly<Props>) => {
       let hostname = 'Embed';
       try {
         if (embedUrl) hostname = new URL(embedUrl).hostname.replace(/^www\./, '');
-      } catch {
-        // ignore
-      }
+      } catch { /* empty */ }
       defaults = {
         ...selectedWidget.defaults,
         mode: 'url',

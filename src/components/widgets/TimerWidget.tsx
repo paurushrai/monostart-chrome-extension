@@ -34,7 +34,7 @@ const TimerItem = ({ timer, onUpdate, onDelete }: Readonly<TimerItemProps>) => {
           onUpdate(timer.id, { isRunning: false, remainingMs: 0, endTime: null });
           try {
             new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch((e) => console.log(e));
-          } catch { /* ignore audio failures */ }
+          } catch { /* empty */ }
         } else {
           setTimeLeft(remaining);
         }

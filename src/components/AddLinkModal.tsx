@@ -1,8 +1,16 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useMemo, type FormEvent } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from './ui/dropdown-menu';
+import { ChevronDown, Check, LayoutGrid, Bookmark, Folder } from 'lucide-react';
 import { saveLink } from '../lib/linkRepository';
 
 interface SectionRef {
@@ -22,6 +30,13 @@ const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Readonly<Pro
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('dashboard');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { locationLabel, LocationIcon } = useMemo(() => {
+    if (location === 'dashboard') return { locationLabel: 'Main Dashboard', LocationIcon: LayoutGrid };
+    if (location === 'header') return { locationLabel: 'Header (Favicon only)', LocationIcon: Bookmark };
+    const section = sections.find((s) => s.id === location);
+    return { locationLabel: section ? `Folder: ${section.title}` : 'Main Dashboard', LocationIcon: Folder };
+  }, [location, sections]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -99,21 +114,46 @@ const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Readonly<Pro
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
-            <select
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="flex h-8 w-full rounded-sm border border-border bg-bg-primary dark:border-border-dark dark:bg-dark-bg-primary px-3 py-1 text-sm text-ink dark:text-ink-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-            >
-              <option value="dashboard">Main Dashboard</option>
-              <option value="header">Header (Favicon only)</option>
-              {sections.map((s) => (
-                <option key={s.id} value={s.id}>
-                  Folder: {s.title}
-                </option>
-              ))}
-            </select>
+            <Label htmlFor="location-trigger">Location</Label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  id="location-trigger"
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-between h-8 px-3 font-normal text-sm"
+                >
+                  <span className="flex items-center gap-2 min-w-0">
+                    <LocationIcon size={14} className="text-muted-foreground shrink-0" aria-hidden="true" />
+                    <span className="truncate">{locationLabel}</span>
+                  </span>
+                  <ChevronDown size={14} className="text-muted-foreground shrink-0 opacity-60" aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[260px] overflow-y-auto"
+              >
+                <DropdownMenuItem onClick={() => setLocation('dashboard')} className="text-sm">
+                  <LayoutGrid size={14} className="mr-2 text-muted-foreground" aria-hidden="true" />
+                  <span className="flex-1">Main Dashboard</span>
+                  {location === 'dashboard' && <Check size={14} className="ml-2 text-primary" aria-hidden="true" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocation('header')} className="text-sm">
+                  <Bookmark size={14} className="mr-2 text-muted-foreground" aria-hidden="true" />
+                  <span className="flex-1">Header (Favicon only)</span>
+                  {location === 'header' && <Check size={14} className="ml-2 text-primary" aria-hidden="true" />}
+                </DropdownMenuItem>
+                {sections.length > 0 && <DropdownMenuSeparator />}
+                {sections.map((s) => (
+                  <DropdownMenuItem key={s.id} onClick={() => setLocation(s.id)} className="text-sm">
+                    <Folder size={14} className="mr-2 text-muted-foreground" aria-hidden="true" />
+                    <span className="flex-1 truncate">Folder: {s.title}</span>
+                    {location === s.id && <Check size={14} className="ml-2 text-primary shrink-0" aria-hidden="true" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <div className="flex justify-end pt-4">
             <Button

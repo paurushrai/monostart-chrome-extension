@@ -10,7 +10,6 @@ import {
 } from '../grid';
 import type { LinkItem, RegularLink } from '../../types';
 
-// Test fixture builder for a fully-typed RegularLink.
 const link = (id: string, x: number, y: number, w = 1, h = 1, extra: Partial<RegularLink> = {}): RegularLink => ({
   id,
   type: 'link',

@@ -14,8 +14,6 @@ interface DateTimePickerProps {
   className?: string
 }
 
-// Calendar + 3-column time picker (hour / minute / AM-PM), modeled on the
-// shadcn datetime block. Time columns auto-scroll the active value into view.
 export function DateTimePicker({
   value,
   onChange,
@@ -132,8 +130,6 @@ function TimeColumn<T extends string | number>({
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const activeRef = useRef<HTMLButtonElement | null>(null)
 
-  // Scroll the active value into view whenever it changes. Skipped for
-  // centered (short) columns so we don't fight the parent's centering.
   useEffect(() => {
     if (centerVertically) return
     activeRef.current?.scrollIntoView({ block: "nearest" })
@@ -144,8 +140,6 @@ function TimeColumn<T extends string | number>({
       ref={scrollRef}
       className={cn(
         "w-12 h-full overflow-y-auto px-1",
-        // Hide native scrollbar — wheel/touch still scrolls. Keeps columns
-        // visually balanced so AM/PM doesn't get pushed far right.
         "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         centerVertically && "flex items-center",
       )}

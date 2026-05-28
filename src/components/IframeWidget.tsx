@@ -133,7 +133,6 @@ const IframeWidget = React.memo(({ item, onDelete, isEditing }: Readonly<Props>)
         </div>
       </header>
 
-      {/* Iframe container — iframe first, overlay after, so iframe doesn't get remounted by sibling position change */}
       <div className="relative flex-1 w-full overflow-hidden rounded-b-xl bg-background">
         <UrlContent url={item.url} title={item.title} />
         {isEditing && <div className="absolute inset-0 z-10 bg-transparent" />}
