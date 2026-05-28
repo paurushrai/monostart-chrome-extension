@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, ExternalLink, LayoutGrid } from 'lucide-react';
+import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid } from 'lucide-react';
 import type { LinkItem, RegularLink, Section, Settings as AppSettings, GridSlot } from '../types';
 import type { UseHeaderDrag } from '../hooks/useHeaderDrag';
 
@@ -172,16 +172,26 @@ export default function AppHeader({
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => onUpdateSettings({ ...settings, openInNewTab: !settings.openInNewTab })}
+              onSelect={(e) => {
+                // Keep the menu open so the checkbox visibly toggles.
+                e.preventDefault();
+                onUpdateSettings({ ...settings, openInNewTab: !settings.openInNewTab });
+              }}
               className="flex items-center justify-between cursor-pointer"
             >
               <div className="flex items-center gap-2">
-                <ExternalLink size={14} className="text-muted-foreground" />
+                <AppWindow size={14} className="text-muted-foreground" />
                 <span>Open links in new tab</span>
               </div>
-              {settings.openInNewTab && (
-                <Check className="h-3.5 w-3.5 text-primary" />
-              )}
+              <span
+                className={`flex items-center justify-center w-4 h-4 rounded border transition-colors ${
+                  settings.openInNewTab
+                    ? 'bg-primary border-primary text-primary-foreground'
+                    : 'border-muted-foreground/50 bg-transparent'
+                }`}
+              >
+                {settings.openInNewTab && <Check className="w-3 h-3" strokeWidth={3} />}
+              </span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
