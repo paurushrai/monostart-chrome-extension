@@ -93,13 +93,14 @@ const LensSearchModal = ({ open, onClose }: Readonly<Props>) => {
             <ImageIcon size={36} className="text-gray-400 flex-shrink-0" />
             <p className="text-sm">
               Drag an image here or{' '}
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-blue-400 hover:underline outline-none"
+                className="inline-flex h-auto p-0 text-blue-400 underline-offset-4 hover:underline hover:text-blue-400"
               >
                 upload a file
-              </button>
+              </Button>
             </p>
             <input
               ref={fileInputRef}

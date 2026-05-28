@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Sun, Moon, Monitor } from 'lucide-react';
 import type { Settings } from '../types';
 
@@ -52,41 +53,57 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
         </DialogHeader>
 
         <div className="py-4 flex flex-col gap-6">
-          <div className="flex bg-muted p-1 rounded-lg border border-border">
-            <button
+          <div role="radiogroup" aria-label="Theme mode" className="flex bg-muted p-1 rounded-lg border border-border">
+            <Button
+              type="button"
+              variant="ghost"
+              role="radio"
+              aria-checked={currentMode === 'light'}
               onClick={() => setMode('light')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
-                currentMode === 'light' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+              className={`flex-1 h-auto py-2 rounded-md text-sm font-medium transition-all ${
+                currentMode === 'light' ? 'bg-card shadow-sm text-foreground hover:bg-card' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Sun size={16} /> Light
-            </button>
-            <button
+              <Sun size={16} className="mr-2" aria-hidden="true" /> Light
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              role="radio"
+              aria-checked={currentMode === 'dark'}
               onClick={() => setMode('dark')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
-                currentMode === 'dark' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+              className={`flex-1 h-auto py-2 rounded-md text-sm font-medium transition-all ${
+                currentMode === 'dark' ? 'bg-card shadow-sm text-foreground hover:bg-card' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Moon size={16} /> Dark
-            </button>
-            <button
+              <Moon size={16} className="mr-2" aria-hidden="true" /> Dark
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              role="radio"
+              aria-checked={currentMode === 'device'}
               onClick={() => setMode('device')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
-                currentMode === 'device' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+              className={`flex-1 h-auto py-2 rounded-md text-sm font-medium transition-all ${
+                currentMode === 'device' ? 'bg-card shadow-sm text-foreground hover:bg-card' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Monitor size={16} /> Device
-            </button>
+              <Monitor size={16} className="mr-2" aria-hidden="true" /> Device
+            </Button>
           </div>
 
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-foreground">Primary Color</h4>
-            <div className="grid grid-cols-6 gap-3">
+          <section aria-labelledby="primary-color-heading" className="space-y-3">
+            <h4 id="primary-color-heading" className="text-sm font-medium text-foreground">Primary Color</h4>
+            <div role="radiogroup" aria-label="Primary color presets" className="grid grid-cols-6 gap-3">
               {presetColors.map((color) => (
-                <button
+                <Button
                   key={color.name}
+                  type="button"
+                  variant="ghost"
+                  role="radio"
+                  aria-checked={currentColor === color.hsl}
                   onClick={() => setColor(color.hsl)}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${
+                  className={`w-10 h-10 p-0 rounded-full transition-transform hover:scale-110 ${
                     currentColor === color.hsl ? 'ring-2 ring-offset-2 ring-offset-background ring-foreground' : 'ring-1 ring-border'
                   }`}
                   style={{ backgroundColor: `hsl(${color.hsl})` }}
@@ -138,7 +155,7 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
                 }
               `}</style>
             </div>
-          </div>
+          </section>
         </div>
       </DialogContent>
     </Dialog>

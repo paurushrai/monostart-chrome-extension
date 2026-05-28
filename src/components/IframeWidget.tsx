@@ -55,7 +55,7 @@ const IframeWidget = React.memo(({ item, onDelete, isEditing }: Readonly<Props>)
 
   if (isEmbed) {
     return (
-      <div className="group card-base relative w-full h-full overflow-hidden rounded-xl">
+      <article className="group card-base relative w-full h-full overflow-hidden rounded-xl">
         <div className="relative w-full h-full overflow-hidden rounded-xl bg-background">
           <EmbedContent html={sanitizedHtml} />
           {isEditing && (
@@ -84,22 +84,22 @@ const IframeWidget = React.memo(({ item, onDelete, isEditing }: Readonly<Props>)
             </Button>
           </div>
         )}
-      </div>
+      </article>
     );
   }
 
   return (
-    <div className="group card-base flex flex-col w-full h-full overflow-hidden">
+    <article className="group card-base flex flex-col w-full h-full overflow-hidden">
 
-      <div className={`flex items-center justify-between px-2
+      <header className={`flex items-center justify-between px-2
                       bg-secondary
                       border-b border-border flex-shrink-0
                       rounded-t-xl
                       ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
 
-        <span className={`font-medium text-foreground truncate mr-2 ${isEditing ? 'text-sm' : 'text-xs'}`}>
+        <h3 className={`font-medium text-foreground truncate mr-2 ${isEditing ? 'text-sm' : 'text-xs'}`}>
           {item.title}
-        </span>
+        </h3>
 
         <div className="flex items-center gap-1 flex-shrink-0">
           {openUrl && (
@@ -131,14 +131,14 @@ const IframeWidget = React.memo(({ item, onDelete, isEditing }: Readonly<Props>)
             </Button>
           )}
         </div>
-      </div>
+      </header>
 
       {/* Iframe container — iframe first, overlay after, so iframe doesn't get remounted by sibling position change */}
       <div className="relative flex-1 w-full overflow-hidden rounded-b-xl bg-background">
         <UrlContent url={item.url} title={item.title} />
         {isEditing && <div className="absolute inset-0 z-10 bg-transparent" />}
       </div>
-    </div>
+    </article>
   );
 }, (prev, next) => (
   prev.isEditing === next.isEditing &&

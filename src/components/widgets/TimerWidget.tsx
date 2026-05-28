@@ -1,6 +1,8 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { Clock, Plus, Trash2, X, Play, Pause, RotateCcw } from 'lucide-react';
 import { useWidgetStorage } from '../../hooks/useWidgetStorage';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import type { TimerWidget as TimerWidgetItem, TimerEntry } from '../../types';
 
 const formatTime = (ms: number): string => {
@@ -68,27 +70,34 @@ const TimerItem = ({ timer, onUpdate, onDelete }: Readonly<TimerItemProps>) => {
   };
 
   return (
-    <div className="flex flex-col gap-1 p-2 bg-gray-50 dark:bg-white/5 rounded-md relative group">
+    <li className="flex flex-col gap-1 p-2 bg-gray-50 dark:bg-white/5 rounded-md relative group">
       <div className="flex justify-between items-center">
         <span className="text-xs font-medium text-muted-foreground">{timer.label}</span>
-        <button onClick={() => onDelete(timer.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 transition-opacity">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => onDelete(timer.id)}
+          title="Delete timer"
+          className="h-5 w-5 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 hover:bg-transparent transition-opacity"
+        >
           <X size={12} />
-        </button>
+        </Button>
       </div>
       <div className="flex items-center justify-between">
-        <span className={`text-2xl font-mono font-semibold tracking-tight ${timeLeft === 0 ? 'text-red-500 animate-pulse' : 'text-foreground'}`}>
+        <time className={`text-2xl font-mono font-semibold tracking-tight ${timeLeft === 0 ? 'text-red-500 animate-pulse' : 'text-foreground'}`}>
           {formatTime(timeLeft)}
-        </span>
+        </time>
         <div className="flex items-center gap-1">
           {timer.isRunning ? (
-            <button onClick={handlePause} className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20"><Pause size={14} /></button>
+            <Button type="button" size="icon" onClick={handlePause} title="Pause" className="h-7 w-7 p-0 rounded-full bg-primary/10 text-primary hover:bg-primary/20"><Pause size={14} /></Button>
           ) : (
-            <button onClick={handleStart} className="p-1.5 rounded-full bg-primary text-white hover:bg-primary/90"><Play size={14} className="ml-0.5" /></button>
+            <Button type="button" size="icon" onClick={handleStart} title="Start" className="h-7 w-7 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"><Play size={14} className="ml-0.5" /></Button>
           )}
-          <button onClick={handleReset} className="p-1.5 rounded-full bg-gray-200 dark:bg-white/10 text-foreground hover:bg-gray-300 dark:hover:bg-white/20"><RotateCcw size={14} /></button>
+          <Button type="button" size="icon" onClick={handleReset} title="Reset" className="h-7 w-7 p-0 rounded-full bg-gray-200 dark:bg-white/10 text-foreground hover:bg-gray-300 dark:hover:bg-white/20"><RotateCcw size={14} /></Button>
         </div>
       </div>
-    </div>
+    </li>
   );
 };
 
@@ -133,64 +142,75 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
   };
 
   return (
-    <div className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
-      <div className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
+    <article className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
+      <header className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
         <div className="flex items-center gap-1.5">
-          <Clock size={isEditing ? 14 : 12} className="text-primary" />
-          <span className={`font-medium text-foreground pointer-events-none ${isEditing ? 'text-sm' : 'text-xs'}`}>{item.title || 'Timers'}</span>
+          <Clock size={isEditing ? 14 : 12} className="text-primary" aria-hidden="true" />
+          <h3 className={`font-medium text-foreground pointer-events-none ${isEditing ? 'text-sm' : 'text-xs'}`}>{item.title || 'Timers'}</h3>
         </div>
         {isEditing && (
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-            className="flex items-center justify-center h-7 w-7 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 relative z-20"
+            className="h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 relative z-20"
             title="Delete Widget"
           >
             <Trash2 size={14} />
-          </button>
+          </Button>
         )}
-      </div>
+      </header>
 
       {isEditing && <div className="absolute inset-x-0 bottom-0 top-[48px] z-10 bg-transparent cursor-grab drag-handle" />}
 
-      <div className="flex-1 overflow-y-auto p-1 space-y-1">
+      <ul className="flex-1 overflow-y-auto p-1 space-y-1 list-none">
         {timers.length === 0 && (
-          <div className="text-xs text-muted-foreground text-center mt-4">No timers set.</div>
+          <li className="text-xs text-muted-foreground text-center mt-4">No timers set.</li>
         )}
         {timers.map(timer => (
-          <TimerItem 
-            key={timer.id} 
-            timer={timer} 
-            onUpdate={updateTimer} 
-            onDelete={deleteTimer} 
+          <TimerItem
+            key={timer.id}
+            timer={timer}
+            onUpdate={updateTimer}
+            onDelete={deleteTimer}
           />
         ))}
-      </div>
+      </ul>
 
       <form onSubmit={handleAdd} className="p-2 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl">
         <div className="flex gap-2">
-          <input
+          <Input
             type="number"
             min="1"
             max="999"
             value={newMinutes}
             onChange={(e) => setNewMinutes(e.target.value)}
             placeholder="Min"
-            className="h-8 w-16 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+            aria-label="Timer duration in minutes"
+            className="h-8 w-16 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
-          <input
+          <Input
             type="text"
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
             placeholder="Label (opt)"
-            className="h-8 flex-1 min-w-0 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+            aria-label="Timer label (optional)"
+            className="h-8 flex-1 min-w-0 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
-          <button type="submit" disabled={!newMinutes} className="h-8 w-8 shrink-0 flex items-center justify-center bg-primary text-white disabled:opacity-50 hover:bg-primary/90 rounded-sm">
+          <Button
+            type="submit"
+            size="icon"
+            disabled={!newMinutes}
+            title="Add timer"
+            className="h-8 w-8 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 rounded-sm"
+          >
             <Plus size={16} />
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </article>
   );
 };
 
