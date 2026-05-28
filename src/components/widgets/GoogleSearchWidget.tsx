@@ -8,7 +8,7 @@ import type { GoogleSearch, LinkItem } from '../../types';
 
 const GoogleLogo = ({ className = '', mono = false }: { className?: string; mono?: boolean }) => (
   <span
-    className={`font-medium tracking-tight select-none whitespace-nowrap leading-none ${mono ? 'text-foreground' : ''} ${className}`}
+    className={`font-medium tracking-tight select-none whitespace-nowrap leading-none ${mono ? 'text-foreground/60 dark:text-foreground' : ''} ${className}`}
     style={{ fontFamily: '"Product Sans","Google Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif' }}
   >
     {mono ? (

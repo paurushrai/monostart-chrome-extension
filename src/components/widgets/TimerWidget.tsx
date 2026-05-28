@@ -90,11 +90,11 @@ const TimerItem = ({ timer, onUpdate, onDelete }: Readonly<TimerItemProps>) => {
         </time>
         <div className="flex items-center gap-1">
           {timer.isRunning ? (
-            <Button type="button" size="icon" onClick={handlePause} title="Pause" className="h-7 w-7 p-0 rounded-full bg-primary/10 text-primary hover:bg-primary/20"><Pause size={14} /></Button>
+            <Button type="button" size="icon" onClick={handlePause} title="Pause" className="h-7 w-7 p-0 rounded-full bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/10 dark:text-primary dark:hover:bg-primary/20"><Pause size={14} /></Button>
           ) : (
-            <Button type="button" size="icon" onClick={handleStart} title="Start" className="h-7 w-7 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"><Play size={14} className="ml-0.5" /></Button>
+            <Button type="button" size="icon" onClick={handleStart} title="Start" className="h-7 w-7 p-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"><Play size={14} className="ml-0.5" /></Button>
           )}
-          <Button type="button" size="icon" onClick={handleReset} title="Reset" className="h-7 w-7 p-0 rounded-full bg-gray-200 dark:bg-white/10 text-foreground hover:bg-gray-300 dark:hover:bg-white/20"><RotateCcw size={14} /></Button>
+          <Button type="button" size="icon" onClick={handleReset} title="Reset" className="h-7 w-7 p-0 rounded-full bg-gray-200 dark:bg-white/10 text-foreground dark:text-foreground hover:bg-gray-300 dark:hover:bg-white/20"><RotateCcw size={14} /></Button>
         </div>
       </div>
     </li>
@@ -204,7 +204,7 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             size="icon"
             disabled={!newMinutes}
             title="Add timer"
-            className="h-8 w-8 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 rounded-sm"
+            className="h-8 w-8 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 disabled:opacity-50 rounded-sm"
           >
             <Plus size={16} />
           </Button>
