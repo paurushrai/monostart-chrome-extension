@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { getSettings, saveSettings } from '../lib/storage';
 import type { Settings } from '../types';
 
-// First-install default. Indigo is the brand-aligned starting accent until the
-// user picks a different color from ThemeSettingsModal.
 const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '239 84% 67%' };
 
 export interface UseTheme {
@@ -51,8 +49,6 @@ export function useTheme(): UseTheme {
       } else {
         document.documentElement.classList.remove('dark');
       }
-      // Keep <html> bg matching <body> so html doesn't show through around
-      // scrollbars or layout edges as a different shade of dark/light.
       const cs = getComputedStyle(document.body);
       document.documentElement.style.backgroundColor = cs.backgroundColor;
     };

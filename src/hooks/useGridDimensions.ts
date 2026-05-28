@@ -22,10 +22,6 @@ const computeDimensions = (): GridDimensions => {
   return { rowHeight: Math.floor(rowHeight) };
 };
 
-/**
- * Reactively computes the dashboard's row height to fit the viewport,
- * updating on window resize.
- */
 export function useGridDimensions(): GridDimensions {
   const [dims, setDims] = useState<GridDimensions>(computeDimensions);
 

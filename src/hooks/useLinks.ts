@@ -28,22 +28,15 @@ export interface UseLinks {
   addWidget: (widget: { type: LinkItem['type']; defaults?: Partial<LinkItem> }) => Promise<LinkItem | null>;
 }
 
-// One-time clamp: Google Search widget was previously allowed h: 2 in the
-// catalog. The bound is now h: 1 — shrink any stored instance so it matches.
 const migrateGoogleSearchHeight = (items: LinkItem[]): LinkItem[] =>
   items.map((l) =>
     l.type === WidgetType.GOOGLE_SEARCH && (l.h ?? 1) > 1 ? { ...l, h: 1 } : l,
   );
 
 export function useLinks(): UseLinks {
-  // Seed from the synchronous localStorage mirror so first paint already
-  // has the persisted dashboard — no empty-state flash while the async
-  // chrome.storage read is in flight.
   const [links, setLinks] = useState<LinkItem[]>(() => migrateGoogleSearchHeight(getLinksSync()));
 
   useEffect(() => {
-    // chrome.storage may have a fresher value (e.g. another tab wrote
-    // since this tab cached). Refresh and overwrite if it differs.
     getLinks().then((stored) => {
       const migrated = migrateGoogleSearchHeight(stored);
       if (JSON.stringify(migrated) !== JSON.stringify(stored)) {
@@ -53,14 +46,10 @@ export function useLinks(): UseLinks {
         if (prev.length === migrated.length && JSON.stringify(prev) === JSON.stringify(migrated)) return prev;
         return migrated;
       });
-      // Boot sweep: remove storage keys (todo/timer/reminders) for widgets
-      // that no longer exist on the dashboard. Catches orphans left behind by
-      // deletions before this cleanup existed.
       const liveIds = new Set<string>(migrated.map((l) => l.id));
-      cleanupOrphanedWidgetData(liveIds).catch(() => { /* best-effort */ });
+      cleanupOrphanedWidgetData(liveIds).catch(() => { /* empty */ });
     });
 
-    // Auto-sync across extension components (popup -> tab)
     if (typeof chrome !== 'undefined' && chrome.storage) {
       const listener = (
         changes: { [key: string]: chrome.storage.StorageChange },
@@ -116,8 +105,6 @@ export function useLinks(): UseLinks {
     setLinks((prev) => {
       const next = deleteNested(prev);
       saveLinks(next);
-      // Free per-widget data keys (todo/timer/reminders) tied to this id.
-      // No-op when the deleted item is a section or link with no data keys.
       removeWidgetDataForId(id);
       return next;
     });
@@ -171,10 +158,6 @@ export function useLinks(): UseLinks {
       };
       let updatedLinks = updateNested(prevLinks);
 
-      // If a size change at the top level introduces a collision (e.g.
-      // toggling Google Search bar → logo grows h from 1 → 4), relocate the
-      // widget to the first free slot. preventCollision=true on the grid
-      // means RGL won't shuffle for us — neighbors would otherwise overlap.
       const isSizeChange = updates.w !== undefined || updates.h !== undefined;
       if (isSizeChange) {
         const updated = updatedLinks.find((l) => l.id === id);
@@ -196,8 +179,6 @@ export function useLinks(): UseLinks {
                 l.id === id ? { ...l, x: slot.x, y: slot.y } : l,
               );
             }
-            // No free slot → fall through; RGL will render the overlap and
-            // the user can resize/move to resolve.
           }
         }
       }
@@ -261,7 +242,6 @@ export function useLinks(): UseLinks {
   }, []);
 
   const addWidget = useCallback(async (widget: { type: LinkItem['type']; defaults?: Partial<LinkItem> }) => {
-    // Singleton widgets: only one Google search may exist at a time.
     if (widget.type === WidgetType.GOOGLE_SEARCH) {
       const alreadyExists = links.some((l) => l.type === WidgetType.GOOGLE_SEARCH);
       if (alreadyExists) return null;

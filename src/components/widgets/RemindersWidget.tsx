@@ -63,11 +63,6 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
     [reminders],
   );
 
-  // Re-render at the exact moment of the next upcoming dueAt (or every 60s
-  // as heartbeat if nothing is upcoming). Don't hold `now` in state — that
-  // makes the value stale when the storage listener triggers a re-render
-  // (effect cleanup clears the just-about-to-fire timer). Read Date.now()
-  // fresh in the render body so every re-render reflects current time.
   const [, setTick] = useState(0);
   useEffect(() => {
     const current = Date.now();

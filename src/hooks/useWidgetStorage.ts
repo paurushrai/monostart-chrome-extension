@@ -1,18 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getStoredValue, setStoredValue } from '../lib/storage';
 
-/** Setter function with the same shape as React's `Dispatch<SetStateAction<T>>`. */
 type SetValue<T> = (next: T | ((prev: T) => T)) => void;
 
-/**
- * Persistent per-widget state. Reads from the storage adapter on mount,
- * writes through every update. Same `[value, setValue]` shape as useState
- * so callers don't need to know storage exists.
- *
- *   const [todos, setTodos] = useWidgetStorage(`todo-widget-${id}`, []);
- *
- * Skips the initial write so we don't clobber persisted data with the default.
- */
 export function useWidgetStorage<T>(key: string, defaultValue: T): [T, SetValue<T>] {
   const [value, setValue] = useState<T>(defaultValue);
   const isLoadedRef = useRef<boolean>(false);
@@ -26,9 +16,6 @@ export function useWidgetStorage<T>(key: string, defaultValue: T): [T, SetValue<
       isLoadedRef.current = true;
     });
 
-    // Subscribe to writes from other contexts (notably the SW advancing
-    // dueAt / lastFiredAt on recurring reminders). Without this, widget UI
-    // is stale until reload.
     if (typeof chrome !== 'undefined' && chrome.storage) {
       const listener = (
         changes: { [k: string]: chrome.storage.StorageChange },

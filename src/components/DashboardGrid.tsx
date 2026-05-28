@@ -31,8 +31,6 @@ interface Props {
   openInNewTab?: boolean;
   sections?: SectionRef[];
   onMoveLink: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
-  // Lets DashboardGrid surface "the user is dragging a grid item over the
-  // header right now" up to the App so the header can highlight itself.
   onHeaderTargetChange?: (isOver: boolean) => void;
 }
 
@@ -57,10 +55,6 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
     const { resizable } = meta?.layout ?? {};
     let { w, h } = initialSize(link, meta);
 
-    // Google Search has two variants with different heights — pin per item.
-    // Clamp h to the variant's bounds so a stale stored value (e.g. an old
-    // h:1 saved before the user toggled to logo) auto-corrects on render.
-    // Other widgets are not clamped — they keep their existing stored size.
     if (link.type === WidgetType.GOOGLE_SEARCH) {
       const v = (link as GoogleSearch).variant ?? 'bar';
       if (v === 'logo') { minH = 4; maxH = 4; }
@@ -97,9 +91,6 @@ const DashboardGrid = ({
 }: Readonly<Props>) => {
   const { rowHeight } = useGridDimensions();
   const drag = useDashboardDrag({ links, rowHeight, onMoveLink, onHeaderTargetChange });
-  // Visual hover ring while a header link is being dragged over the grid.
-  // The id itself rides in dataTransfer so we don't depend on cross-event
-  // React state commits.
   const [isHeaderDragOver, setIsHeaderDragOver] = useState(false);
 
   const isHeaderLinkDrag = (e: ReactDragEvent<HTMLDivElement>) =>
@@ -165,10 +156,6 @@ const DashboardGrid = ({
         isDraggable={isEditing}
         isResizable={isEditing}
         draggableHandle=".drag-handle"
-        // Hold the first render until WidthProvider has measured the
-        // container. Without this the grid paints once at the 1280px
-        // fallback then snaps to the real width on the second render —
-        // visible as a layout shift / "glitch" on page load.
         measureBeforeMount={true}
         onDragStart={drag.handleDragStart}
         onDrag={drag.handleDrag}

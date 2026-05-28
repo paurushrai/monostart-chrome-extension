@@ -26,8 +26,6 @@ interface Props {
   onOpenAddLink: () => void;
   onOpenAddWidget: () => void;
   onOpenTheme: () => void;
-  // True while a main-grid or section link is being dragged over the header.
-  // Used purely for the visual highlight ring.
   isDropTarget?: boolean;
 }
 
@@ -173,7 +171,6 @@ export default function AppHeader({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onSelect={(e) => {
-                // Keep the menu open so the checkbox visibly toggles.
                 e.preventDefault();
                 onUpdateSettings({ ...settings, openInNewTab: !settings.openInNewTab });
               }}

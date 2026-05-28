@@ -29,7 +29,6 @@ interface TabInfo {
   favicon: string;
 }
 
-// 'main' = top-level grid · 'header' = header bar · section.id = inside that section
 type Destination = 'main' | 'header' | string;
 
 function PopupApp() {

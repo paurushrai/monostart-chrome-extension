@@ -57,7 +57,6 @@ const HeaderLink = ({
   const url = item.url;
 
   const favicon = resolveFavicon(item);
-  // 'text' is header-specific (renders the site name). Default = icon-only.
   const showAsText = item.viewMode === 'text';
 
   const handleRename = (e: MouseEvent) => {

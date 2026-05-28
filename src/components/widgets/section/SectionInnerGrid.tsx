@@ -39,7 +39,6 @@ interface Props {
   onAddFirstLink: () => void;
 }
 
-/** Slot for the drop-placeholder. Default item w=1 here (small placeholder). */
 const findPlaceholderSlot = (
   links: readonly RegularLink[],
   cols: number,
@@ -78,9 +77,6 @@ export default function SectionInnerGrid({
   onInnerUpdateLink,
   onAddFirstLink,
 }: Readonly<Props>) {
-  // displayLinks holds real RegularLinks; the drop-placeholder is tracked
-  // separately to avoid mixing it into the RegularLink array (it would fail
-  // type narrowing as a Section sub-link).
   type RowItem = RegularLink | DragPlaceholder;
   const displayLinks: RowItem[] = [...links];
 
@@ -99,7 +95,7 @@ export default function SectionInnerGrid({
       const localY = dragCursorCoords.y - rect.top + scrollTop;
 
       const colWidth = rect.width / cols;
-      const rowHeight = 58; // 50 rowHeight + 8 margin
+      const rowHeight = 58;
 
       placeholderX = Math.floor(localX / colWidth);
       placeholderY = Math.floor(localY / rowHeight);
@@ -139,9 +135,6 @@ export default function SectionInnerGrid({
       maxW: cols,
       minH: 1,
       maxH: 2,
-      // Per-item `true` would override the grid-level `isResizable={isEditing}`
-      // and surface the corner grip in view mode. Force-disable only the
-      // placeholder; leave real items to inherit from the grid.
       isResizable: l.id === 'drag-placeholder' ? false : undefined,
     };
   });
@@ -156,8 +149,6 @@ export default function SectionInnerGrid({
       return;
     }
 
-    // Only treat as "inner card" if the matched .rounded-card is inside THIS section body.
-    // (The section itself is wrapped in .rounded-card by DashboardGrid.)
     const target = e.target as Element;
     const closestCard = target.closest('.rounded-card');
     const isInnerCard = closestCard && containerRef.current?.contains(closestCard);

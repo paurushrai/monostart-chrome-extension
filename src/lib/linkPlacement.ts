@@ -1,16 +1,8 @@
-// Pure link-placement helpers. Each function takes an immutable links array
-// + a link to insert, and returns a NEW links array with the link placed.
-// No React, no I/O, no storage.
-
 import { MAIN_COLS, MAIN_ROWS, SECTION_DEFAULT_COLS, findFirstFreeSlot } from './grid';
 import type { OccupiedRect } from './grid';
 import { WidgetType } from './widgetCatalog';
 import type { LinkItem, RegularLink, Section, GridSlot } from '../types';
 
-/**
- * Remove a link by id from anywhere — top-level or inside a section.
- * Returns { cleanedLinks, foundLink } where foundLink is null if not found.
- */
 export const removeLinkAnywhere = (
   links: readonly LinkItem[],
   linkId: string,
@@ -36,13 +28,11 @@ export const removeLinkAnywhere = (
   return { cleanedLinks, foundLink };
 };
 
-/** Default placement size when an item's w/h is missing. */
 const defaultLinkSize = (link: LinkItem): { w: number; h: number } => ({
   w: link.w ?? (link.viewMode === 'icon' ? 1 : 3),
   h: link.h ?? 1,
 });
 
-/** Insert link as a new header link at the end of the header row. */
 export const placeInHeader = (
   cleanedLinks: readonly LinkItem[],
   foundLink: LinkItem,
@@ -62,7 +52,6 @@ export const placeInHeader = (
   ];
 };
 
-/** Resolve a section link's occupied rect with viewMode-aware default sizing. */
 const resolveSectionRect = (l: RegularLink, cols: number): OccupiedRect => ({
   x: l.x ?? 0,
   y: l.y ?? 0,
@@ -70,7 +59,6 @@ const resolveSectionRect = (l: RegularLink, cols: number): OccupiedRect => ({
   h: l.h ?? 1,
 });
 
-/** Find first free slot in a section (unbounded rows). */
 const findSectionSlot = (
   sectionLinks: readonly RegularLink[],
   cols: number,
@@ -82,9 +70,8 @@ const findSectionSlot = (
     itemW,
     itemH,
     cols,
-  ) as GridSlot; // unbounded rows → never null
+  ) as GridSlot;
 
-/** Insert link into a specific section at targetCoords (or next free slot). */
 export const placeInSection = (
   cleanedLinks: readonly LinkItem[],
   foundLink: LinkItem,
@@ -121,7 +108,6 @@ export const placeInSection = (
   });
 };
 
-/** Find first free slot on the main dashboard grid. Falls back to last row if no fit. */
 const findMainSlot = (
   occupiedLinks: readonly LinkItem[],
   itemW: number,
@@ -138,7 +124,6 @@ const findMainSlot = (
   );
 };
 
-/** Insert link onto the main dashboard at targetCoords (or next free slot). */
 export const placeOnMain = (
   cleanedLinks: readonly LinkItem[],
   foundLink: LinkItem,

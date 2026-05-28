@@ -32,7 +32,6 @@ interface Suggestion {
   url?: string;
 }
 
-// SpeechRecognition is a draft API — define a minimal shape we use.
 interface SpeechRecognitionResultEvent {
   resultIndex: number;
   results: ReadonlyArray<{ readonly isFinal: boolean; readonly [index: number]: { readonly transcript: string } }> & {
@@ -106,8 +105,6 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
   const logoStyle: 'color' | 'mono' = item.logoStyle ?? 'color';
   const toggleVariant = () => {
     const nextVariant = variant === 'logo' ? 'bar' : 'logo';
-    // h must follow variant: logo → 3, bar → 1. DashboardGrid pins min/max so
-    // RGL re-clamps automatically on next layout pass.
     onUpdateLink(item.id, { variant: nextVariant, h: nextVariant === 'logo' ? 4 : 1 } as Partial<LinkItem>);
   };
   const toggleLogoStyle = () => {
@@ -143,8 +140,6 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
               return { text: text || h.url || '', type: 'history', url: h.url };
             });
 
-          // Dedupe by display text (case-insensitive). chrome.history.search
-          // returns one entry per visit, so the same query/page can repeat.
           const seenHistory = new Set<string>();
           historyResults = historyResults.filter((h) => {
             const key = h.text.toLowerCase();
@@ -201,8 +196,6 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
     return () => clearTimeout(timeout);
   }, [query]);
 
-  // Reset keyboard selection whenever the user types — typing should always
-  // surface the typed query, not a stale highlighted suggestion.
   useEffect(() => {
     setActiveIndex(-1);
   }, [query]);
@@ -222,7 +215,6 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  // Elevate parent grid item z-index so dropdown doesn't get hidden under other widgets
   useEffect(() => {
     if (containerRef.current) {
       const gridItem = containerRef.current.closest('.react-grid-item') as HTMLElement | null;
@@ -377,7 +369,6 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
           role="search"
           className={`relative flex items-center w-full h-12 px-5 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''}`}
         >
-          {/* Invisible overlay to prevent input/buttons from blocking drag */}
           {isEditing && <div className="absolute inset-0 z-10 bg-transparent rounded-full" />}
 
           <Search size={18} className="text-gray-500 flex-shrink-0" aria-hidden="true" />

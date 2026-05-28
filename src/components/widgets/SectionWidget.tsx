@@ -70,7 +70,6 @@ const SectionWidget = ({
   const addInputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Accept HTML5 drops of header links — the link gets moved into this section.
   const isHeaderLinkDrag = (e: ReactDragEvent<HTMLDivElement>) =>
     e.dataTransfer.types.includes(HEADER_LINK_DRAG_TYPE);
 
@@ -212,7 +211,6 @@ const SectionWidget = ({
   };
 
   const handleUpdateCols = (newCols: number) => {
-    // Clamp any link layouts that exceed the new columns count
     const updatedLinks = links.map(l => {
       const defaultW = l.viewMode === 'icon' ? 1 : Math.min(3, newCols);
       const w = Math.min(l.w ?? defaultW, newCols);
