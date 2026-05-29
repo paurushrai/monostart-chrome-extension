@@ -135,16 +135,7 @@ function WidgetRendererInner({
 }
 
 const WidgetRenderer = memo(WidgetRendererInner, (prev, next) => {
-  const sameItem =
-    prev.item === next.item ||
-    (prev.item.id === next.item.id &&
-      prev.item.type === next.item.type &&
-      prev.item.w === next.item.w &&
-      prev.item.h === next.item.h &&
-      prev.item.x === next.item.x &&
-      prev.item.y === next.item.y);
-
-  if (!sameItem) return false;
+  if (prev.item !== next.item) return false;
   if (prev.isEditing !== next.isEditing) return false;
   if (prev.openInNewTab !== next.openInNewTab) return false;
   if (prev.onDelete !== next.onDelete) return false;
