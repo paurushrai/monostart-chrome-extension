@@ -23,6 +23,8 @@ const EDIT_MODE_KEY = 'dashboardEditMode';
 const ORIGINAL_LINKS_KEY = 'dashboardEditOriginalLinks';
 
 function App() {
+  const { toast, showToast, dismissToast } = useToast();
+
   const {
     links,
     replaceLinks,
@@ -32,12 +34,12 @@ function App() {
     handleUpdateLink,
     handleMoveLink,
     handleHeaderLinkReorder,
+    handleSwap,
     addWidget,
-  } = useLinks();
+  } = useLinks({ onSwapFailed: showToast });
 
   const { settings, updateSettings } = useTheme();
   const headerDrag = useHeaderDrag(handleHeaderLinkReorder);
-  const { toast, showToast, dismissToast } = useToast();
 
   const [isEditing, setIsEditing] = useState<boolean>(() => {
     try { return localStorage.getItem(EDIT_MODE_KEY) === 'true'; } catch { return false; }
@@ -164,6 +166,7 @@ function App() {
           openInNewTab={settings.openInNewTab}
           sections={sections}
           onMoveLink={handleMoveLink}
+          onSwap={handleSwap}
           onHeaderTargetChange={setIsHeaderTargeted}
         />
       </main>
