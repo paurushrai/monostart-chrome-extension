@@ -289,7 +289,7 @@ const SectionWidget = ({
         </div>
       )}
 
-      {isAddingLink && (
+      {isEditing && isAddingLink && (
         <form
           onSubmit={handleAddLinkSubmit}
           className="mt-4 mx-3 p-2 bg-secondary/25 border border-border/30 rounded-lg flex gap-2 items-center shrink-0"
@@ -301,7 +301,7 @@ const SectionWidget = ({
             placeholder="Paste URL..."
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
-            className="h-8 text-xs flex-1 bg-background"
+            className="h-8 text-xs flex-1 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-3 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
           <div className="flex gap-1">
             <Button type="submit" size="icon" className="h-8 w-8 bg-primary hover:bg-primary/90 text-primary-foreground dark:bg-primary dark:hover:bg-primary/90">

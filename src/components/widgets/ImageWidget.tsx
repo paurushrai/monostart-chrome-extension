@@ -204,7 +204,7 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                 placeholder="Paste image URL..."
                 value={inputUrl}
                 onChange={(e) => setInputUrl(e.target.value)}
-                className="h-8 text-xs flex-1"
+                className="h-8 text-xs flex-1 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-3 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
                 onKeyDown={(e) => e.key === 'Enter' && inputUrl.trim() && handleSaveUrl(inputUrl)}
               />
               <Button 
