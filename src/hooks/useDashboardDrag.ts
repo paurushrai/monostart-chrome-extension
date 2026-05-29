@@ -189,14 +189,14 @@ export function useDashboardDrag({
 
   const handleInnerDrag = useCallback((item: RegularLink, parentSectionId: string, clientX: number, clientY: number) => {
     lastInnerDragCoordsRef.current = { x: clientX, y: clientY };
+    setDragCursorCoords({ x: clientX, y: clientY });
+    setDraggedItem(item);
 
     if (isPointOverHeader(clientX, clientY)) {
       onHeaderTargetChange?.(true);
       setActiveDragOutItem(item);
       setDragOutCoords(null);
       setActiveDragSectionId(null);
-      setDragCursorCoords(null);
-      setDraggedItem(null);
       return;
     }
     onHeaderTargetChange?.(false);
@@ -207,8 +207,6 @@ export function useDashboardDrag({
       setActiveDragOutItem(null);
       setDragOutCoords(null);
       setActiveDragSectionId(null);
-      setDragCursorCoords(null);
-      setDraggedItem(null);
       return;
     }
 
@@ -216,14 +214,10 @@ export function useDashboardDrag({
       setActiveDragOutItem(item);
       setDragOutCoords(null);
       setActiveDragSectionId(hoverSectionId);
-      setDragCursorCoords({ x: clientX, y: clientY });
-      setDraggedItem(item);
       return;
     }
 
     setActiveDragSectionId(null);
-    setDragCursorCoords(null);
-    setDraggedItem(null);
 
     const slot = computeMainGridDropSlot(item, clientX, clientY);
     if (!slot) {
@@ -299,7 +293,6 @@ export function useDashboardDrag({
 
     setDragCursorCoords({ x: clientX, y: clientY });
 
-    // Existing LINK-drag affordances (header target, section drop target)
     if (draggedItemType === WidgetType.LINK) {
       if (isPointOverHeader(clientX, clientY)) {
         onHeaderTargetChange?.(true);
@@ -320,7 +313,6 @@ export function useDashboardDrag({
       setActiveDragSectionId((prev) => (prev ? null : prev));
     }
 
-    // Live swap-target preview: whichever widget the cursor is over (excluding self).
     if (!newItem) return;
     const cursorCell = computeCursorCell(clientX, clientY);
     if (!cursorCell) {
@@ -358,9 +350,6 @@ export function useDashboardDrag({
     }
     if (clientX === undefined || clientY === undefined) return;
 
-    // Distinguish a click from a real drag. RGL fires onDragStop even for tiny
-    // pointer jitter on a click, which would falsely trigger swaps. Require the
-    // cursor to have moved at least CLICK_VS_DRAG_THRESHOLD_PX in either axis.
     if (startCoords) {
       const dx = Math.abs(clientX - startCoords.x);
       const dy = Math.abs(clientY - startCoords.y);
@@ -377,22 +366,12 @@ export function useDashboardDrag({
     if (targetSectionId) {
       const draggedLink = links.find((l) => l.id === newItem.i && l.type === WidgetType.LINK) as RegularLink | undefined;
       if (draggedLink) {
-        // Link drag-INTO section: existing behavior
         const targetCoords = computeSectionDropCoords(draggedLink, targetSectionId, clientX, clientY);
         onMoveLink(draggedLink.id, targetSectionId, targetCoords);
         return;
       }
-      // Non-link widget dragged onto a section: fall through to swap detection
-      // (the dragged item can't enter the section; the section becomes the swap target)
     }
 
-    // Main-grid swap detection: react-grid-layout with preventCollision=true
-    // doesn't reject collisions — it snaps the dragged item to the closest
-    // non-colliding slot. So `newItem` ≠ `oldItem` is meaningless. Instead we
-    // check the user's cursor-intent: does the slot the user actually aimed at
-    // overlap another widget? If yes, swap them (using the PRE-drag rect so the
-    // exchange is clean, ignoring whatever intermediate slot RGL moved the
-    // dragged item to).
     const draggedItem = links.find((l) => l.id === newItem.i);
     if (!draggedItem || draggedItem.isHeaderLink) return;
     if (!oldItem) return;
@@ -404,7 +383,6 @@ export function useDashboardDrag({
         rect: { x: l.x as number, y: l.y as number, w: l.w ?? 1, h: l.h ?? 1 },
       }));
 
-    // Primary: whatever the cursor lands on. Most forgiving — "drop on this widget = swap with it".
     let swapTargetId: string | null = null;
     const cursorCell = computeCursorCell(clientX, clientY);
     if (cursorCell) {
@@ -417,8 +395,6 @@ export function useDashboardDrag({
       if (hit) swapTargetId = hit.id;
     }
 
-    // Fallback: cursor missed all widgets (e.g., between cells), but the dragged
-    // item's intended slot overlaps something. Use overlap-area winner.
     if (!swapTargetId) {
       const slot = computeMainGridDropSlot(draggedItem, clientX, clientY);
       if (slot) {

@@ -54,11 +54,6 @@ export interface UseLinksOptions {
 
 export function useLinks(opts: UseLinksOptions = {}): UseLinks {
   const [links, setLinks] = useState<LinkItem[]>(() => normalize(getLinksSync()));
-  // After a swap, react-grid-layout fires onLayoutChange repeatedly with its
-  // pre-swap layout (drag-final + a re-sync when it sees the new layout prop).
-  // This timestamp tells handleLayoutChange to drop any incoming layout for a
-  // short window. The window is far longer than RGL's reconciliation but short
-  // enough that legitimate user drags right after a swap still register.
   const swapSuppressUntilRef = useRef(0);
   const SWAP_SUPPRESS_MS = 250;
   const onSwapFailedRef = useRef(opts.onSwapFailed);
@@ -270,9 +265,6 @@ export function useLinks(opts: UseLinksOptions = {}): UseLinks {
       if (dragged.isHeaderLink || target.isHeaderLink) return prevLinks;
       if (target.x === undefined || target.y === undefined) return prevLinks;
 
-      // Prefer the pre-drag rect when provided (RGL may have moved the dragged
-      // widget to a partial-overlap slot before this fires; we want the true
-      // pre-drag origin so the swap is a clean exchange).
       const draggedRect = draggedSourceRect ?? (
         dragged.x !== undefined && dragged.y !== undefined
           ? { x: dragged.x, y: dragged.y, w: dragged.w ?? 1, h: dragged.h ?? 1 }
@@ -291,9 +283,6 @@ export function useLinks(opts: UseLinksOptions = {}): UseLinks {
         },
       );
 
-      // Make sure neither new rect overlaps a third-party widget (or extends
-      // past grid bounds). Without this guard, size-clamping during swap can
-      // place a widget on top of an unrelated one.
       const obstacles = prevLinks
         .filter((l) => l.id !== draggedId && l.id !== targetId && !l.isHeaderLink && l.x !== undefined && l.y !== undefined)
         .map((l) => ({ x: l.x as number, y: l.y as number, w: l.w ?? 1, h: l.h ?? 1 }));
@@ -313,7 +302,6 @@ export function useLinks(opts: UseLinksOptions = {}): UseLinks {
       let targetFinal = result.targetRect;
 
       if (!pairFits(draggedFinal, targetFinal)) {
-        // Fallback: shrink both to their absolute minimum at the same anchor.
         const minDragged = {
           x: draggedFinal.x,
           y: draggedFinal.y,
@@ -330,7 +318,6 @@ export function useLinks(opts: UseLinksOptions = {}): UseLinks {
           draggedFinal = minDragged;
           targetFinal = minTarget;
         } else {
-          // Diagnose why so the user gets actionable feedback.
           let reason = 'Can’t swap — not enough room to fit both widgets at their new positions.';
           const draggedOutOfBounds = draggedFinal.x < 0 || draggedFinal.x + draggedFinal.w > MAIN_COLS;
           const targetOutOfBounds = targetFinal.x < 0 || targetFinal.x + targetFinal.w > MAIN_COLS;
