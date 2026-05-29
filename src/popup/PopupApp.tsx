@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { getSettings, getLinks } from '../lib/storage';
 import { saveLink } from '../lib/linkRepository';
 import { disambiguateSections } from '../lib/disambiguateSections';
-import { BookmarkPlus, Check, ExternalLink, Bell, X, Repeat, LayoutGrid, Bookmark, Folder, ChevronDown } from 'lucide-react';
+import { BookmarkPlus, Check, ExternalLink, Bell, X, Repeat, LayoutGrid, Bookmark, Folder, ChevronDown, Hexagon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -205,7 +205,10 @@ function PopupApp() {
         </section>
       )}
 
-      <h3 className="m-0 text-sm font-semibold text-ink">Save to MonoStart</h3>
+      <h3 className="m-0 text-sm font-semibold text-ink flex items-center gap-1.5">
+        <Hexagon size={16} strokeWidth={2.5} className="text-white" aria-hidden="true" />
+        Save to MonoStart
+      </h3>
 
       {tabInfo && (
         <div className="flex items-center gap-3 overflow-hidden">
