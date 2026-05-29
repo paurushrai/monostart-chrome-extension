@@ -22,7 +22,9 @@ const SAFETY_ALARM = 'reminders-safety';
 const REMINDER_KEY_PREFIX = 'reminders-widget-';
 const PENDING_KEY = 'pendingReminders';
 const OFFSCREEN_URL = 'offscreen.html';
-const HOUR_MS = 60 * 60 * 1000;
+const MINUTE_MS = 60 * 1000;
+const HALF_HOUR_MS = 30 * MINUTE_MS;
+const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 const WEEK_MS = 7 * DAY_MS;
 
@@ -201,11 +203,30 @@ chrome.runtime.onStartup.addListener(() => {
   runReminderTick().then(rescheduleNextTick).catch((err) => console.error('[reminders] startup failed', err));
 });
 
-const advanceDueAt = (dueAt, recurrence, now) => {
+const formatRecurrenceLabel = (entry) => {
+  switch (entry.recurrence) {
+    case '30min': return '30 min';
+    case 'hourly': return 'hourly';
+    case 'daily': return 'daily';
+    case 'weekly': return 'weekly';
+    case 'custom': {
+      const ms = entry.customIntervalMs || 0;
+      const minutes = Math.max(1, Math.round(ms / MINUTE_MS));
+      if (minutes >= 1440 && minutes % 1440 === 0) return `every ${minutes / 1440}d`;
+      if (minutes >= 60 && minutes % 60 === 0) return `every ${minutes / 60}h`;
+      return `every ${minutes}m`;
+    }
+    default: return '';
+  }
+};
+
+const advanceDueAt = (dueAt, recurrence, now, customIntervalMs) => {
   const step =
+    recurrence === '30min' ? HALF_HOUR_MS :
     recurrence === 'hourly' ? HOUR_MS :
     recurrence === 'daily' ? DAY_MS :
     recurrence === 'weekly' ? WEEK_MS :
+    recurrence === 'custom' ? Math.max(MINUTE_MS, customIntervalMs || 0) :
     0;
   if (!step) return dueAt;
   let next = dueAt + step;
@@ -219,7 +240,7 @@ const tryFireOsNotification = async (entry, timeLabel) => {
     if (level !== 'granted') return;
     const iconUrl = await generateIconUrl();
     if (!iconUrl) return;
-    const recurrenceSuffix = entry.recurrence !== 'none' ? ` · ${entry.recurrence}` : '';
+    const recurrenceSuffix = entry.recurrence !== 'none' ? ` · ${formatRecurrenceLabel(entry)}` : '';
     await chrome.notifications.create(`reminder-${entry.id}-${Date.now()}`, {
       type: 'basic',
       iconUrl,
@@ -265,7 +286,7 @@ const processReminderKey = async (key, entries, now) => {
     if (entry.recurrence === 'none') {
       next.push({ ...entry, lastFiredAt: now });
     } else {
-      next.push({ ...entry, lastFiredAt: now, dueAt: advanceDueAt(entry.dueAt, entry.recurrence, now) });
+      next.push({ ...entry, lastFiredAt: now, dueAt: advanceDueAt(entry.dueAt, entry.recurrence, now, entry.customIntervalMs) });
     }
   }
 
