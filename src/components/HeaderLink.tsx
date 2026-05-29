@@ -107,13 +107,13 @@ const HeaderLink = ({
         src={favicon}
         alt=""
         draggable={false}
-        className="w-4 h-4 object-contain rounded-[3px] pointer-events-none"
+        className="w-5 h-5 object-contain rounded-[3px] pointer-events-none"
       />
     );
   } else {
     linkContent = (
-      <div className="flex items-center justify-center text-muted-foreground w-4 h-4 pointer-events-none">
-        <Link2 size={12} />
+      <div className="flex items-center justify-center text-muted-foreground w-5 h-5 pointer-events-none">
+        <Link2 size={14} />
       </div>
     );
   }
@@ -139,7 +139,7 @@ const HeaderLink = ({
         rel="noopener noreferrer"
         draggable={false}
         onClick={(e) => isEditing && e.preventDefault()}
-        className="flex items-center justify-center w-full h-full select-none"
+        className="flex items-center justify-center w-full h-full select-none rounded outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
       >
         {linkContent}
       </a>
