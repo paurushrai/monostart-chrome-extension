@@ -21,6 +21,11 @@ export function useHeaderDrag(
   const onDragStart = useCallback((id: string, e: ReactDragEvent) => {
     e.dataTransfer.setData(HEADER_LINK_DRAG_TYPE, id);
     e.dataTransfer.effectAllowed = 'move';
+    const preview = (e.currentTarget as HTMLElement).querySelector('img, svg') as HTMLElement | null;
+    if (preview) {
+      const rect = preview.getBoundingClientRect();
+      e.dataTransfer.setDragImage(preview, rect.width / 2, rect.height / 2);
+    }
     setDraggedHeaderLinkId(id);
   }, []);
 
