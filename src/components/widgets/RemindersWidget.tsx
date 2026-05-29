@@ -10,6 +10,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 import type { Reminders as RemindersItem, ReminderEntry } from '../../types';
 
 interface Props {
@@ -18,14 +25,41 @@ interface Props {
   isEditing: boolean;
 }
 
-const RECURRENCE_LABEL: Record<ReminderEntry['recurrence'], string> = {
-  none: 'Once',
-  hourly: 'Hourly',
-  daily: 'Daily',
-  weekly: 'Weekly',
+const MINUTE_MS = 60_000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+const CUSTOM_MIN_MS = MINUTE_MS;
+const CUSTOM_MAX_MS = 365 * DAY_MS;
+
+type CustomUnit = 'm' | 'h' | 'd';
+
+const unitToMs = (unit: CustomUnit): number =>
+  unit === 'd' ? DAY_MS : unit === 'h' ? HOUR_MS : MINUTE_MS;
+
+const formatCustomMs = (ms: number): string => {
+  const minutes = Math.max(1, Math.round(ms / MINUTE_MS));
+  if (minutes >= 1440 && minutes % 1440 === 0) return `Every ${minutes / 1440}d`;
+  if (minutes >= 60 && minutes % 60 === 0) return `Every ${minutes / 60}h`;
+  return `Every ${minutes}m`;
 };
 
-const RECURRENCE_OPTIONS: ReadonlyArray<ReminderEntry['recurrence']> = ['none', 'hourly', 'daily', 'weekly'];
+const recurrenceLabel = (
+  recurrence: ReminderEntry['recurrence'],
+  customIntervalMs?: number,
+): string => {
+  switch (recurrence) {
+    case 'none': return 'Once';
+    case '30min': return 'Every 30 min';
+    case 'hourly': return 'Hourly';
+    case 'daily': return 'Daily';
+    case 'weekly': return 'Weekly';
+    case 'custom': return customIntervalMs ? formatCustomMs(customIntervalMs) : 'Custom';
+  }
+};
+
+const RECURRENCE_OPTIONS: ReadonlyArray<ReminderEntry['recurrence']> = [
+  'none', '30min', 'hourly', 'daily', 'weekly', 'custom',
+];
 
 const defaultDueAt = (): Date => {
   const d = new Date(Date.now() + 60 * 60 * 1000);
@@ -57,6 +91,9 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
   const [text, setText] = useState('');
   const [dueAt, setDueAt] = useState<Date>(defaultDueAt);
   const [recurrence, setRecurrence] = useState<ReminderEntry['recurrence']>('none');
+  const [customValue, setCustomValue] = useState<number>(1);
+  const [customUnit, setCustomUnit] = useState<CustomUnit>('h');
+  const [recurrenceOpen, setRecurrenceOpen] = useState(false);
 
   const sorted = useMemo(
     () => [...reminders].sort((a, b) => a.dueAt - b.dueAt),
@@ -81,16 +118,22 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
     if (!trimmed) return;
     const due = dueAt.getTime();
     if (Number.isNaN(due)) return;
+    const customIntervalMs = recurrence === 'custom'
+      ? Math.min(CUSTOM_MAX_MS, Math.max(CUSTOM_MIN_MS, customValue * unitToMs(customUnit)))
+      : undefined;
     const entry: ReminderEntry = {
       id: `r-${crypto.randomUUID()}`,
       text: trimmed,
       dueAt: due,
       recurrence,
+      ...(customIntervalMs !== undefined && { customIntervalMs }),
     };
     saveReminders((current) => [...current, entry]);
     setText('');
     setDueAt(defaultDueAt());
     setRecurrence('none');
+    setCustomValue(1);
+    setCustomUnit('h');
   };
 
   const toggleComplete = (id: string) => {
@@ -153,7 +196,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
                 </p>
                 <p className={`text-2xs mt-0.5 ${overdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-muted-foreground'}`}>
                   <time dateTime={new Date(r.dueAt).toISOString()}>{formatDue(r.dueAt)}</time>
-                  {r.recurrence !== 'none' && <span className="ml-1.5">· {RECURRENCE_LABEL[r.recurrence]}</span>}
+                  {r.recurrence !== 'none' && <span className="ml-1.5">· {recurrenceLabel(r.recurrence, r.customIntervalMs)}</span>}
                 </p>
               </div>
               <Button
@@ -184,7 +227,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
           <div className="flex-1 min-w-0">
             <DateTimePicker value={dueAt} onChange={setDueAt} />
           </div>
-          <DropdownMenu>
+          <DropdownMenu open={recurrenceOpen} onOpenChange={setRecurrenceOpen}>
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
@@ -193,23 +236,85 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
                 title="Recurrence"
                 className="h-8 px-2 rounded-sm text-xs font-medium bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 shrink-0"
               >
-                {RECURRENCE_LABEL[recurrence]}
+                {recurrence === 'custom'
+                  ? formatCustomMs(customValue * unitToMs(customUnit))
+                  : recurrenceLabel(recurrence)}
                 <ChevronDown size={12} className="ml-1 opacity-60" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[110px]">
-              {RECURRENCE_OPTIONS.map((opt) => (
-                <DropdownMenuItem
-                  key={opt}
-                  onClick={() => setRecurrence(opt)}
-                  className="flex items-center gap-2 text-xs"
+            <DropdownMenuContent align="end" className="min-w-[140px]">
+              {RECURRENCE_OPTIONS.map((opt) => {
+                if (opt === 'custom') {
+                  return (
+                    <DropdownMenuItem
+                      key={opt}
+                      onSelect={(e) => { e.preventDefault(); setRecurrence('custom'); }}
+                      className="flex items-center gap-2 text-xs"
+                    >
+                      <span className="w-3.5 inline-flex justify-center">
+                        {recurrence === 'custom' && <Check size={12} />}
+                      </span>
+                      <span>Custom</span>
+                    </DropdownMenuItem>
+                  );
+                }
+                return (
+                  <DropdownMenuItem
+                    key={opt}
+                    onClick={() => setRecurrence(opt)}
+                    className="flex items-center gap-2 text-xs"
+                  >
+                    <span className="w-3.5 inline-flex justify-center">
+                      {recurrence === opt && <Check size={12} />}
+                    </span>
+                    <span>{recurrenceLabel(opt)}</span>
+                  </DropdownMenuItem>
+                );
+              })}
+              {recurrence === 'custom' && (
+                <div
+                  className="border-t border-border mt-1 pt-2 px-2 pb-2 space-y-1.5"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
                 >
-                  <span className="w-3.5 inline-flex justify-center">
-                    {recurrence === opt && <Check size={12} />}
-                  </span>
-                  <span>{RECURRENCE_LABEL[opt]}</span>
-                </DropdownMenuItem>
-              ))}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-2xs text-muted-foreground shrink-0">Every</span>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={customValue}
+                      onChange={(e) => {
+                        const n = parseInt(e.target.value, 10);
+                        setCustomValue(Number.isFinite(n) ? Math.max(1, Math.min(365, n)) : 1);
+                      }}
+                      aria-label="Custom interval value"
+                      className="w-14 h-7 text-xs px-2 bg-gray-100 dark:bg-white/5 border-none rounded-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
+                    />
+                    <Select value={customUnit} onValueChange={(v) => setCustomUnit(v as CustomUnit)}>
+                      <SelectTrigger
+                        aria-label="Custom interval unit"
+                        className="h-7 w-[5.5rem] px-2 text-xs bg-gray-100 dark:bg-white/5 border-none rounded-sm shadow-none focus:ring-1 focus:ring-primary focus:ring-offset-0"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="min-w-[6rem]">
+                        <SelectItem value="m" className="text-xs">Minutes</SelectItem>
+                        <SelectItem value="h" className="text-xs">Hours</SelectItem>
+                        <SelectItem value="d" className="text-xs">Days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-6 px-2 text-2xs w-full"
+                    onClick={() => setRecurrenceOpen(false)}
+                  >
+                    Save
+                  </Button>
+                </div>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
           <Button

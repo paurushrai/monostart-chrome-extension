@@ -119,7 +119,8 @@ export interface ReminderEntry {
   id: string;
   text: string;
   dueAt: number;
-  recurrence: 'none' | 'hourly' | 'daily' | 'weekly';
+  recurrence: 'none' | '30min' | 'hourly' | 'daily' | 'weekly' | 'custom';
+  customIntervalMs?: number;
   lastFiredAt?: number;
   completed?: boolean;
 }
