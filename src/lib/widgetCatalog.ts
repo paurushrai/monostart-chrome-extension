@@ -96,7 +96,7 @@ const WIDGETS = [
     description: 'Write notes or reminders with custom colors.',
     icon: FileText,
     defaults: { w: 3, h: 3, title: 'Sticky Note', content: '', noteColor: 'default' },
-    layout: { minW: 1, minH: 1, resizable: true },
+    layout: { minW: 3, minH: 3, resizable: true },
   },
   {
     type: WidgetType.IMAGE,
