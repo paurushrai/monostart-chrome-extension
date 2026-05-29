@@ -26,7 +26,7 @@ export const isEmbedCode = (input: string | null | undefined): boolean => {
 const YOUTUBE_ID = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|live\/|embed\/))([A-Za-z0-9_-]{6,})/;
 const VIMEO_ID = /vimeo\.com\/(?:video\/)?(\d+)/;
 const SPOTIFY = /open\.spotify\.com\/(track|album|playlist|episode|show|artist)\/([A-Za-z0-9]+)/;
-const TWITCH_CHANNEL = /twitch\.tv\/([A-Za-z0-9_]+)(?:$|\?|\/)/;
+const TWITCH_CHANNEL = /twitch\.tv\/(\w+)(?:$|\?|\/)/;
 const LOOM = /loom\.com\/share\/([A-Za-z0-9]+)/;
 
 export const rewriteToEmbedUrl = (rawUrl: string | null | undefined): string | null | undefined => {

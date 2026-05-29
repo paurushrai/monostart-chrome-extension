@@ -25,6 +25,14 @@ export default defineConfig([
     },
   },
 
+  // Offscreen document — runs in a hidden page with Chrome extension APIs.
+  {
+    files: ['src/offscreen.js'],
+    languageOptions: {
+      globals: { ...globals.browser, chrome: 'readonly' },
+    },
+  },
+
   // Legacy JS/JSX files (background.js, theme-init.js, etc.)
   {
     files: ['**/*.{js,jsx}'],

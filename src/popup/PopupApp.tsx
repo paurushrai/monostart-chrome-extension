@@ -110,14 +110,15 @@ function PopupApp() {
     setTimeout(() => window.close(), 1500);
   };
 
+  const tabUrl = tabInfo?.url;
   const pageHost = useMemo(() => {
-    if (!tabInfo?.url) return '';
+    if (!tabUrl) return '';
     try {
-      return new URL(tabInfo.url).hostname.replace(/^www\./, '');
+      return new URL(tabUrl).hostname.replace(/^www\./, '');
     } catch {
       return '';
     }
-  }, [tabInfo?.url]);
+  }, [tabUrl]);
 
   const displaySections = useMemo(() => disambiguateSections(sections), [sections]);
   const destinationLabel =

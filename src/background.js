@@ -219,11 +219,12 @@ const tryFireOsNotification = async (entry, timeLabel) => {
     if (level !== 'granted') return;
     const iconUrl = await generateIconUrl();
     if (!iconUrl) return;
+    const recurrenceSuffix = entry.recurrence !== 'none' ? ` · ${entry.recurrence}` : '';
     await chrome.notifications.create(`reminder-${entry.id}-${Date.now()}`, {
       type: 'basic',
       iconUrl,
       title: 'Reminder',
-      message: `${entry.text}${entry.recurrence !== 'none' ? ` · ${entry.recurrence}` : ''} (${timeLabel})`,
+      message: `${entry.text}${recurrenceSuffix} (${timeLabel})`,
       priority: 2,
       requireInteraction: true,
     });

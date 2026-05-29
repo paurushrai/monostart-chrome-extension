@@ -51,9 +51,11 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
   displayLinks.map((link) => {
     const isPlaceholder = link.id === PLACEHOLDER_ID;
     const meta = getWidgetMeta(link.type);
-    let { minW, maxW, minH, maxH } = meta?.layout ?? {};
-    const { resizable } = meta?.layout ?? {};
-    let { w, h } = initialSize(link, meta);
+    const { minW, maxW, resizable } = meta?.layout ?? {};
+    let { minH, maxH } = meta?.layout ?? {};
+    const initial = initialSize(link, meta);
+    const w = initial.w;
+    let h = initial.h;
 
     if (link.type === WidgetType.GOOGLE_SEARCH) {
       const v = (link as GoogleSearch).variant ?? 'bar';
