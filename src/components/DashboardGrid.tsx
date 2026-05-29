@@ -140,7 +140,7 @@ const DashboardGrid = ({
 
   return (
     <div
-      className={`w-full rounded-lg transition-colors ${isHeaderDragOver ? 'bg-primary/5 ring-2 ring-primary/40' : ''}`}
+      className={`w-full min-h-full rounded-lg transition-colors ${isHeaderDragOver ? 'bg-primary/5 ring-2 ring-primary/40' : ''}`}
       ref={drag.gridRef}
       onDragOver={handleHeaderDragOver}
       onDragLeave={handleHeaderDragLeave}
