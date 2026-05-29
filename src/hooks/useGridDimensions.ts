@@ -22,6 +22,20 @@ const computeDimensions = (): GridDimensions => {
   return { rowHeight: Math.floor(rowHeight) };
 };
 
+const PHOTO_CONFIG_HEADER_PX = 36;
+const PHOTO_CONFIG_BODY_PX = 156;
+
+export const photoConfigFitsAt3Rows = (): boolean => {
+  const { rowHeight } = computeDimensions();
+  const cardBodyPx = 3 * rowHeight + 2 * ROW_MARGIN_PX - PHOTO_CONFIG_HEADER_PX;
+  return cardBodyPx >= PHOTO_CONFIG_BODY_PX;
+};
+
+export const getPhotoWidgetSize = (): { w: number; h: number } => {
+  const d = photoConfigFitsAt3Rows() ? 3 : 4;
+  return { w: d, h: d };
+};
+
 export function useGridDimensions(): GridDimensions {
   const [dims, setDims] = useState<GridDimensions>(computeDimensions);
 

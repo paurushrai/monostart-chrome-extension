@@ -7,6 +7,7 @@ import AppHeader from './components/AppHeader';
 import ClearDashboardModal from './components/ClearDashboardModal';
 import Toast from './components/Toast';
 import { useLinks } from './hooks/useLinks';
+import { getPhotoWidgetSize } from './hooks/useGridDimensions';
 import { useTheme } from './hooks/useTheme';
 import { useHeaderDrag } from './hooks/useHeaderDrag';
 import { useToast } from './hooks/useToast';
@@ -82,13 +83,19 @@ function App() {
   }, [isEditing, enterEditModeWithSnapshot]);
 
   const saveEditMode = useCallback(() => {
+    const isEmptyImage = (l: LinkItem) => l.type === 'image' && !(l.url ?? '').trim();
+    const emptyImageCount = links.filter(isEmptyImage).length;
+    if (emptyImageCount > 0) {
+      replaceLinks(links.filter((l) => !isEmptyImage(l)));
+      showToast(`Removed ${emptyImageCount} empty photo widget${emptyImageCount === 1 ? '' : 's'}.`);
+    }
     setIsEditing(false);
     setOriginalLinks([]);
     try {
       localStorage.removeItem(EDIT_MODE_KEY);
       localStorage.removeItem(ORIGINAL_LINKS_KEY);
     } catch { /* empty */ }
-  }, []);
+  }, [links, replaceLinks, showToast]);
 
   const cancelEditMode = useCallback(() => {
     replaceLinks(originalLinks);
@@ -118,7 +125,10 @@ function App() {
       return;
     }
     if (!isEditing) preAddSnapshotRef.current = getLinksSync();
-    const saved = await addWidget(widget);
+    const sized = widget.type === 'image'
+      ? { ...widget, defaults: { ...widget.defaults, ...getPhotoWidgetSize() } }
+      : widget;
+    const saved = await addWidget(sized);
     if (!saved) {
       preAddSnapshotRef.current = null;
       showToast('No room for this widget. Resize or remove something to make space.');
