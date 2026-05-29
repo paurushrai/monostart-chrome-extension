@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid } from 'lucide-react';
+import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid, Trash2 } from 'lucide-react';
 import type { LinkItem, RegularLink, Section, Settings as AppSettings, GridSlot } from '../types';
 import type { UseHeaderDrag } from '../hooks/useHeaderDrag';
 
@@ -26,6 +26,7 @@ interface Props {
   onOpenAddLink: () => void;
   onOpenAddWidget: () => void;
   onOpenTheme: () => void;
+  onClearDashboard: () => void;
   isDropTarget?: boolean;
 }
 
@@ -44,6 +45,7 @@ export default function AppHeader({
   onOpenAddLink,
   onOpenAddWidget,
   onOpenTheme,
+  onClearDashboard,
   isDropTarget = false,
 }: Readonly<Props>) {
   const headerLinks = links
@@ -103,6 +105,16 @@ export default function AppHeader({
       <div className="flex items-center justify-end gap-3 relative">
         {isEditing && (
           <div className="flex items-center gap-2 mr-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClearDashboard}
+              title="Clear dashboard"
+              className="text-red-500 hover:text-red-500 hover:bg-red-500/10 dark:hover:bg-red-500/15"
+            >
+              <Trash2 size={14} className="mr-1.5" />
+              Clear
+            </Button>
             <Button variant="outline" size="sm" onClick={onCancelEdit}>
               Cancel
             </Button>
