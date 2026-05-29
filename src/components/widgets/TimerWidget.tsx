@@ -126,19 +126,17 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
       isRunning: false,
       endTime: null,
     };
-    saveTimers([...timers, newTimer]);
+    saveTimers((current) => [...current, newTimer]);
     setNewMinutes("");
     setNewLabel("");
   };
 
   const updateTimer = (id: number, updates: Partial<TimerEntry>) => {
-    const updated = timers.map(t => t.id === id ? { ...t, ...updates } : t);
-    saveTimers(updated);
+    saveTimers((current) => current.map(t => t.id === id ? { ...t, ...updates } : t));
   };
 
   const deleteTimer = (id: number) => {
-    const updated = timers.filter(t => t.id !== id);
-    saveTimers(updated);
+    saveTimers((current) => current.filter(t => t.id !== id));
   };
 
   return (

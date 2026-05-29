@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import LinkCard from './LinkCard';
 import IframeWidget from './IframeWidget';
 import GoogleSearchWidget from './widgets/GoogleSearchWidget';
@@ -52,7 +53,7 @@ interface Props {
 const isPlaceholder = (item: DisplayItem): item is DragPlaceholder =>
   item.id === 'drag-out-placeholder' || item.id === 'drag-placeholder';
 
-export default function WidgetRenderer({
+function WidgetRendererInner({
   item,
   isEditing,
   openInNewTab,
@@ -132,3 +133,36 @@ export default function WidgetRenderer({
       );
   }
 }
+
+const WidgetRenderer = memo(WidgetRendererInner, (prev, next) => {
+  const sameItem =
+    prev.item === next.item ||
+    (prev.item.id === next.item.id &&
+      prev.item.type === next.item.type &&
+      prev.item.w === next.item.w &&
+      prev.item.h === next.item.h &&
+      prev.item.x === next.item.x &&
+      prev.item.y === next.item.y);
+
+  if (!sameItem) return false;
+  if (prev.isEditing !== next.isEditing) return false;
+  if (prev.openInNewTab !== next.openInNewTab) return false;
+  if (prev.onDelete !== next.onDelete) return false;
+  if (prev.onViewModeChange !== next.onViewModeChange) return false;
+  if (prev.onUpdateLink !== next.onUpdateLink) return false;
+  if (prev.onMoveLink !== next.onMoveLink) return false;
+
+  if (next.item.type === 'section') {
+    if (prev.activeDragSectionId !== next.activeDragSectionId) return false;
+    if (prev.dragCursorCoords !== next.dragCursorCoords) return false;
+    if (prev.draggedItem !== next.draggedItem) return false;
+    if (prev.sections !== next.sections) return false;
+    if (prev.onInnerDragStart !== next.onInnerDragStart) return false;
+    if (prev.onInnerDrag !== next.onInnerDrag) return false;
+    if (prev.onInnerDragStop !== next.onInnerDragStop) return false;
+  }
+
+  return true;
+});
+
+export default WidgetRenderer;
