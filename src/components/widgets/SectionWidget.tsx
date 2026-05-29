@@ -197,7 +197,7 @@ const SectionWidget = ({
           ...l,
           viewMode: newMode,
           w: isIconOnly ? 1 : Math.min(3, cols),
-          h: isIconOnly ? 1 : 1,
+          h: 1,
         };
       }
       return l;

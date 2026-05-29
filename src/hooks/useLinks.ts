@@ -149,7 +149,7 @@ export function useLinks(): UseLinks {
               ...l,
               viewMode: newMode,
               w: isIconOnly ? 1 : 3,
-              h: isIconOnly ? 1 : 1,
+              h: 1,
             };
           }
           if (l.type === WidgetType.SECTION && (l as Section).links) {

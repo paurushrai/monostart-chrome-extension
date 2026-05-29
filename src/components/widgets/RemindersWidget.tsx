@@ -63,19 +63,17 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
     [reminders],
   );
 
-  const [, setTick] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const current = Date.now();
     const upcoming = reminders
-      .filter((r) => !r.completed && r.dueAt > current)
+      .filter((r) => !r.completed && r.dueAt > now)
       .map((r) => r.dueAt);
     const delay = upcoming.length === 0
       ? 60_000
-      : Math.max(50, Math.min(...upcoming) - current + 50);
-    const id = setTimeout(() => setTick((n) => n + 1), delay);
+      : Math.max(50, Math.min(...upcoming) - now + 50);
+    const id = setTimeout(() => setNow(Date.now()), delay);
     return () => clearTimeout(id);
-  }, [reminders]);
-  const now = Date.now();
+  }, [reminders, now]);
 
   const handleAdd = (e: FormEvent) => {
     e.preventDefault();
@@ -84,7 +82,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
     const due = dueAt.getTime();
     if (Number.isNaN(due)) return;
     const entry: ReminderEntry = {
-      id: `r-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      id: `r-${crypto.randomUUID()}`,
       text: trimmed,
       dueAt: due,
       recurrence,
