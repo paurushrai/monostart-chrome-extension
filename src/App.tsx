@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import DashboardGrid from './components/DashboardGrid';
+import DashboardBackground from './components/DashboardBackground';
 import AddWidgetModal from './components/AddWidgetModal';
 import ThemeSettingsModal from './components/ThemeSettingsModal';
 import AddLinkModal from './components/AddLinkModal';
@@ -141,8 +142,12 @@ function App() {
     links.filter((l): l is Section => l.type === 'section'),
   );
 
+  const hasBackground = !!(settings.background && settings.background.type !== 'none' && settings.background.value);
+
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-background transition-colors duration-200">
+    <div className={`flex flex-col h-screen w-screen overflow-hidden transition-colors duration-200 ${hasBackground ? 'bg-transparent' : 'bg-background'}`}>
+      <DashboardBackground background={settings.background} />
+      <div className="relative z-10 flex flex-col flex-1 min-h-0">
       <AppHeader
         links={links}
         isEditing={isEditing}
@@ -180,6 +185,7 @@ function App() {
           onHeaderTargetChange={setIsHeaderTargeted}
         />
       </main>
+      </div>
 
       <AddWidgetModal
         open={modalOpen}
