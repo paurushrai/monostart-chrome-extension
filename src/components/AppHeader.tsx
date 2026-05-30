@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid } from 'lucide-react';
+import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid, BookmarkPlus } from 'lucide-react';
 import type { LinkItem, RegularLink, Section, Settings as AppSettings, GridSlot } from '../types';
 import type { UseHeaderDrag } from '../hooks/useHeaderDrag';
 
@@ -26,6 +26,8 @@ interface Props {
   onOpenAddLink: () => void;
   onOpenAddWidget: () => void;
   onOpenTheme: () => void;
+  onImportBookmarks: () => void;
+  canImportBookmarks: boolean;
   isDropTarget?: boolean;
 }
 
@@ -44,6 +46,8 @@ export default function AppHeader({
   onOpenAddLink,
   onOpenAddWidget,
   onOpenTheme,
+  onImportBookmarks,
+  canImportBookmarks,
   isDropTarget = false,
 }: Readonly<Props>) {
   const headerLinks = links
@@ -151,6 +155,16 @@ export default function AppHeader({
               >
                 <Edit2 size={14} className="text-muted-foreground" />
                 <span>Edit Dashboard</span>
+              </DropdownMenuItem>
+            )}
+
+            {canImportBookmarks && (
+              <DropdownMenuItem
+                onClick={onImportBookmarks}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <BookmarkPlus size={14} className="text-muted-foreground" />
+                <span>Import Bookmarks</span>
               </DropdownMenuItem>
             )}
 

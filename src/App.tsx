@@ -4,6 +4,7 @@ import AddWidgetModal from './components/AddWidgetModal';
 import ThemeSettingsModal from './components/ThemeSettingsModal';
 import AddLinkModal from './components/AddLinkModal';
 import AppHeader from './components/AppHeader';
+import ImportBookmarksModal from './components/ImportBookmarksModal';
 import Toast from './components/Toast';
 import { useLinks } from './hooks/useLinks';
 import { useTheme } from './hooks/useTheme';
@@ -11,6 +12,7 @@ import { useHeaderDrag } from './hooks/useHeaderDrag';
 import { useToast } from './hooks/useToast';
 import { disambiguateSections } from './lib/disambiguateSections';
 import { getLinksSync } from './lib/storage';
+import { buildImport, readBookmarkTree } from './lib/bookmarkImport';
 import type { LinkItem, Section } from './types';
 
 interface AddWidgetInput {
@@ -50,6 +52,7 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
   const [addLinkModalOpen, setAddLinkModalOpen] = useState(false);
+  const [importBookmarksOpen, setImportBookmarksOpen] = useState(false);
   const [isHeaderTargeted, setIsHeaderTargeted] = useState(false);
 
   const preAddSnapshotRef = useRef<LinkItem[] | null>(null);
@@ -96,6 +99,36 @@ function App() {
     } catch { /* empty */ }
   }, [originalLinks, replaceLinks]);
 
+  const canImportBookmarks = typeof chrome !== 'undefined' && !!chrome.bookmarks;
+
+  const runBookmarkImport = useCallback(async () => {
+    try {
+      const snapshot = getLinksSync();
+      const namedRoots = await readBookmarkTree();
+      const result = buildImport(snapshot, namedRoots);
+      if (result.bookmarksImported === 0) {
+        showToast('No new bookmarks to import.');
+        return;
+      }
+      enterEditModeWithSnapshot(snapshot);
+      replaceLinks(result.links);
+      const parts: string[] = [];
+      parts.push(`Imported ${result.bookmarksImported} bookmark${result.bookmarksImported === 1 ? '' : 's'}`);
+      if (result.sectionsCreated > 0) parts.push(`${result.sectionsCreated} new section${result.sectionsCreated === 1 ? '' : 's'}`);
+      if (result.sectionsMerged > 0) parts.push(`${result.sectionsMerged} merged`);
+      showToast(`${parts.join(' · ')}. Review and Save, or Cancel to undo.`);
+      if (result.firstNewSectionId) {
+        setTimeout(() => {
+          document
+            .querySelector(`[data-item-id="${result.firstNewSectionId}"]`)
+            ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 250);
+      }
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to read bookmarks.');
+    }
+  }, [enterEditModeWithSnapshot, replaceLinks, showToast]);
+
   const handleAddWidget = useCallback(async (widget: AddWidgetInput) => {
     if (widget.type === 'google-search' && links.some((l) => l.type === 'google-search')) {
       showToast('Only one Google search widget is allowed.');
@@ -135,6 +168,8 @@ function App() {
         }}
         onOpenAddWidget={() => setModalOpen(true)}
         onOpenTheme={() => setThemeModalOpen(true)}
+        onImportBookmarks={() => setImportBookmarksOpen(true)}
+        canImportBookmarks={canImportBookmarks}
         isDropTarget={isHeaderTargeted}
       />
 
@@ -174,6 +209,12 @@ function App() {
         }}
         onAfterAdd={enterEditModeAfterAdd}
         sections={sections}
+      />
+
+      <ImportBookmarksModal
+        open={importBookmarksOpen}
+        onClose={() => setImportBookmarksOpen(false)}
+        onConfirm={runBookmarkImport}
       />
 
       <Toast message={toast} onDismiss={dismissToast} />

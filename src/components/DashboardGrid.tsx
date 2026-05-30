@@ -165,7 +165,7 @@ const DashboardGrid = ({
         onLayoutChange={(newLayout) => onLayoutChange(newLayout)}
       >
         {displayLinks.map((item) => (
-          <div key={item.id} className={`rounded-card widget-type-${item.type}`}>
+          <div key={item.id} data-item-id={item.id} className={`rounded-card widget-type-${item.type}`}>
             <div className="w-full h-full">
               <WidgetRenderer
                 item={item}
