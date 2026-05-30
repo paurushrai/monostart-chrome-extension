@@ -1,4 +1,4 @@
-import { useEffect, useState, type DragEvent as ReactDragEvent } from 'react';
+import { useEffect, useLayoutEffect, useState, type DragEvent as ReactDragEvent } from 'react';
 import GridLayout, { WidthProvider } from 'react-grid-layout/legacy';
 import type { Layout } from 'react-grid-layout/legacy';
 import 'react-grid-layout/css/styles.css';
@@ -102,8 +102,30 @@ const DashboardGrid = ({
   onSwap,
   onHeaderTargetChange,
 }: Readonly<Props>) => {
-  const { rowHeight } = useGridDimensions();
+  const { rowHeight: fallbackRowHeight } = useGridDimensions();
+  const [rowHeight, setRowHeight] = useState(fallbackRowHeight);
   const drag = useDashboardDrag({ links, rowHeight, onMoveLink, onSwap, onHeaderTargetChange });
+
+  useLayoutEffect(() => {
+    const el = drag.gridRef.current;
+    const host = el?.parentElement;
+    if (!host) return;
+    const GRID_MARGIN = 16;
+    const measure = () => {
+      const cs = getComputedStyle(host);
+      const available =
+        host.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const next = Math.max(
+        30,
+        (available - 2 * GRID_MARGIN - (MAIN_ROWS - 1) * GRID_MARGIN) / MAIN_ROWS,
+      );
+      if (Number.isFinite(next)) setRowHeight((prev) => (prev === next ? prev : next));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(host);
+    return () => ro.disconnect();
+  }, [drag.gridRef]);
   const dragOutLink = drag.activeDragOutItem?.type === 'link' ? (drag.activeDragOutItem as RegularLink) : null;
   const ghostFavicon = dragOutLink ? resolveFavicon(dragOutLink) : null;
   const showGhost = !!dragOutLink && !!drag.dragCursorCoords;
