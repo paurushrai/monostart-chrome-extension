@@ -8,6 +8,7 @@ import SectionInnerGrid from './section/SectionInnerGrid';
 import { useSectionDragOut } from '../../hooks/useSectionDragOut';
 import { HEADER_LINK_DRAG_TYPE } from '../../hooks/useHeaderDrag';
 import { findFirstFreeSlot } from '../../lib/grid';
+import { siteFaviconUrl } from '../../lib/favicon';
 import type { Section, RegularLink, LinkItem, DragCoords, GridSlot } from '../../types';
 
 const PRESET_COLORS = [
@@ -138,7 +139,7 @@ const SectionWidget = ({
     try {
       const urlObj = new URL(url);
       linkTitle = urlObj.hostname.replace('www.', '');
-      favicon = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(url)}&size=128`;
+      favicon = siteFaviconUrl(url);
     } catch {
       linkTitle = url;
     }

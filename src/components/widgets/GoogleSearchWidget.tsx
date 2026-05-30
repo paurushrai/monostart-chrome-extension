@@ -4,7 +4,7 @@ import LensSearchModal from './LensSearchModal';
 import VoiceSearchOverlay from './VoiceSearchOverlay';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { buildFaviconUrl } from '../../lib/favicon';
+import Favicon from '../Favicon';
 import type { GoogleSearch, LinkItem } from '../../types';
 
 const GoogleLogo = ({ className = '', mono = false }: { className?: string; mono?: boolean }) => (
@@ -422,7 +422,6 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
               if (isVisitedLink && suggestion.url) {
                 try { host = new URL(suggestion.url).hostname.replace(/^www\./, ''); } catch { /* ignore */ }
               }
-              const favicon = isVisitedLink && suggestion.url ? buildFaviconUrl(suggestion.url) : null;
               return (
                 <div
                   key={idx}
@@ -431,8 +430,12 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
                   className={`flex items-center px-5 py-1.5 cursor-pointer ${idx === activeIndex ? 'bg-gray-100' : 'hover:bg-gray-100'}`}
                   onClick={() => navigateToSuggestion(suggestion)}
                 >
-                  {isVisitedLink && favicon ? (
-                    <img src={favicon} alt="" className="w-4 h-4 mr-4 flex-shrink-0 rounded-sm" />
+                  {isVisitedLink && suggestion.url ? (
+                    <Favicon
+                      item={{ url: suggestion.url }}
+                      className="w-4 h-4 mr-4 flex-shrink-0 rounded-sm"
+                      fallback={<History size={16} className="text-gray-400 mr-4 flex-shrink-0" />}
+                    />
                   ) : suggestion.type === 'history' ? (
                     <History size={16} className="text-gray-400 mr-4 flex-shrink-0" />
                   ) : (

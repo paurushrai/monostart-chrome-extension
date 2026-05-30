@@ -25,7 +25,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
-import { resolveFavicon } from '../lib/favicon';
+import Favicon from './Favicon';
 import type { RegularLink, GridSlot } from '../types';
 
 interface SectionRef {
@@ -60,8 +60,6 @@ const LinkCard = ({
 }: Readonly<Props>) => {
   const { url, title, customName } = item;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const crispFavicon = resolveFavicon(item);
 
   const getSiteName = (urlString: string | undefined) => {
     if (!urlString) return title ? title.split(' - ')[0] : 'Link';
@@ -264,20 +262,17 @@ const LinkCard = ({
               : `flex-row items-center justify-start gap-3 pl-4 py-2 ${isEditing ? 'pr-9' : 'pr-4'}`
           }`}
       >
-        {crispFavicon ? (
-          <img
-            src={crispFavicon}
-            alt=""
-            draggable={false}
-            className={`object-contain flex-shrink-0 max-w-none pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]
-              ${isIconOnly ? 'w-9 h-9 rounded-sm' : listMode ? 'w-5 h-5 rounded-sm' : 'w-8 h-8 rounded-sm'}`}
-          />
-        ) : (
-          <div className={`flex items-center justify-center rounded-sm bg-secondary text-muted-foreground flex-shrink-0 pointer-events-none
-            ${isIconOnly ? 'w-9 h-9' : listMode ? 'w-5 h-5' : 'w-8 h-8'}`}>
-            <ExternalLink size={isIconOnly ? 20 : listMode ? 13 : 18} />
-          </div>
-        )}
+        <Favicon
+          item={item}
+          className={`object-contain flex-shrink-0 max-w-none pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]
+            ${isIconOnly ? 'w-9 h-9 rounded-sm' : listMode ? 'w-5 h-5 rounded-sm' : 'w-8 h-8 rounded-sm'}`}
+          fallback={
+            <div className={`flex items-center justify-center rounded-sm bg-secondary text-muted-foreground flex-shrink-0 pointer-events-none
+              ${isIconOnly ? 'w-9 h-9' : listMode ? 'w-5 h-5' : 'w-8 h-8'}`}>
+              <ExternalLink size={isIconOnly ? 20 : listMode ? 13 : 18} />
+            </div>
+          }
+        />
 
         {!isIconOnly && (
           <div className="text-left flex flex-col justify-center flex-1 min-w-0 overflow-hidden">

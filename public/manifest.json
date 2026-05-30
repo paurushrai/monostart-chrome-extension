@@ -3,7 +3,7 @@
   "name": "MonoStart",
   "version": "1.0.0",
   "description": "A hyper-customizable, premium browser dashboard and start page. Elevate your productivity with embedded widgets and instant access.",
-  "permissions": ["storage", "unlimitedStorage", "activeTab", "tabs", "history", "alarms", "notifications", "offscreen"],
+  "permissions": ["storage", "unlimitedStorage", "activeTab", "tabs", "history", "alarms", "notifications", "offscreen", "favicon"],
   "host_permissions": ["*://suggestqueries.google.com/*"],
   "icons": {
     "16": "icons/icon-16.png",

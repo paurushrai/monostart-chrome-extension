@@ -5,7 +5,7 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { ExternalLink } from 'lucide-react';
 import WidgetRenderer from './WidgetRenderer';
-import { resolveFavicon } from '../lib/favicon';
+import Favicon from './Favicon';
 import { useGridDimensions, photoConfigFitsAt3Rows } from '../hooks/useGridDimensions';
 import { useDashboardDrag } from '../hooks/useDashboardDrag';
 import { HEADER_LINK_DRAG_TYPE } from '../hooks/useHeaderDrag';
@@ -127,7 +127,6 @@ const DashboardGrid = ({
     return () => ro.disconnect();
   }, [drag.gridRef]);
   const dragOutLink = drag.activeDragOutItem?.type === 'link' ? (drag.activeDragOutItem as RegularLink) : null;
-  const ghostFavicon = dragOutLink ? resolveFavicon(dragOutLink) : null;
   const showGhost = !!dragOutLink && !!drag.dragCursorCoords;
   const [isDashboardDragOver, setIsDashboardDragOver] = useState(false);
 
@@ -259,10 +258,12 @@ const DashboardGrid = ({
             opacity: 0.85,
           }}
         >
-          {ghostFavicon ? (
-            <img src={ghostFavicon} alt="" className="w-7 h-7 object-contain rounded-sm" draggable={false} />
-          ) : (
-            <ExternalLink size={18} className="text-muted-foreground" />
+          {dragOutLink && (
+            <Favicon
+              item={dragOutLink}
+              className="w-7 h-7 object-contain rounded-sm"
+              fallback={<ExternalLink size={18} className="text-muted-foreground" />}
+            />
           )}
         </div>
       )}
