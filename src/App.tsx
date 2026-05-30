@@ -4,6 +4,7 @@ import AddWidgetModal from './components/AddWidgetModal';
 import ThemeSettingsModal from './components/ThemeSettingsModal';
 import AddLinkModal from './components/AddLinkModal';
 import AppHeader from './components/AppHeader';
+import ClearDashboardModal from './components/ClearDashboardModal';
 import Toast from './components/Toast';
 import { useLinks } from './hooks/useLinks';
 import { useTheme } from './hooks/useTheme';
@@ -50,6 +51,7 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
   const [addLinkModalOpen, setAddLinkModalOpen] = useState(false);
+  const [clearModalOpen, setClearModalOpen] = useState(false);
   const [isHeaderTargeted, setIsHeaderTargeted] = useState(false);
 
   const preAddSnapshotRef = useRef<LinkItem[] | null>(null);
@@ -96,6 +98,18 @@ function App() {
     } catch { /* empty */ }
   }, [originalLinks, replaceLinks]);
 
+  const handleClearDashboard = useCallback((clearHeaderToo: boolean) => {
+    const kept = clearHeaderToo ? [] : links.filter((l) => l.isHeaderLink);
+    const removedMain = links.filter((l) => !l.isHeaderLink).length;
+    const removedHeader = clearHeaderToo ? links.filter((l) => l.isHeaderLink).length : 0;
+    if (removedMain === 0 && removedHeader === 0) return;
+    replaceLinks(kept);
+    const parts: string[] = [];
+    if (removedMain > 0) parts.push(`${removedMain} widget${removedMain === 1 ? '' : 's'}`);
+    if (removedHeader > 0) parts.push(`${removedHeader} header link${removedHeader === 1 ? '' : 's'}`);
+    showToast(`Cleared ${parts.join(' + ')}. Cancel to undo, or Save to confirm.`);
+  }, [links, replaceLinks, showToast]);
+
   const handleAddWidget = useCallback(async (widget: AddWidgetInput) => {
     if (widget.type === 'google-search' && links.some((l) => l.type === 'google-search')) {
       showToast('Only one Google search widget is allowed.');
@@ -135,6 +149,7 @@ function App() {
         }}
         onOpenAddWidget={() => setModalOpen(true)}
         onOpenTheme={() => setThemeModalOpen(true)}
+        onClearDashboard={() => setClearModalOpen(true)}
         isDropTarget={isHeaderTargeted}
       />
 
@@ -174,6 +189,13 @@ function App() {
         }}
         onAfterAdd={enterEditModeAfterAdd}
         sections={sections}
+      />
+
+      <ClearDashboardModal
+        open={clearModalOpen}
+        onClose={() => setClearModalOpen(false)}
+        links={links}
+        onConfirm={handleClearDashboard}
       />
 
       <Toast message={toast} onDismiss={dismissToast} />
