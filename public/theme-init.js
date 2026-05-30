@@ -35,22 +35,30 @@
             document.documentElement.style.setProperty('--ring', themeColor);
         }
 
-        // Paint the custom dashboard background synchronously so React mounting
-        // its background layer doesn't flash the theme color on every load.
-        // body is opaque (bg-background) and isn't parsed yet, so inject a
-        // stylesheet: make body transparent and paint the bg on <html>.
+        // Paint the custom dashboard background synchronously, mirroring
+        // DashboardBackground.tsx exactly (same blur + dim) via fixed
+        // pseudo-elements, so React mounting its own layer is seamless and
+        // there's no flash of the theme color or an un-dimmed/un-blurred image.
         const bg = settings.background;
         if (bg && bg.type !== 'none' && bg.value) {
-            let htmlBg = '';
-            if (bg.type === 'color') {
-                htmlBg = 'background:' + bg.value + ' !important;';
-            } else if (bg.type === 'gradient') {
-                htmlBg = 'background-image:' + bg.value + ' !important;';
-            } else if (bg.type === 'image') {
-                htmlBg = 'background:#0b0b12 url("' + bg.value + '") center/cover no-repeat !important;';
+            let fill = '';
+            if (bg.type === 'color') fill = 'background:' + bg.value + ';';
+            else if (bg.type === 'gradient') fill = 'background-image:' + bg.value + ';';
+            else if (bg.type === 'image') fill = 'background:#0b0b12 url("' + bg.value + '") center/cover no-repeat;';
+
+            const blur = typeof bg.blur === 'number' && bg.blur > 0
+                ? 'filter:blur(' + bg.blur + 'px);transform:scale(1.08);'
+                : '';
+            const dim = typeof bg.dim === 'number' && bg.dim > 0 ? bg.dim : 0;
+
+            let css = 'body{background:transparent !important;}';
+            css += 'html::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;' + fill + blur + '}';
+            if (dim > 0) {
+                css += 'html::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:rgba(0,0,0,' + dim + ');}';
             }
             const style = document.createElement('style');
-            style.textContent = 'html{' + htmlBg + '}body{background:transparent !important;}';
+            style.id = 'monostart-bg-init';
+            style.textContent = css;
             document.head.appendChild(style);
         }
     } catch { /* fail silently — fall back to default theme */ }
