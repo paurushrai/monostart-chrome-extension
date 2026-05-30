@@ -25,6 +25,7 @@ export interface Section extends BaseItem {
   title: string;
   borderColor: string;
   cols?: number;
+  layout?: 'grid' | 'list';
   links: RegularLink[];
 }
 
