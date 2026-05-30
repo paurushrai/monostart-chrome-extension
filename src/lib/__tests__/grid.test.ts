@@ -112,10 +112,10 @@ describe('getMinSize', () => {
     ['section', { minW: 3, minH: 4 }],
     ['todo', { minW: 3, minH: 3 }],
     ['timer', { minW: 3, minH: 3 }],
-    ['iframe', { minW: 1, minH: 1 }],
-    ['note', { minW: 1, minH: 1 }],
-    ['image', { minW: 1, minH: 1 }],
-    ['label', { minW: 1, minH: 1 }],
+    ['iframe', { minW: 3, minH: 3 }],
+    ['note', { minW: 3, minH: 3 }],
+    ['image', { minW: 4, minH: 4 }],
+    ['label', { minW: 2, minH: 1 }],
     ['link', { minW: 1, minH: 1 }],
   ])('returns correct min size for %s', (type, expected) => {
     expect(getMinSize(type)).toEqual(expected);

@@ -123,7 +123,7 @@ const LensSearchModal = ({ open, onClose }: Readonly<Props>) => {
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="Paste image link"
-              className="flex-1 rounded-full bg-transparent border-white/15 text-white placeholder:text-gray-500 focus-visible:ring-1 focus-visible:ring-white/30 h-10 px-4"
+              className="flex-1 rounded-full bg-transparent border-white/15 text-white placeholder:text-gray-500 focus-visible:ring-1 focus-visible:ring-white/30 h-8 px-4"
             />
             <Button
               type="submit"

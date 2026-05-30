@@ -93,7 +93,7 @@ const TodoWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             onChange={(e) => setNewTask(e.target.value)}
             placeholder="Add a task..."
             aria-label="New task"
-            className="h-8 w-full bg-gray-100 dark:bg-white/5 border-none rounded-sm pl-3 pr-8 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
+            className="h-8 w-full bg-gray-100 dark:bg-white/5 border-none rounded-sm pl-3 pr-8 text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
           <Button
             type="submit"
