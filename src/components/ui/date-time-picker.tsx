@@ -63,7 +63,7 @@ export function DateTimePicker({
         <Button
           variant="secondary"
           className={cn(
-            "w-full justify-start text-left font-normal h-8 text-xs px-2 rounded-sm border-none shadow-none bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10",
+            "w-full justify-start text-left font-normal h-7 text-xs px-2 rounded-sm border-none shadow-none bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10",
             !value && "text-muted-foreground",
             className,
           )}
