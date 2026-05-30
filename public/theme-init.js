@@ -34,5 +34,24 @@
             document.documentElement.style.setProperty('--primary', themeColor);
             document.documentElement.style.setProperty('--ring', themeColor);
         }
+
+        // Paint the custom dashboard background synchronously so React mounting
+        // its background layer doesn't flash the theme color on every load.
+        // body is opaque (bg-background) and isn't parsed yet, so inject a
+        // stylesheet: make body transparent and paint the bg on <html>.
+        const bg = settings.background;
+        if (bg && bg.type !== 'none' && bg.value) {
+            let htmlBg = '';
+            if (bg.type === 'color') {
+                htmlBg = 'background:' + bg.value + ' !important;';
+            } else if (bg.type === 'gradient') {
+                htmlBg = 'background-image:' + bg.value + ' !important;';
+            } else if (bg.type === 'image') {
+                htmlBg = 'background:#0b0b12 url("' + bg.value + '") center/cover no-repeat !important;';
+            }
+            const style = document.createElement('style');
+            style.textContent = 'html{' + htmlBg + '}body{background:transparent !important;}';
+            document.head.appendChild(style);
+        }
     } catch { /* fail silently — fall back to default theme */ }
 })();
