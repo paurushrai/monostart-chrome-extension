@@ -165,7 +165,7 @@ function App() {
         isDropTarget={isHeaderTargeted}
       />
 
-      <main className="flex-1 p-2">
+      <main className="flex-1">
         <DashboardGrid
           links={links.filter((l) => !l.isHeaderLink)}
           onLayoutChange={handleLayoutChange}

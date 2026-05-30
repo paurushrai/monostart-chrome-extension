@@ -59,7 +59,7 @@ export default function AppHeader({
   return (
     <header
       data-header-drop-target="true"
-      className={`grid grid-cols-3 items-center px-6 py-2 border-b border-border relative transition-colors ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
+      className={`grid grid-cols-3 items-center px-4 py-2 border-b border-border relative transition-colors ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
     >
       <div className="flex items-center gap-3">
         <Hexagon size={24} strokeWidth={2.5} className="text-foreground" />

@@ -146,10 +146,10 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
 
   return (
     <article className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
-      <header className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
+      <header className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-0.5'}`}>
         <div className="flex items-center gap-1.5">
-          <Bell size={isEditing ? 14 : 12} className="text-primary" aria-hidden="true" />
-          <h3 className={`font-medium text-foreground pointer-events-none ${isEditing ? 'text-sm' : 'text-xs'}`}>{item.title || 'Reminders'}</h3>
+          <Bell size={isEditing ? 14 : 10} className="text-primary" aria-hidden="true" />
+          <h3 className={`font-medium text-foreground pointer-events-none ${isEditing ? 'text-sm' : 'text-2xs'}`}>{item.title || 'Reminders'}</h3>
         </div>
         {isEditing && (
           <Button
