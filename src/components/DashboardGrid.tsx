@@ -31,6 +31,7 @@ interface Props {
   openInNewTab?: boolean;
   sections?: SectionRef[];
   onMoveLink: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  onSwap: (draggedId: string, targetId: string, draggedSourceRect?: { x: number; y: number; w: number; h: number }) => void;
   onHeaderTargetChange?: (isOver: boolean) => void;
 }
 
@@ -89,10 +90,11 @@ const DashboardGrid = ({
   openInNewTab,
   sections = [],
   onMoveLink,
+  onSwap,
   onHeaderTargetChange,
 }: Readonly<Props>) => {
   const { rowHeight } = useGridDimensions();
-  const drag = useDashboardDrag({ links, rowHeight, onMoveLink, onHeaderTargetChange });
+  const drag = useDashboardDrag({ links, rowHeight, onMoveLink, onSwap, onHeaderTargetChange });
   const [isHeaderDragOver, setIsHeaderDragOver] = useState(false);
 
   const isHeaderLinkDrag = (e: ReactDragEvent<HTMLDivElement>) =>
@@ -164,8 +166,25 @@ const DashboardGrid = ({
         onDragStop={drag.handleDragStop}
         onLayoutChange={(newLayout) => onLayoutChange(newLayout)}
       >
-        {displayLinks.map((item) => (
-          <div key={item.id} className={`rounded-card widget-type-${item.type}`}>
+        {displayLinks.map((item) => {
+          const isSwapTarget = drag.activeSwapTargetId === item.id;
+          return (
+          <div
+            key={item.id}
+            data-item-id={item.id}
+            className={`rounded-card widget-type-${item.type} relative ${isSwapTarget ? 'ring-2 ring-primary ring-offset-0 rounded-lg transition-shadow' : ''}`}
+          >
+            {isSwapTarget && (
+              <div className="pointer-events-none absolute top-1 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground text-2xs font-semibold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 animate-in fade-in zoom-in-95">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M7 16l-4-4 4-4" />
+                  <path d="M3 12h14" />
+                  <path d="M17 8l4 4-4 4" />
+                  <path d="M7 12h14" />
+                </svg>
+                Swap
+              </div>
+            )}
             <div className="w-full h-full">
               <WidgetRenderer
                 item={item}
@@ -185,7 +204,8 @@ const DashboardGrid = ({
               />
             </div>
           </div>
-        ))}
+          );
+        })}
       </ReactGridLayout>
     </div>
   );
