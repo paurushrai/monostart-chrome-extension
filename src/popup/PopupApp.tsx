@@ -206,7 +206,7 @@ function PopupApp() {
         </section>
       )}
 
-      <h3 className="m-0 text-sm font-semibold text-ink flex items-center gap-1.5">
+      <h3 className="m-0 text-sm font-semibold text-ink flex justify-center items-center gap-1.5 border-b pb-4">
         <Hexagon size={16} strokeWidth={2.5} className="text-white" aria-hidden="true" />
         Save to MonoStart
       </h3>
