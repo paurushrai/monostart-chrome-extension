@@ -247,7 +247,7 @@ const LinkCard = ({
             src={crispFavicon}
             alt=""
             draggable={false}
-            className={`object-contain flex-shrink-0 pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]
+            className={`object-contain flex-shrink-0 max-w-none pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]
               ${isIconOnly ? 'w-9 h-9 rounded-sm' : 'w-8 h-8 rounded-sm'}`}
           />
         ) : (
