@@ -121,7 +121,7 @@ const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Readonly<Pro
                   id="location-trigger"
                   type="button"
                   variant="outline"
-                  className="w-full justify-between h-8 px-3 font-normal text-sm"
+                  className="w-full justify-between h-8 px-3 font-normal text-xs"
                 >
                   <span className="flex items-center gap-2 min-w-0">
                     <LocationIcon size={14} className="text-muted-foreground shrink-0" aria-hidden="true" />

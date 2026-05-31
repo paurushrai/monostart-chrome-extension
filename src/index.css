@@ -100,13 +100,13 @@
     @apply flex items-center justify-center w-6 h-6 rounded bg-background border text-muted-foreground cursor-pointer transition-colors hover:text-foreground hover:bg-secondary;
   }
   .btn-primary {
-    @apply flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium cursor-pointer border-0 transition-colors hover:bg-primary/90;
+    @apply flex items-center justify-center gap-2 h-8 px-4 rounded-md bg-primary text-primary-foreground text-xs font-medium cursor-pointer border-0 transition-colors hover:bg-primary/90;
   }
   .btn-primary.success {
     @apply bg-green-600 hover:bg-green-700;
   }
   .btn-secondary {
-    @apply flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-secondary border text-foreground cursor-pointer transition-colors hover:bg-secondary/80;
+    @apply flex items-center gap-2 h-8 px-4 rounded-md text-xs font-medium bg-secondary border text-foreground cursor-pointer transition-colors hover:bg-secondary/80;
   }
 }
 

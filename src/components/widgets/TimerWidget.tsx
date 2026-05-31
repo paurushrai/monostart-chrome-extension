@@ -187,7 +187,7 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             onChange={(e) => setNewMinutes(e.target.value)}
             placeholder="Min"
             aria-label="Timer duration in minutes"
-            className="h-8 w-16 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
+            className="h-8 w-16 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
           <Input
             type="text"
@@ -195,7 +195,7 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             onChange={(e) => setNewLabel(e.target.value)}
             placeholder="Label (opt)"
             aria-label="Timer label (optional)"
-            className="h-8 flex-1 min-w-0 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
+            className="h-8 flex-1 min-w-0 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
           <Button
             type="submit"

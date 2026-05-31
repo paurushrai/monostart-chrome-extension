@@ -237,7 +237,7 @@ function PopupApp() {
             id="popup-destination-trigger"
             type="button"
             variant="outline"
-            className="flex items-center gap-2 w-full h-auto px-3 py-2 rounded-sm bg-bg-hover border border-border text-sm text-ink hover:border-primary hover:bg-bg-hover transition-colors"
+            className="flex items-center gap-2 w-full h-8 px-3 rounded-sm bg-bg-hover border border-border text-xs text-ink hover:border-primary hover:bg-bg-hover transition-colors"
           >
             <DestinationIcon size={14} className="text-muted-foreground shrink-0" aria-hidden="true" />
             <span className="flex-1 text-left truncate">{destinationLabel}</span>
