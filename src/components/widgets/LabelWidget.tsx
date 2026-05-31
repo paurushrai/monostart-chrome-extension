@@ -97,7 +97,7 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
     <article
       className={`w-full h-full relative group/label flex items-center transition-all duration-200 rounded-lg ${alignClass} ${
         cardStyle
-          ? 'card-base bg-white dark:bg-card border border-border'
+          ? 'card-base bg-card/65 backdrop-blur-md border border-border'
           : `bg-transparent border border-dashed ${isEditing && !isEditingText ? 'border-transparent hover:border-border/40' : 'border-transparent'}`
       } ${
         isEditing && !isEditingText
