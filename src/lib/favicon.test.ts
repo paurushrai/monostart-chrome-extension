@@ -39,17 +39,22 @@ describe('buildFaviconUrl', () => {
 });
 
 describe('faviconCandidates', () => {
-  it('orders sources best-first AND always includes a site fallback after _favicon', () => {
+  it('prefers the stored (browser-captured) favicon, with _favicon + site as fallbacks', () => {
     stubExtensionContext();
     const candidates = faviconCandidates({ url: 'https://drive.google.com/home', favicon: 'https://saved.example/icon.png' });
 
-    // 1. browser favicon store first (freshest, matches the popup)
-    expect(candidates[0] ?? '').toContain(`${EXT_ID}/_favicon/`);
-    // 2. the site's own favicon is present as a graceful fallback — this is the
-    //    guard that broke previously: a failing _favicon left no fallback.
+    // 1. the captured favicon wins — _favicon/site mis-resolve sub-property URLs.
+    expect(candidates[0]).toBe('https://saved.example/icon.png');
+    // 2. the browser favicon store is available as a fallback...
+    expect(candidates.some((c) => c.includes(`${EXT_ID}/_favicon/`))).toBe(true);
+    // 3. ...as is the site's own /favicon.ico.
     expect(candidates).toContain('https://drive.google.com/favicon.ico');
-    // 3. the stored favicon is the last resort
-    expect(candidates[candidates.length - 1]).toBe('https://saved.example/icon.png');
+  });
+
+  it('falls back to _favicon first when no favicon was captured', () => {
+    stubExtensionContext();
+    const candidates = faviconCandidates({ url: 'https://drive.google.com/home' });
+    expect(candidates[0] ?? '').toContain(`${EXT_ID}/_favicon/`);
   });
 
   it('de-duplicates identical sources (dev context where _favicon === site favicon)', () => {

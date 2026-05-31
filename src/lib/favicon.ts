@@ -44,11 +44,18 @@ export const siteFaviconUrl = (linkUrl: string | undefined): string => {
  * Ordered, de-duplicated list of favicon sources to try for an item, best
  * first. Consumers attempt each in turn (via `onError`) so a single failing
  * source never leaves a broken image:
- *   1. browser favicon store (`_favicon`) — freshest, matches the popup
- *   2. the site's own `/favicon.ico` — direct from the site
- *   3. the stored favicon (e.g. the real icon captured when saved)
+ *   1. the stored favicon — the real icon the browser captured when the page
+ *      was open (the popup's `tab.favIconUrl`). This is the authoritative
+ *      source: it's the actual site icon, not a guess.
+ *   2. browser favicon store (`_favicon`) — for links with no captured icon.
+ *   3. the site's own `/favicon.ico` — last-resort direct fetch.
+ *
+ * The stored favicon comes first on purpose: both `_favicon` and a bare
+ * `/favicon.ico` mis-resolve many sub-property URLs (e.g. a `/maps` link
+ * resolves to the bare Google "G", Drive/Photos to a generic globe), and
+ * `_favicon` always returns a 200 so it would otherwise win every time.
  */
 export const faviconCandidates = (item: { url?: string; favicon?: string }): string[] => {
-  const ordered = [buildFaviconUrl(item.url), siteFaviconUrl(item.url), item.favicon ?? ''];
+  const ordered = [item.favicon ?? '', buildFaviconUrl(item.url), siteFaviconUrl(item.url)];
   return Array.from(new Set(ordered.filter((src): src is string => Boolean(src))));
 };
