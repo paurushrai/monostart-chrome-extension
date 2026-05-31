@@ -11,6 +11,7 @@ import {
   Square,
   RectangleHorizontal,
   LayoutGrid,
+  Pencil,
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
@@ -42,6 +43,7 @@ interface Props {
   sections?: SectionRef[];
   onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
   parentId?: string;
+  displayMode?: 'list';
 }
 
 const LinkCard = ({
@@ -54,6 +56,7 @@ const LinkCard = ({
   sections = [],
   onMoveLink,
   parentId,
+  displayMode,
 }: Readonly<Props>) => {
   const { url, title, customName } = item;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -76,14 +79,24 @@ const LinkCard = ({
   };
 
   const siteName = customName || getSiteName(url);
-  const isIconOnly = item.w === 1;
-  const isLarge = (item.w && item.w > 2) || (item.h && item.h > 1);
+  const listMode = displayMode === 'list';
+  const isIconOnly = listMode ? false : item.w === 1;
+  const isLarge = listMode ? false : ((item.w && item.w > 2) || (item.h && item.h > 1));
 
   const handleNameBlur = (e: FocusEvent<HTMLHeadingElement>) => {
     const newName = e.target.innerText.trim();
     if (newName && newName !== siteName) {
       onUpdateLink(item.id, { customName: newName });
     }
+  };
+
+  const handleRename = () => {
+    const next = window.prompt('Rename link:', siteName);
+    if (next !== null) {
+      const trimmed = next.trim();
+      if (trimmed) onUpdateLink(item.id, { customName: trimmed });
+    }
+    setIsMenuOpen(false);
   };
 
   const handleDescBlur = (e: FocusEvent<HTMLSpanElement>) => {
@@ -101,7 +114,7 @@ const LinkCard = ({
   };
 
   return (
-    <div className={`group card-base relative w-full h-full ${!isEditing ? 'overflow-hidden' : ''}`}>
+    <div className={`group card-base relative w-full h-full ${listMode ? '!rounded-sm' : ''} ${!isEditing ? 'overflow-hidden' : ''}`}>
 
       {isEditing && (
         <div 
@@ -123,6 +136,13 @@ const LinkCard = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48" onMouseDown={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onClick={handleRename} className="flex items-center gap-2">
+                <Pencil size={13} className="text-muted-foreground" />
+                <span>Rename</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-2">
                   <Ruler size={13} className="text-muted-foreground" />
@@ -239,7 +259,9 @@ const LinkCard = ({
         className={`flex w-full h-full text-inherit no-underline ${isEditing ? (parentId ? 'inner-drag-handle' : 'drag-handle') + ' cursor-grab active:cursor-grabbing' : ''}
           ${isIconOnly
             ? 'items-center justify-center p-0'
-            : `flex-row items-center justify-start gap-3 pl-4 py-2 ${isEditing ? 'pr-9' : 'pr-4'}`
+            : listMode
+              ? 'flex-row items-center justify-start gap-2 pl-3 pr-3 py-0.5'
+              : `flex-row items-center justify-start gap-3 pl-4 py-2 ${isEditing ? 'pr-9' : 'pr-4'}`
           }`}
       >
         {crispFavicon ? (
@@ -247,25 +269,25 @@ const LinkCard = ({
             src={crispFavicon}
             alt=""
             draggable={false}
-            className={`object-contain flex-shrink-0 pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]
-              ${isIconOnly ? 'w-9 h-9 rounded-sm' : 'w-8 h-8 rounded-sm'}`}
+            className={`object-contain flex-shrink-0 max-w-none pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]
+              ${isIconOnly ? 'w-9 h-9 rounded-sm' : listMode ? 'w-5 h-5 rounded-sm' : 'w-8 h-8 rounded-sm'}`}
           />
         ) : (
           <div className={`flex items-center justify-center rounded-sm bg-secondary text-muted-foreground flex-shrink-0 pointer-events-none
-            ${isIconOnly ? 'w-9 h-9' : 'w-8 h-8'}`}>
-            <ExternalLink size={isIconOnly ? 20 : 18} />
+            ${isIconOnly ? 'w-9 h-9' : listMode ? 'w-5 h-5' : 'w-8 h-8'}`}>
+            <ExternalLink size={isIconOnly ? 20 : listMode ? 13 : 18} />
           </div>
         )}
 
         {!isIconOnly && (
           <div className="text-left flex flex-col justify-center flex-1 min-w-0 overflow-hidden">
             <h4
-              contentEditable={isEditing}
+              contentEditable={isEditing && !listMode}
               suppressContentEditableWarning
               onBlur={handleNameBlur}
               onKeyDown={handleKeyDown}
-              onMouseDown={(e) => isEditing && e.stopPropagation()}
-              className={`m-0 text-sm font-medium text-foreground truncate leading-tight ${isLarge ? 'mb-1' : ''} ${isEditing ? 'cursor-text outline-none hover:bg-secondary focus:bg-secondary rounded px-1 -ml-1 transition-colors' : ''}`}
+              onMouseDown={(e) => isEditing && !listMode && e.stopPropagation()}
+              className={`m-0 font-medium text-foreground truncate leading-tight ${listMode ? 'text-xs' : 'text-sm'} ${isLarge ? 'mb-0.5' : ''} ${isEditing && !listMode ? 'cursor-text outline-none hover:bg-secondary focus:bg-secondary rounded px-1 -ml-1 transition-colors' : ''}`}
             >
               {siteName}
             </h4>
@@ -276,7 +298,7 @@ const LinkCard = ({
                 onBlur={handleDescBlur}
                 onKeyDown={handleKeyDown}
                 onMouseDown={(e) => isEditing && e.stopPropagation()}
-                className={`text-2xs text-muted-foreground truncate block ${isEditing ? 'cursor-text outline-none hover:bg-secondary focus:bg-secondary rounded px-1 -ml-1 mt-1 transition-colors' : ''}`}
+                className={`text-2xs text-muted-foreground truncate block ${isEditing ? 'cursor-text outline-none hover:bg-secondary focus:bg-secondary rounded px-1 -ml-1 mt-0.5 transition-colors' : ''}`}
               >
                 {title}
               </span>

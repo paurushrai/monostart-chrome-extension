@@ -4,6 +4,7 @@ import LensSearchModal from './LensSearchModal';
 import VoiceSearchOverlay from './VoiceSearchOverlay';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { buildFaviconUrl } from '../../lib/favicon';
 import type { GoogleSearch, LinkItem } from '../../types';
 
 const GoogleLogo = ({ className = '', mono = false }: { className?: string; mono?: boolean }) => (
@@ -384,7 +385,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
             placeholder="Search Google or type a URL"
             disabled={isEditing}
             aria-label="Search query"
-            className="h-auto flex-1 mx-4 bg-transparent dark:bg-transparent border-0 outline-none text-gray-800 placeholder:text-gray-500 text-base rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 disabled:opacity-100 disabled:cursor-default"
+            className="h-auto flex-1 mx-4 bg-transparent dark:bg-transparent border-0 outline-none text-gray-800 dark:text-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-500 text-base rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 disabled:opacity-100 disabled:cursor-default"
           />
           <Button
             type="button"
@@ -412,22 +413,38 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
 
         {showSuggestions && suggestions.length > 0 && (
           <div className="absolute top-12 left-0 right-0 bg-white border-t border-gray-100 rounded-b-[24px] py-2 overflow-hidden shadow-xl text-left">
-            {suggestions.map((suggestion, idx) => (
-              <div
-                key={idx}
-                ref={(el) => { suggestionRefs.current[idx] = el; }}
-                onMouseEnter={() => setActiveIndex(idx)}
-                className={`flex items-center px-5 py-1.5 cursor-pointer ${idx === activeIndex ? 'bg-gray-100' : 'hover:bg-gray-100'}`}
-                onClick={() => navigateToSuggestion(suggestion)}
-              >
-                {suggestion.type === 'history' ? (
-                  <History size={16} className="text-gray-400 mr-4 flex-shrink-0" />
-                ) : (
-                  <Search size={16} className="text-gray-400 mr-4 flex-shrink-0" />
-                )}
-                <span className="text-[15px] font-medium text-gray-800 truncate">{suggestion.text}</span>
-              </div>
-            ))}
+            {suggestions.map((suggestion, idx) => {
+              const isVisitedLink =
+                suggestion.type === 'history' &&
+                !!suggestion.url &&
+                !suggestion.url.includes('google.com/search');
+              let host = '';
+              if (isVisitedLink && suggestion.url) {
+                try { host = new URL(suggestion.url).hostname.replace(/^www\./, ''); } catch { /* ignore */ }
+              }
+              const favicon = isVisitedLink && suggestion.url ? buildFaviconUrl(suggestion.url) : null;
+              return (
+                <div
+                  key={idx}
+                  ref={(el) => { suggestionRefs.current[idx] = el; }}
+                  onMouseEnter={() => setActiveIndex(idx)}
+                  className={`flex items-center px-5 py-1.5 cursor-pointer ${idx === activeIndex ? 'bg-gray-100' : 'hover:bg-gray-100'}`}
+                  onClick={() => navigateToSuggestion(suggestion)}
+                >
+                  {isVisitedLink && favicon ? (
+                    <img src={favicon} alt="" className="w-4 h-4 mr-4 flex-shrink-0 rounded-sm" />
+                  ) : suggestion.type === 'history' ? (
+                    <History size={16} className="text-gray-400 mr-4 flex-shrink-0" />
+                  ) : (
+                    <Search size={16} className="text-gray-400 mr-4 flex-shrink-0" />
+                  )}
+                  <span className="text-[15px] font-medium text-gray-800 truncate">{suggestion.text}</span>
+                  {host && (
+                    <span className="ml-2 text-[13px] text-gray-400 truncate flex-shrink-0">{host}</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

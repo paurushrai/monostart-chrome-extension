@@ -61,7 +61,7 @@ const SectionWidget = ({
   onInnerDragStop,
   draggedItem,
 }: Readonly<Props>) => {
-  const { title, borderColor = '200 73% 52%', links = [], cols = 3 } = item;
+  const { title, borderColor = '200 73% 52%', links = [], cols = 3, layout = 'grid' } = item;
 
   const [isAddingLink, setIsAddingLink] = useState(false);
   const [newUrl, setNewUrl] = useState('');
@@ -177,12 +177,25 @@ const SectionWidget = ({
       dragOut.isMovingOutRef.current = false;
       return;
     }
+    if (layout === 'list') {
+      const yById = new Map(newLayout.map((li) => [li.i, li.y]));
+      const reordered = [...links].sort(
+        (a, b) => (yById.get(a.id) ?? 0) - (yById.get(b.id) ?? 0),
+      );
+      const changed = reordered.some((l, i) => l.id !== links[i]?.id);
+      if (changed) onUpdateLink(item.id, { links: reordered });
+      return;
+    }
     const updatedLinks = links.map((l) => {
       const layoutItem = newLayout.find((li) => li.i === l.id);
       if (!layoutItem) return l;
       return { ...l, x: layoutItem.x, y: layoutItem.y, w: layoutItem.w, h: layoutItem.h };
     });
     onUpdateLink(item.id, { links: updatedLinks });
+  };
+
+  const handleUpdateLayout = (next: 'grid' | 'list') => {
+    onUpdateLink(item.id, { layout: next });
   };
 
   const handleInnerDelete = (linkId: string) => {
@@ -241,6 +254,7 @@ const SectionWidget = ({
         title={title}
         count={links.length}
         cols={cols}
+        layout={layout}
         isEditing={isEditing}
         borderMutedCssColor={borderMutedCssColor}
         borderCssColor={borderCssColor}
@@ -250,6 +264,7 @@ const SectionWidget = ({
         onAddLink={() => setIsAddingLink(true)}
         onTogglePalette={() => setShowColorPicker(!showColorPicker)}
         onUpdateCols={handleUpdateCols}
+        onUpdateLayout={handleUpdateLayout}
         onDelete={() => onDelete(item.id)}
       />
 
@@ -292,7 +307,7 @@ const SectionWidget = ({
       {isEditing && isAddingLink && (
         <form
           onSubmit={handleAddLinkSubmit}
-          className="mt-4 mx-3 p-2 bg-secondary/25 border border-border/30 rounded-lg flex gap-2 items-center shrink-0"
+          className="mt-2 mx-3 p-1.5 bg-secondary/25 border border-border/30 rounded-lg flex gap-1.5 items-center shrink-0"
           onMouseDown={(e) => e.stopPropagation()}
         >
           <Input
@@ -301,17 +316,17 @@ const SectionWidget = ({
             placeholder="Paste URL..."
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
-            className="h-8 text-xs flex-1 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-3 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
+            className="h-7 text-xs flex-1 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2.5 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
           <div className="flex gap-1">
-            <Button type="submit" size="icon" className="h-8 w-8 bg-primary hover:bg-primary/90 text-primary-foreground dark:bg-primary dark:hover:bg-primary/90">
+            <Button type="submit" size="icon" className="h-7 w-7 bg-primary hover:bg-primary/90 text-primary-foreground dark:bg-primary dark:hover:bg-primary/90">
               <Check size={12} />
             </Button>
             <Button
               type="button"
               variant="outline"
               size="icon"
-              className="h-8 w-8"
+              className="h-7 w-7"
               onClick={() => {
                 setIsAddingLink(false);
                 setNewUrl('');
@@ -326,6 +341,7 @@ const SectionWidget = ({
       <SectionInnerGrid
         sectionId={item.id}
         cols={cols}
+        sectionLayout={layout}
         isEditing={isEditing}
         links={links}
         isDraggedOver={isDraggedOver}

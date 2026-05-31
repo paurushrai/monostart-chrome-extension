@@ -11,13 +11,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ImageWidget as ImageWidgetItem } from '../../types';
 
-const PRESET_IMAGES = [
-  { name: 'Landscape', url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&auto=format&fit=crop&q=80' },
-  { name: 'Space', url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&auto=format&fit=crop&q=80' },
-  { name: 'Abstract Art', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80' },
-  { name: 'Cozy Desk', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80' },
-];
-
 interface Props {
   item: ImageWidgetItem;
   onDelete: (id: string) => void;
@@ -82,11 +75,6 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
     reader.readAsDataURL(file);
   };
 
-  const selectPreset = (presetUrl: string) => {
-    setInputUrl(presetUrl);
-    handleSaveUrl(presetUrl);
-  };
-
   const fitClass = fit === 'contain'
     ? 'object-contain' 
     : fit === 'fill' 
@@ -96,10 +84,10 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
   return (
     <article className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
 
-      {(isEditing || showConfig || !url) && (
-        <header className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl z-20 ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
+      {isEditing && (
+        <header className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl z-20 py-1 drag-handle cursor-grab active:cursor-grabbing`}>
           <div className="flex items-center gap-1.5 min-w-0">
-            <ImageIcon size={isEditing ? 14 : 12} className="text-primary shrink-0" aria-hidden="true" />
+            <ImageIcon size={12} className="text-primary shrink-0" aria-hidden="true" />
             {isEditingTitle ? (
               <Input
                 ref={titleInputRef}
@@ -108,12 +96,12 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                 onBlur={handleTitleBlur}
                 onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
                 aria-label="Image title"
-                className={`h-auto font-medium bg-background border border-border rounded px-1 py-0.5 focus-visible:ring-0 focus-visible:ring-offset-0 ${isEditing ? 'text-sm max-w-[140px]' : 'text-xs max-w-[120px]'}`}
+                className={`h-auto font-medium bg-background border border-border rounded px-1 py-0.5 focus-visible:ring-0 focus-visible:ring-offset-0 ${isEditing ? 'text-xs max-w-[140px]' : 'text-xs max-w-[120px]'}`}
               />
             ) : (
               <h3
                 onClick={handleTitleClick}
-                className={`font-medium truncate select-none ${isEditing ? 'text-sm cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 px-1 rounded' : 'text-xs pointer-events-none'}`}
+                className={`font-medium truncate select-none ${isEditing ? 'text-xs cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 px-1 rounded' : 'text-xs pointer-events-none'}`}
               >
                 {title}
               </h3>
@@ -129,9 +117,9 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                     variant="ghost"
                     size="icon"
                     title="Image Settings"
-                    className={`text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground ${isEditing ? 'h-7 w-7' : 'h-5 w-5'}`}
+                    className={`text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground ${isEditing ? 'h-6 w-6' : 'h-5 w-5'}`}
                   >
-                    <Settings size={isEditing ? 14 : 11} />
+                    <Settings size={isEditing ? 12 : 11} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-40 p-1">
@@ -175,10 +163,10 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                 size="icon"
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-                className="h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
+                className="h-6 w-6 text-red-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
                 title="Delete Widget"
               >
-                <Trash2 size={14} />
+                <Trash2 size={13} />
               </Button>
             )}
           </div>
@@ -189,16 +177,12 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
 
       <div className="flex-1 relative min-h-0 w-full h-full bg-gray-50/50 dark:bg-black/5 flex flex-col items-center justify-center rounded-b-xl overflow-hidden">
 
-        {showConfig ? (
-          <div className="w-full h-full p-4 flex flex-col justify-center overflow-y-auto space-y-3 z-20 bg-background/95 backdrop-blur-sm">
-            <div className="space-y-1.5 text-center">
-              <div className="inline-flex p-2 bg-primary/10 rounded-full text-primary">
-                <ImageIcon size={18} />
-              </div>
-              <p className="text-xs font-medium text-foreground">Configure Widget Image</p>
-            </div>
+        {isEditing && showConfig ? (
+          <div className="w-full h-full p-3 flex flex-col overflow-y-auto z-20 bg-background/95 backdrop-blur-sm">
+            <div className="my-auto w-full space-y-2">
+            <p className="text-xs font-medium text-foreground text-center shrink-0">Configure Widget Image</p>
 
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5 shrink-0">
               <Input
                 type="text"
                 placeholder="Paste image URL..."
@@ -217,13 +201,13 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
               </Button>
             </div>
 
-            <div className="flex items-center text-[10px] text-muted-foreground/60 uppercase tracking-wider font-semibold">
+            <div className="flex items-center text-[10px] text-muted-foreground/60 uppercase tracking-wider font-semibold shrink-0">
               <div className="flex-1 h-px bg-border" />
-              <span className="px-2">Or Choose</span>
+              <span className="px-2">Or</span>
               <div className="flex-1 h-px bg-border" />
             </div>
 
-            <div>
+            <div className="shrink-0">
               <input
                 type="file"
                 accept="image/*"
@@ -245,23 +229,6 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-1.5">
-              {PRESET_IMAGES.map((preset) => (
-                <Button
-                  key={preset.name}
-                  type="button"
-                  variant="outline"
-                  onClick={() => selectPreset(preset.url)}
-                  className="group/preset relative h-10 p-0 rounded border border-border/80 overflow-hidden hover:border-primary transition-all text-left"
-                >
-                  <img src={preset.url} alt={preset.name} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover/preset:opacity-100 transition-opacity" />
-                  <span className="absolute inset-x-0 bottom-0 bg-black/40 text-[9px] text-white font-medium px-1 truncate py-0.5 pointer-events-none">
-                    {preset.name}
-                  </span>
-                </Button>
-              ))}
-            </div>
-
             {url && (
               <Button 
                 variant="ghost" 
@@ -272,8 +239,9 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                 Cancel Configuration
               </Button>
             )}
+            </div>
           </div>
-        ) : (
+        ) : url ? (
           <div className="w-full h-full relative select-none">
             <img
               src={url}
@@ -284,6 +252,10 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                 setShowConfig(true);
               }}
             />
+          </div>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground/25 select-none">
+            <ImageIcon size={32} aria-hidden="true" />
           </div>
         )}
       </div>

@@ -206,7 +206,7 @@ function PopupApp() {
         </section>
       )}
 
-      <h3 className="m-0 text-sm font-semibold text-ink flex items-center gap-1.5">
+      <h3 className="m-0 text-sm font-semibold text-ink flex justify-center items-center gap-1.5 border-b pb-4">
         <Hexagon size={16} strokeWidth={2.5} className="text-white" aria-hidden="true" />
         Save to MonoStart
       </h3>
@@ -237,7 +237,7 @@ function PopupApp() {
             id="popup-destination-trigger"
             type="button"
             variant="outline"
-            className="flex items-center gap-2 w-full h-auto px-3 py-2 rounded-sm bg-bg-hover border border-border text-sm text-ink hover:border-primary hover:bg-bg-hover transition-colors"
+            className="flex items-center gap-2 w-full h-8 px-3 rounded-sm bg-bg-hover border border-border text-xs text-ink hover:border-primary hover:bg-bg-hover transition-colors"
           >
             <DestinationIcon size={14} className="text-muted-foreground shrink-0" aria-hidden="true" />
             <span className="flex-1 text-left truncate">{destinationLabel}</span>

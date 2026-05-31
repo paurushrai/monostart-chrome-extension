@@ -18,6 +18,7 @@ interface SectionRef {
 interface Props {
   sectionId: string;
   cols: number;
+  sectionLayout?: 'grid' | 'list';
   isEditing: boolean;
   links: RegularLink[];
   isDraggedOver: boolean;
@@ -57,6 +58,7 @@ const findPlaceholderSlot = (
 export default function SectionInnerGrid({
   sectionId,
   cols,
+  sectionLayout = 'grid',
   isEditing,
   links,
   isDraggedOver,
@@ -77,12 +79,17 @@ export default function SectionInnerGrid({
   onInnerUpdateLink,
   onAddFirstLink,
 }: Readonly<Props>) {
+  const isList = sectionLayout === 'list';
+  const gridCols = isList ? 1 : cols;
+  const rowPx = isList ? 25 : 50;
+  const rowMarginY = isList ? 6 : 8;
+  const rowPitch = rowPx + rowMarginY;
   type RowItem = RegularLink | DragPlaceholder;
   const displayLinks: RowItem[] = [...links];
 
   if (isDraggedOver) {
     const draggedW = draggedItem?.w ?? (draggedItem?.viewMode === 'icon' ? 1 : 3);
-    const w = Math.min(draggedW, cols);
+    const w = Math.min(draggedW, gridCols);
     const h = draggedItem?.h ?? 1;
     let placeholderX = 0;
     let placeholderY = 0;
@@ -94,16 +101,16 @@ export default function SectionInnerGrid({
       const localX = dragCursorCoords.x - rect.left + scrollLeft;
       const localY = dragCursorCoords.y - rect.top + scrollTop;
 
-      const colWidth = rect.width / cols;
-      const rowHeight = 58;
+      const colWidth = rect.width / gridCols;
+      const rowHeight = rowPitch;
 
       placeholderX = Math.floor(localX / colWidth);
       placeholderY = Math.floor(localY / rowHeight);
 
-      placeholderX = Math.max(0, Math.min(cols - w, placeholderX));
+      placeholderX = Math.max(0, Math.min(gridCols - w, placeholderX));
       placeholderY = Math.max(0, placeholderY);
     } else {
-      const { x, y } = findPlaceholderSlot(links, cols, w, h);
+      const { x, y } = findPlaceholderSlot(links, gridCols, w, h);
       placeholderX = x;
       placeholderY = y;
     }
@@ -122,7 +129,21 @@ export default function SectionInnerGrid({
     displayLinks.push(placeholder);
   }
 
-  const layout = displayLinks.map((l) => {
+  const layout = displayLinks.map((l, idx) => {
+    if (isList) {
+      return {
+        i: l.id,
+        x: 0,
+        y: idx,
+        w: 1,
+        h: 1,
+        minW: 1,
+        maxW: 1,
+        minH: 1,
+        maxH: 1,
+        isResizable: false,
+      };
+    }
     const defaultW = l.viewMode === 'icon' ? 1 : Math.min(3, cols);
     const w = Math.min(l.w ?? defaultW, cols);
     return {
@@ -134,7 +155,7 @@ export default function SectionInnerGrid({
       minW: 1,
       maxW: cols,
       minH: 1,
-      maxH: 2,
+      maxH: 1,
       isResizable: l.id === 'drag-placeholder' ? false : undefined,
     };
   });
@@ -170,7 +191,7 @@ export default function SectionInnerGrid({
   return (
     <div
       ref={containerRef}
-      className="relative flex-1 overflow-x-hidden overflow-y-auto px-1.5 pt-0 pb-1.5 select-none custom-scrollbar min-h-0 z-0 isolate"
+      className="relative flex-1 overflow-x-hidden overflow-y-auto pt-0 pb-1.5 select-none custom-scrollbar min-h-0 z-0 isolate"
       onMouseDown={handleBodyMouseDown}
     >
       {displayLinks.length === 0 ? (
@@ -192,13 +213,13 @@ export default function SectionInnerGrid({
         <ReactGridLayout
           className="layout inner-grid-layout"
           layout={layout}
-          cols={cols}
-          rowHeight={50}
-          margin={[8, 8]}
+          cols={gridCols}
+          rowHeight={rowPx}
+          margin={[8, rowMarginY]}
           compactType="vertical"
           preventCollision={false}
           isDraggable={isEditing}
-          isResizable={isEditing}
+          isResizable={isEditing && !isList}
           draggableHandle=".inner-drag-handle"
           measureBeforeMount={true}
           onLayoutChange={onInnerLayoutChange}
@@ -229,6 +250,7 @@ export default function SectionInnerGrid({
                     sections={sections}
                     onMoveLink={onMoveLink}
                     parentId={sectionId}
+                    displayMode={isList ? 'list' : undefined}
                   />
                 </div>
               )}

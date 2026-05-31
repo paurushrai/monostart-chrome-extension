@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { DragEvent as ReactDragEvent } from 'react';
 
 export const HEADER_LINK_DRAG_TYPE = 'application/x-monostart-header-link';
@@ -17,6 +17,20 @@ export function useHeaderDrag(
 ): UseHeaderDrag {
   const [draggedHeaderLinkId, setDraggedHeaderLinkId] = useState<string | null>(null);
   const [dragOverHeaderLinkId, setDragOverHeaderLinkId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const clear = () => {
+      setDraggedHeaderLinkId(null);
+      setDragOverHeaderLinkId(null);
+    };
+    const deferredClear = () => setTimeout(clear, 0);
+    document.addEventListener('dragend', clear);
+    document.addEventListener('drop', deferredClear, true);
+    return () => {
+      document.removeEventListener('dragend', clear);
+      document.removeEventListener('drop', deferredClear, true);
+    };
+  }, []);
 
   const onDragStart = useCallback((id: string, e: ReactDragEvent) => {
     e.dataTransfer.setData(HEADER_LINK_DRAG_TYPE, id);

@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Layout } from 'react-grid-layout/legacy';
 import { getLinks, getLinksSync, saveLinks } from '../lib/storage';
 import { saveLink } from '../lib/linkRepository';
 import type { NewLinkInput } from '../lib/linkRepository';
-import { RESIZABLE_TYPES, WidgetType } from '../lib/widgetCatalog';
+import { RESIZABLE_TYPES, WidgetType, getWidgetLayout } from '../lib/widgetCatalog';
 import { findFirstFreeSlot, MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import { cleanupOrphanedWidgetData, removeWidgetDataForId } from '../lib/widgetDataCleanup';
+import { resolveSwap } from '../lib/swapPlanner';
 import {
   removeLinkAnywhere,
   placeInHeader,
@@ -25,6 +26,7 @@ export interface UseLinks {
   handleUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
   handleMoveLink: (linkId: string, targetSectionId: string | null | undefined, targetCoords?: GridSlot) => void;
   handleHeaderLinkReorder: (draggedId: string, targetId: string) => void;
+  handleSwap: (draggedId: string, targetId: string, draggedSourceRect?: { x: number; y: number; w: number; h: number }) => void;
   addWidget: (widget: { type: LinkItem['type']; defaults?: Partial<LinkItem> }) => Promise<LinkItem | null>;
 }
 
@@ -46,8 +48,16 @@ const dedupeById = (items: LinkItem[]): LinkItem[] => {
 
 const normalize = (items: LinkItem[]): LinkItem[] => dedupeById(migrateGoogleSearchHeight(items));
 
-export function useLinks(): UseLinks {
+export interface UseLinksOptions {
+  onSwapFailed?: (reason: string) => void;
+}
+
+export function useLinks(opts: UseLinksOptions = {}): UseLinks {
   const [links, setLinks] = useState<LinkItem[]>(() => normalize(getLinksSync()));
+  const swapSuppressUntilRef = useRef(0);
+  const SWAP_SUPPRESS_MS = 250;
+  const onSwapFailedRef = useRef(opts.onSwapFailed);
+  onSwapFailedRef.current = opts.onSwapFailed;
 
   useEffect(() => {
     getLinks().then((stored) => {
@@ -89,6 +99,7 @@ export function useLinks(): UseLinks {
   }, []);
 
   const handleLayoutChange = useCallback((layout: Layout) => {
+    if (Date.now() < swapSuppressUntilRef.current) return;
     setLinks((prevLinks) => {
       const layoutById = new Map(layout.map((l) => [l.i, l]));
       let mutated = false;
@@ -240,6 +251,99 @@ export function useLinks(): UseLinks {
     });
   }, []);
 
+  const handleSwap = useCallback((
+    draggedId: string,
+    targetId: string,
+    draggedSourceRect?: { x: number; y: number; w: number; h: number },
+  ) => {
+    if (draggedId === targetId) return;
+    swapSuppressUntilRef.current = Date.now() + SWAP_SUPPRESS_MS;
+    setLinks((prevLinks) => {
+      const dragged = prevLinks.find((l) => l.id === draggedId);
+      const target = prevLinks.find((l) => l.id === targetId);
+      if (!dragged || !target) return prevLinks;
+      if (dragged.isHeaderLink || target.isHeaderLink) return prevLinks;
+      if (target.x === undefined || target.y === undefined) return prevLinks;
+
+      const draggedRect = draggedSourceRect ?? (
+        dragged.x !== undefined && dragged.y !== undefined
+          ? { x: dragged.x, y: dragged.y, w: dragged.w ?? 1, h: dragged.h ?? 1 }
+          : null
+      );
+      if (!draggedRect) return prevLinks;
+
+      const draggedLayout = getWidgetLayout(dragged.type);
+      const targetLayout = getWidgetLayout(target.type);
+
+      const result = resolveSwap(
+        { rect: draggedRect, bounds: draggedLayout },
+        {
+          rect: { x: target.x, y: target.y, w: target.w ?? 1, h: target.h ?? 1 },
+          bounds: targetLayout,
+        },
+      );
+
+      const obstacles = prevLinks
+        .filter((l) => l.id !== draggedId && l.id !== targetId && !l.isHeaderLink && l.x !== undefined && l.y !== undefined)
+        .map((l) => ({ x: l.x as number, y: l.y as number, w: l.w ?? 1, h: l.h ?? 1 }));
+
+      const rectsOverlap = (a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }): boolean =>
+        a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+
+      const rectFits = (rect: { x: number; y: number; w: number; h: number }): boolean => {
+        if (rect.x < 0 || rect.y < 0 || rect.x + rect.w > MAIN_COLS) return false;
+        return !obstacles.some((o) => rectsOverlap(rect, o));
+      };
+
+      const pairFits = (d: { x: number; y: number; w: number; h: number }, t: { x: number; y: number; w: number; h: number }): boolean =>
+        rectFits(d) && rectFits(t) && !rectsOverlap(d, t);
+
+      let draggedFinal = result.draggedRect;
+      let targetFinal = result.targetRect;
+
+      if (!pairFits(draggedFinal, targetFinal)) {
+        const minDragged = {
+          x: draggedFinal.x,
+          y: draggedFinal.y,
+          w: draggedLayout.minW ?? 1,
+          h: draggedLayout.minH ?? 1,
+        };
+        const minTarget = {
+          x: targetFinal.x,
+          y: targetFinal.y,
+          w: targetLayout.minW ?? 1,
+          h: targetLayout.minH ?? 1,
+        };
+        if (pairFits(minDragged, minTarget)) {
+          draggedFinal = minDragged;
+          targetFinal = minTarget;
+        } else {
+          let reason = 'Can’t swap — not enough room to fit both widgets at their new positions.';
+          const draggedOutOfBounds = draggedFinal.x < 0 || draggedFinal.x + draggedFinal.w > MAIN_COLS;
+          const targetOutOfBounds = targetFinal.x < 0 || targetFinal.x + targetFinal.w > MAIN_COLS;
+          if (draggedOutOfBounds || targetOutOfBounds) {
+            reason = 'Can’t swap — one of the widgets would extend past the grid edge at its minimum size.';
+          } else if (rectsOverlap(minDragged, minTarget)) {
+            reason = 'Can’t swap — the two widgets’ minimum sizes overlap each other.';
+          } else if (obstacles.some((o) => rectsOverlap(minDragged, o) || rectsOverlap(minTarget, o))) {
+            reason = 'Can’t swap — another widget is in the way. Move or resize it first.';
+          }
+          onSwapFailedRef.current?.(reason);
+          return prevLinks;
+        }
+      }
+
+      const updated = prevLinks.map((l) => {
+        if (l.id === draggedId) return { ...l, x: draggedFinal.x, y: draggedFinal.y, w: draggedFinal.w, h: draggedFinal.h };
+        if (l.id === targetId) return { ...l, x: targetFinal.x, y: targetFinal.y, w: targetFinal.w, h: targetFinal.h };
+        return l;
+      });
+
+      saveLinks(updated);
+      return updated;
+    });
+  }, []);
+
   const handleHeaderLinkReorder = useCallback((draggedId: string, targetId: string) => {
     setLinks((prevLinks) => {
       const headerLinks = prevLinks
@@ -295,6 +399,7 @@ export function useLinks(): UseLinks {
     handleUpdateLink,
     handleMoveLink,
     handleHeaderLinkReorder,
+    handleSwap,
     addWidget,
   };
 }

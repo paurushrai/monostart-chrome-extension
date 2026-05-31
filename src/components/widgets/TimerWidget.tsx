@@ -141,10 +141,10 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
 
   return (
     <article className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
-      <header className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
+      <header className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'py-1 drag-handle cursor-grab active:cursor-grabbing' : 'py-0.5'}`}>
         <div className="flex items-center gap-1.5">
-          <Clock size={isEditing ? 14 : 12} className="text-primary" aria-hidden="true" />
-          <h3 className={`font-medium text-foreground pointer-events-none ${isEditing ? 'text-sm' : 'text-xs'}`}>{item.title || 'Timers'}</h3>
+          <Clock size={isEditing ? 12 : 10} className="text-primary" aria-hidden="true" />
+          <h3 className={`font-medium text-foreground pointer-events-none ${isEditing ? 'text-xs' : 'text-2xs'}`}>{item.title || 'Timers'}</h3>
         </div>
         {isEditing && (
           <Button
@@ -153,10 +153,10 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             size="icon"
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-            className="h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 relative z-20"
+            className="h-6 w-6 text-red-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 relative z-20"
             title="Delete Widget"
           >
-            <Trash2 size={14} />
+            <Trash2 size={13} />
           </Button>
         )}
       </header>
@@ -177,8 +177,8 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
         ))}
       </ul>
 
-      <form onSubmit={handleAdd} className="p-2 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl">
-        <div className="flex gap-2">
+      <form onSubmit={handleAdd} className="p-1.5 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl">
+        <div className="flex gap-1.5">
           <Input
             type="number"
             min="1"
@@ -187,7 +187,7 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             onChange={(e) => setNewMinutes(e.target.value)}
             placeholder="Min"
             aria-label="Timer duration in minutes"
-            className="h-8 w-16 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
+            className="h-7 w-14 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
           <Input
             type="text"
@@ -195,16 +195,16 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             onChange={(e) => setNewLabel(e.target.value)}
             placeholder="Label (opt)"
             aria-label="Timer label (optional)"
-            className="h-8 flex-1 min-w-0 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
+            className="h-7 flex-1 min-w-0 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
           <Button
             type="submit"
             size="icon"
             disabled={!newMinutes}
             title="Add timer"
-            className="h-8 w-8 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 disabled:opacity-50 rounded-sm"
+            className="h-7 w-7 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 disabled:opacity-50 rounded-sm"
           >
-            <Plus size={16} />
+            <Plus size={14} />
           </Button>
         </div>
       </form>

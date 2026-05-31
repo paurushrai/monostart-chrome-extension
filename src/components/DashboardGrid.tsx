@@ -1,16 +1,18 @@
-import { useState, type DragEvent as ReactDragEvent } from 'react';
+import { useEffect, useLayoutEffect, useState, type DragEvent as ReactDragEvent } from 'react';
 import GridLayout, { WidthProvider } from 'react-grid-layout/legacy';
 import type { Layout } from 'react-grid-layout/legacy';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+import { ExternalLink } from 'lucide-react';
 import WidgetRenderer from './WidgetRenderer';
-import { useGridDimensions } from '../hooks/useGridDimensions';
+import { resolveFavicon } from '../lib/favicon';
+import { useGridDimensions, photoConfigFitsAt3Rows } from '../hooks/useGridDimensions';
 import { useDashboardDrag } from '../hooks/useDashboardDrag';
 import { HEADER_LINK_DRAG_TYPE } from '../hooks/useHeaderDrag';
 import { MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import { getWidgetMeta, WidgetType } from '../lib/widgetCatalog';
 import type { WidgetMeta } from '../lib/widgetCatalog';
-import type { LinkItem, DisplayItem, DragPlaceholder, GridSlot, GoogleSearch } from '../types';
+import type { LinkItem, RegularLink, DisplayItem, DragPlaceholder, GridSlot, GoogleSearch, ImageWidget } from '../types';
 
 const ReactGridLayout = WidthProvider(GridLayout);
 
@@ -31,6 +33,7 @@ interface Props {
   openInNewTab?: boolean;
   sections?: SectionRef[];
   onMoveLink: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  onSwap: (draggedId: string, targetId: string, draggedSourceRect?: { x: number; y: number; w: number; h: number }) => void;
   onHeaderTargetChange?: (isOver: boolean) => void;
 }
 
@@ -51,8 +54,8 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
   displayLinks.map((link) => {
     const isPlaceholder = link.id === PLACEHOLDER_ID;
     const meta = getWidgetMeta(link.type);
-    const { minW, maxW, resizable } = meta?.layout ?? {};
-    let { minH, maxH } = meta?.layout ?? {};
+    const { maxW, resizable } = meta?.layout ?? {};
+    let { minW, minH, maxH } = meta?.layout ?? {};
     const initial = initialSize(link, meta);
     const w = initial.w;
     let h = initial.h;
@@ -63,6 +66,13 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
       else { minH = 1; maxH = 1; }
       if (h < minH) h = minH;
       if (h > maxH) h = maxH;
+    }
+
+    if (link.type === WidgetType.IMAGE) {
+      const hasImage = !!((link as ImageWidget).url ?? '').trim();
+      const emptyMin = photoConfigFitsAt3Rows() ? 3 : 4;
+      minW = hasImage ? 3 : emptyMin;
+      minH = hasImage ? 3 : emptyMin;
     }
 
     return {
@@ -89,11 +99,43 @@ const DashboardGrid = ({
   openInNewTab,
   sections = [],
   onMoveLink,
+  onSwap,
   onHeaderTargetChange,
 }: Readonly<Props>) => {
-  const { rowHeight } = useGridDimensions();
-  const drag = useDashboardDrag({ links, rowHeight, onMoveLink, onHeaderTargetChange });
-  const [isHeaderDragOver, setIsHeaderDragOver] = useState(false);
+  const { rowHeight: fallbackRowHeight } = useGridDimensions();
+  const [rowHeight, setRowHeight] = useState(fallbackRowHeight);
+  const drag = useDashboardDrag({ links, rowHeight, onMoveLink, onSwap, onHeaderTargetChange });
+
+  useLayoutEffect(() => {
+    const el = drag.gridRef.current;
+    const host = el?.parentElement;
+    if (!host) return;
+    const GRID_MARGIN = 16;
+    const measure = () => {
+      const cs = getComputedStyle(host);
+      const available =
+        host.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const next = Math.max(
+        30,
+        (available - 2 * GRID_MARGIN - (MAIN_ROWS - 1) * GRID_MARGIN) / MAIN_ROWS,
+      );
+      if (Number.isFinite(next)) setRowHeight((prev) => (prev === next ? prev : next));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(host);
+    return () => ro.disconnect();
+  }, [drag.gridRef]);
+  const dragOutLink = drag.activeDragOutItem?.type === 'link' ? (drag.activeDragOutItem as RegularLink) : null;
+  const ghostFavicon = dragOutLink ? resolveFavicon(dragOutLink) : null;
+  const showGhost = !!dragOutLink && !!drag.dragCursorCoords;
+  const [isDashboardDragOver, setIsDashboardDragOver] = useState(false);
+
+  useEffect(() => {
+    const clear = () => setIsDashboardDragOver(false);
+    document.addEventListener('dragend', clear);
+    return () => document.removeEventListener('dragend', clear);
+  }, []);
 
   const isHeaderLinkDrag = (e: ReactDragEvent<HTMLDivElement>) =>
     e.dataTransfer.types.includes(HEADER_LINK_DRAG_TYPE);
@@ -102,16 +144,17 @@ const DashboardGrid = ({
     if (!isHeaderLinkDrag(e)) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    if (!isHeaderDragOver) setIsHeaderDragOver(true);
+    const overSection = !!(e.target as HTMLElement).closest('[data-section-id]');
+    setIsDashboardDragOver(!overSection);
   };
 
   const handleHeaderDragLeave = (e: ReactDragEvent<HTMLDivElement>) => {
     if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
-    setIsHeaderDragOver(false);
+    setIsDashboardDragOver(false);
   };
 
   const handleHeaderDrop = (e: ReactDragEvent<HTMLDivElement>) => {
-    setIsHeaderDragOver(false);
+    setIsDashboardDragOver(false);
     if (!isHeaderLinkDrag(e)) return;
     e.preventDefault();
     const linkId = e.dataTransfer.getData(HEADER_LINK_DRAG_TYPE);
@@ -140,7 +183,7 @@ const DashboardGrid = ({
 
   return (
     <div
-      className={`w-full rounded-lg transition-colors ${isHeaderDragOver ? 'bg-primary/5 ring-2 ring-primary/40' : ''}`}
+      className={`w-full min-h-full rounded-lg transition-colors ${isDashboardDragOver ? 'bg-primary/5 ring-2 ring-primary/40' : ''}`}
       ref={drag.gridRef}
       onDragOver={handleHeaderDragOver}
       onDragLeave={handleHeaderDragLeave}
@@ -187,6 +230,24 @@ const DashboardGrid = ({
           </div>
         ))}
       </ReactGridLayout>
+      {showGhost && drag.dragCursorCoords && (
+        <div
+          className="fixed pointer-events-none z-[9999] rounded-md bg-card border border-border shadow-lg flex items-center justify-center"
+          style={{
+            left: drag.dragCursorCoords.x - 20,
+            top: drag.dragCursorCoords.y - 20,
+            width: 40,
+            height: 40,
+            opacity: 0.85,
+          }}
+        >
+          {ghostFavicon ? (
+            <img src={ghostFavicon} alt="" className="w-7 h-7 object-contain rounded-sm" draggable={false} />
+          ) : (
+            <ExternalLink size={18} className="text-muted-foreground" />
+          )}
+        </div>
+      )}
     </div>
   );
 };

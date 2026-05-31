@@ -42,7 +42,7 @@ const WIDGETS = [
   {
     type: WidgetType.LINK,
     addable: false,
-    layout: { minW: 1, minH: 1, maxW: 6, maxH: 2, resizable: true },
+    layout: { minW: 1, minH: 1, maxW: 6, maxH: 1, resizable: true },
   },
   {
     type: WidgetType.GOOGLE_SEARCH,
@@ -96,7 +96,7 @@ const WIDGETS = [
     description: 'Write notes or reminders with custom colors.',
     icon: FileText,
     defaults: { w: 3, h: 3, title: 'Sticky Note', content: '', noteColor: 'default' },
-    layout: { minW: 1, minH: 1, resizable: true },
+    layout: { minW: 3, minH: 3, resizable: true },
   },
   {
     type: WidgetType.IMAGE,
@@ -104,8 +104,8 @@ const WIDGETS = [
     name: 'Photo / Image',
     description: 'Add an image from a URL or upload a local file.',
     icon: Image,
-    defaults: { w: 3, h: 3, title: 'Photo Frame', url: '', fit: 'cover' },
-    layout: { minW: 1, minH: 1, resizable: true },
+    defaults: { w: 4, h: 4, title: 'Photo Frame', url: '', fit: 'cover' },
+    layout: { minW: 4, minH: 4, resizable: true },
   },
   {
     type: WidgetType.LABEL,
@@ -114,7 +114,7 @@ const WIDGETS = [
     description: 'Add a clean floating text header or title to style your grid.',
     icon: Type,
     defaults: { w: 4, h: 1, text: 'Google', align: 'left', size: 'text-3xl', fontWeight: 'font-bold', opacity: 'opacity-100' },
-    layout: { minW: 1, minH: 1, resizable: true },
+    layout: { minW: 2, minH: 1, resizable: true },
   },
   {
     type: WidgetType.IFRAME,
@@ -123,7 +123,7 @@ const WIDGETS = [
     description: 'Embed any website as a live widget.',
     icon: Globe,
     defaults: { w: 4, h: 4, title: 'Embed', url: 'https://www.google.com' },
-    layout: { minW: 1, minH: 1, resizable: true },
+    layout: { minW: 3, minH: 3, resizable: true },
   },
 ] as const satisfies readonly WidgetMeta[];
 

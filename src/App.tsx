@@ -5,8 +5,10 @@ import ThemeSettingsModal from './components/ThemeSettingsModal';
 import AddLinkModal from './components/AddLinkModal';
 import AppHeader from './components/AppHeader';
 import ImportBookmarksModal from './components/ImportBookmarksModal';
+import ClearDashboardModal from './components/ClearDashboardModal';
 import Toast from './components/Toast';
 import { useLinks } from './hooks/useLinks';
+import { getPhotoWidgetSize } from './hooks/useGridDimensions';
 import { useTheme } from './hooks/useTheme';
 import { useHeaderDrag } from './hooks/useHeaderDrag';
 import { useToast } from './hooks/useToast';
@@ -24,6 +26,8 @@ const EDIT_MODE_KEY = 'dashboardEditMode';
 const ORIGINAL_LINKS_KEY = 'dashboardEditOriginalLinks';
 
 function App() {
+  const { toast, showToast, dismissToast } = useToast();
+
   const {
     links,
     replaceLinks,
@@ -33,12 +37,12 @@ function App() {
     handleUpdateLink,
     handleMoveLink,
     handleHeaderLinkReorder,
+    handleSwap,
     addWidget,
-  } = useLinks();
+  } = useLinks({ onSwapFailed: showToast });
 
   const { settings, updateSettings } = useTheme();
   const headerDrag = useHeaderDrag(handleHeaderLinkReorder);
-  const { toast, showToast, dismissToast } = useToast();
 
   const [isEditing, setIsEditing] = useState<boolean>(() => {
     try { return localStorage.getItem(EDIT_MODE_KEY) === 'true'; } catch { return false; }
@@ -53,6 +57,7 @@ function App() {
   const [themeModalOpen, setThemeModalOpen] = useState(false);
   const [addLinkModalOpen, setAddLinkModalOpen] = useState(false);
   const [importBookmarksOpen, setImportBookmarksOpen] = useState(false);
+  const [clearModalOpen, setClearModalOpen] = useState(false);
   const [isHeaderTargeted, setIsHeaderTargeted] = useState(false);
 
   const preAddSnapshotRef = useRef<LinkItem[] | null>(null);
@@ -81,13 +86,19 @@ function App() {
   }, [isEditing, enterEditModeWithSnapshot]);
 
   const saveEditMode = useCallback(() => {
+    const isEmptyImage = (l: LinkItem) => l.type === 'image' && !(l.url ?? '').trim();
+    const emptyImageCount = links.filter(isEmptyImage).length;
+    if (emptyImageCount > 0) {
+      replaceLinks(links.filter((l) => !isEmptyImage(l)));
+      showToast(`Removed ${emptyImageCount} empty photo widget${emptyImageCount === 1 ? '' : 's'}.`);
+    }
     setIsEditing(false);
     setOriginalLinks([]);
     try {
       localStorage.removeItem(EDIT_MODE_KEY);
       localStorage.removeItem(ORIGINAL_LINKS_KEY);
     } catch { /* empty */ }
-  }, []);
+  }, [links, replaceLinks, showToast]);
 
   const cancelEditMode = useCallback(() => {
     replaceLinks(originalLinks);
@@ -98,6 +109,18 @@ function App() {
       localStorage.removeItem(ORIGINAL_LINKS_KEY);
     } catch { /* empty */ }
   }, [originalLinks, replaceLinks]);
+
+  const handleClearDashboard = useCallback((clearHeaderToo: boolean) => {
+    const kept = clearHeaderToo ? [] : links.filter((l) => l.isHeaderLink);
+    const removedMain = links.filter((l) => !l.isHeaderLink).length;
+    const removedHeader = clearHeaderToo ? links.filter((l) => l.isHeaderLink).length : 0;
+    if (removedMain === 0 && removedHeader === 0) return;
+    replaceLinks(kept);
+    const parts: string[] = [];
+    if (removedMain > 0) parts.push(`${removedMain} widget${removedMain === 1 ? '' : 's'}`);
+    if (removedHeader > 0) parts.push(`${removedHeader} header link${removedHeader === 1 ? '' : 's'}`);
+    showToast(`Cleared ${parts.join(' + ')}. Cancel to undo, or Save to confirm.`);
+  }, [links, replaceLinks, showToast]);
 
   const canImportBookmarks = typeof chrome !== 'undefined' && !!chrome.bookmarks;
 
@@ -135,7 +158,10 @@ function App() {
       return;
     }
     if (!isEditing) preAddSnapshotRef.current = getLinksSync();
-    const saved = await addWidget(widget);
+    const sized = widget.type === 'image'
+      ? { ...widget, defaults: { ...widget.defaults, ...getPhotoWidgetSize() } }
+      : widget;
+    const saved = await addWidget(sized);
     if (!saved) {
       preAddSnapshotRef.current = null;
       showToast('No room for this widget. Resize or remove something to make space.');
@@ -162,6 +188,7 @@ function App() {
         onEnterEdit={enterEditMode}
         onSaveEdit={saveEditMode}
         onCancelEdit={cancelEditMode}
+        onClearDashboard={() => setClearModalOpen(true)}
         onOpenAddLink={() => {
           if (!isEditing) preAddSnapshotRef.current = getLinksSync();
           setAddLinkModalOpen(true);
@@ -173,7 +200,7 @@ function App() {
         isDropTarget={isHeaderTargeted}
       />
 
-      <main className="flex-1 p-2">
+      <main className="flex-1">
         <DashboardGrid
           links={links.filter((l) => !l.isHeaderLink)}
           onLayoutChange={handleLayoutChange}
@@ -184,6 +211,7 @@ function App() {
           openInNewTab={settings.openInNewTab}
           sections={sections}
           onMoveLink={handleMoveLink}
+          onSwap={handleSwap}
           onHeaderTargetChange={setIsHeaderTargeted}
         />
       </main>
@@ -215,6 +243,13 @@ function App() {
         open={importBookmarksOpen}
         onClose={() => setImportBookmarksOpen(false)}
         onConfirm={runBookmarkImport}
+      />
+
+      <ClearDashboardModal
+        open={clearModalOpen}
+        onClose={() => setClearModalOpen(false)}
+        links={links}
+        onConfirm={handleClearDashboard}
       />
 
       <Toast message={toast} onDismiss={dismissToast} />

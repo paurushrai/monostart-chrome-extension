@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, type RefObject, type MutableRefObject } 
 import type { Layout, LayoutItem } from 'react-grid-layout/legacy';
 import { MAIN_COLS, SECTION_DEFAULT_COLS } from '../lib/grid';
 import { WidgetType } from '../lib/widgetCatalog';
+import { pickSwapTarget } from '../lib/swapPlanner';
 import type { LinkItem, RegularLink, Section, DragCoords, GridSlot } from '../types';
 
 const ROW_MARGIN_PX = 16;
@@ -56,12 +57,14 @@ interface UseDashboardDragOptions {
   links: readonly LinkItem[];
   rowHeight: number;
   onMoveLink: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  onSwap: (draggedId: string, targetId: string, draggedSourceRect?: { x: number; y: number; w: number; h: number }) => void;
   onHeaderTargetChange?: (isOver: boolean) => void;
 }
 
 export interface UseDashboardDrag {
   gridRef: RefObject<HTMLDivElement | null>;
   activeDragSectionId: string | null;
+  activeSwapTargetId: string | null;
   draggedItem: LinkItem | null;
   dragCursorCoords: DragCoords | null;
   activeDragOutItem: LinkItem | null;
@@ -75,16 +78,21 @@ export interface UseDashboardDrag {
   handleExternalDrop: (linkId: string, clientX: number, clientY: number) => boolean;
 }
 
+const CLICK_VS_DRAG_THRESHOLD_PX = 8;
+
 export function useDashboardDrag({
   links,
   rowHeight,
   onMoveLink,
+  onSwap,
   onHeaderTargetChange,
 }: UseDashboardDragOptions): UseDashboardDrag {
   const gridRef = useRef<HTMLDivElement | null>(null);
   const lastInnerDragCoordsRef: MutableRefObject<DragCoords | null> = useRef<DragCoords | null>(null);
+  const dragStartCoordsRef = useRef<DragCoords | null>(null);
 
   const [activeDragSectionId, setActiveDragSectionId] = useState<string | null>(null);
+  const [activeSwapTargetId, setActiveSwapTargetId] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<LinkItem | null>(null);
   const [draggedItemType, setDraggedItemType] = useState<string | null>(null);
   const [dragCursorCoords, setDragCursorCoords] = useState<DragCoords | null>(null);
@@ -133,6 +141,22 @@ export function useDashboardDrag({
     [rowHeight],
   );
 
+  const computeCursorCell = useCallback(
+    (clientX: number, clientY: number): { x: number; y: number } | null => {
+      const gridEl = gridRef.current;
+      if (!gridEl) return null;
+      const gridRect = gridEl.getBoundingClientRect();
+      const colWidth = gridRect.width / MAIN_COLS;
+      const rowH = rowHeight + ROW_MARGIN_PX;
+      const scrollLeft = gridEl.scrollLeft || 0;
+      const scrollTop = gridEl.scrollTop || 0;
+      const localX = clientX - gridRect.left + scrollLeft;
+      const localY = clientY - gridRect.top + scrollTop;
+      return { x: Math.floor(localX / colWidth), y: Math.floor(localY / rowH) };
+    },
+    [rowHeight],
+  );
+
   const computeSectionDropCoords = useCallback(
     (item: RegularLink, sectionId: string, clientX: number, clientY: number): GridSlot | undefined => {
       const sectionEl = document.querySelector(`[data-section-id="${sectionId}"]`);
@@ -147,12 +171,14 @@ export function useDashboardDrag({
       const localX = clientX - rect.left + scrollLeft;
       const localY = clientY - rect.top + scrollTop;
 
-      const cols = sectionItem.cols || SECTION_DEFAULT_COLS;
-      const w = Math.min(item.viewMode === 'icon' ? 1 : 3, cols);
+      const isList = sectionItem.layout === 'list';
+      const cols = isList ? 1 : (sectionItem.cols || SECTION_DEFAULT_COLS);
+      const rowPitch = isList ? 31 : SECTION_INNER_ROW_HEIGHT;
+      const w = isList ? 1 : Math.min(item.viewMode === 'icon' ? 1 : 3, cols);
 
       const colWidth = rect.width / cols;
       const placeholderX = Math.max(0, Math.min(cols - w, Math.floor(localX / colWidth)));
-      const placeholderY = Math.max(0, Math.floor(localY / SECTION_INNER_ROW_HEIGHT));
+      const placeholderY = Math.max(0, Math.floor(localY / rowPitch));
       return { x: placeholderX, y: placeholderY };
     },
     [links],
@@ -165,14 +191,14 @@ export function useDashboardDrag({
 
   const handleInnerDrag = useCallback((item: RegularLink, parentSectionId: string, clientX: number, clientY: number) => {
     lastInnerDragCoordsRef.current = { x: clientX, y: clientY };
+    setDragCursorCoords({ x: clientX, y: clientY });
+    setDraggedItem(item);
 
     if (isPointOverHeader(clientX, clientY)) {
       onHeaderTargetChange?.(true);
       setActiveDragOutItem(item);
       setDragOutCoords(null);
       setActiveDragSectionId(null);
-      setDragCursorCoords(null);
-      setDraggedItem(null);
       return;
     }
     onHeaderTargetChange?.(false);
@@ -183,8 +209,6 @@ export function useDashboardDrag({
       setActiveDragOutItem(null);
       setDragOutCoords(null);
       setActiveDragSectionId(null);
-      setDragCursorCoords(null);
-      setDraggedItem(null);
       return;
     }
 
@@ -192,14 +216,10 @@ export function useDashboardDrag({
       setActiveDragOutItem(item);
       setDragOutCoords(null);
       setActiveDragSectionId(hoverSectionId);
-      setDragCursorCoords({ x: clientX, y: clientY });
-      setDraggedItem(item);
       return;
     }
 
     setActiveDragSectionId(null);
-    setDragCursorCoords(null);
-    setDraggedItem(null);
 
     const slot = computeMainGridDropSlot(item, clientX, clientY);
     if (!slot) {
@@ -250,19 +270,24 @@ export function useDashboardDrag({
     lastInnerDragCoordsRef.current = null;
   }, [computeMainGridDropSlot, computeSectionDropCoords, checkCollision, onMoveLink, onHeaderTargetChange]);
 
-  const handleDragStart: RglDragHandler = useCallback((_layout, _oldItem, newItem) => {
+  const handleDragStart: RglDragHandler = useCallback((_layout, _oldItem, newItem, _placeholder, e) => {
     if (!newItem) return;
     const item = links.find((l) => l.id === newItem.i);
     setDraggedItem(item || null);
     setDraggedItemType(item?.type || null);
+    const coords = getEventCoords(e);
+    dragStartCoordsRef.current = coords.x !== undefined && coords.y !== undefined
+      ? { x: coords.x, y: coords.y }
+      : null;
   }, [links]);
 
-  const handleDrag: RglDragHandler = useCallback((_layout, _oldItem, _newItem, _placeholder, e) => {
-    if (!e || draggedItemType !== WidgetType.LINK) return;
+  const handleDrag: RglDragHandler = useCallback((_layout, _oldItem, newItem, _placeholder, e) => {
+    if (!e) return;
 
     const { x: clientX, y: clientY } = getEventCoords(e);
     if (clientX === undefined || clientY === undefined) {
       setActiveDragSectionId((prev) => (prev ? null : prev));
+      setActiveSwapTargetId((prev) => (prev ? null : prev));
       setDragCursorCoords(null);
       onHeaderTargetChange?.(false);
       return;
@@ -270,23 +295,53 @@ export function useDashboardDrag({
 
     setDragCursorCoords({ x: clientX, y: clientY });
 
-    if (isPointOverHeader(clientX, clientY)) {
-      onHeaderTargetChange?.(true);
+    if (draggedItemType === WidgetType.LINK) {
+      if (isPointOverHeader(clientX, clientY)) {
+        onHeaderTargetChange?.(true);
+        setActiveDragSectionId((prev) => (prev ? null : prev));
+        setActiveSwapTargetId((prev) => (prev ? null : prev));
+        return;
+      }
+      onHeaderTargetChange?.(false);
+      const targetSectionId = findSectionAtPoint(clientX, clientY);
+      if (targetSectionId) {
+        setActiveDragSectionId((prev) => (prev === targetSectionId ? prev : targetSectionId));
+        setActiveSwapTargetId((prev) => (prev ? null : prev));
+        return;
+      }
       setActiveDragSectionId((prev) => (prev ? null : prev));
+    } else {
+      onHeaderTargetChange?.(false);
+      setActiveDragSectionId((prev) => (prev ? null : prev));
+    }
+
+    if (!newItem) return;
+    const cursorCell = computeCursorCell(clientX, clientY);
+    if (!cursorCell) {
+      setActiveSwapTargetId((prev) => (prev ? null : prev));
       return;
     }
-    onHeaderTargetChange?.(false);
+    const hit = links.find((l) =>
+      l.id !== newItem.i &&
+      !l.isHeaderLink &&
+      l.x !== undefined && l.y !== undefined &&
+      cursorCell.x >= l.x && cursorCell.x < l.x + (l.w ?? 1) &&
+      cursorCell.y >= l.y && cursorCell.y < l.y + (l.h ?? 1),
+    );
+    const next = hit?.id ?? null;
+    setActiveSwapTargetId((prev) => (prev === next ? prev : next));
+  }, [draggedItemType, links, computeCursorCell, onHeaderTargetChange]);
 
-    const targetSectionId = findSectionAtPoint(clientX, clientY);
-    setActiveDragSectionId((prev) => (prev === targetSectionId ? prev : targetSectionId));
-  }, [draggedItemType, onHeaderTargetChange]);
-
-  const handleDragStop: RglDragHandler = useCallback((_layout, _oldItem, newItem, _placeholder, e) => {
+  const handleDragStop: RglDragHandler = useCallback((_layout, oldItem, newItem, _placeholder, e) => {
     setActiveDragSectionId(null);
+    setActiveSwapTargetId(null);
     setDraggedItemType(null);
     setDraggedItem(null);
     setDragCursorCoords(null);
     onHeaderTargetChange?.(false);
+
+    const startCoords = dragStartCoordsRef.current;
+    dragStartCoordsRef.current = null;
 
     if (!e || !newItem) return;
 
@@ -297,6 +352,12 @@ export function useDashboardDrag({
     }
     if (clientX === undefined || clientY === undefined) return;
 
+    if (startCoords) {
+      const dx = Math.abs(clientX - startCoords.x);
+      const dy = Math.abs(clientY - startCoords.y);
+      if (dx < CLICK_VS_DRAG_THRESHOLD_PX && dy < CLICK_VS_DRAG_THRESHOLD_PX) return;
+    }
+
     if (isPointOverHeader(clientX, clientY)) {
       const draggedLinkForHeader = links.find((l) => l.id === newItem.i && l.type === WidgetType.LINK) as RegularLink | undefined;
       if (draggedLinkForHeader) onMoveLink(draggedLinkForHeader.id, HEADER_TARGET);
@@ -304,14 +365,52 @@ export function useDashboardDrag({
     }
 
     const targetSectionId = findSectionAtPoint(clientX, clientY);
-    if (!targetSectionId) return;
+    if (targetSectionId) {
+      const draggedLink = links.find((l) => l.id === newItem.i && l.type === WidgetType.LINK) as RegularLink | undefined;
+      if (draggedLink) {
+        const targetCoords = computeSectionDropCoords(draggedLink, targetSectionId, clientX, clientY);
+        onMoveLink(draggedLink.id, targetSectionId, targetCoords);
+        return;
+      }
+    }
 
-    const draggedLink = links.find((l) => l.id === newItem.i && l.type === WidgetType.LINK) as RegularLink | undefined;
-    if (!draggedLink) return;
+    const draggedItem = links.find((l) => l.id === newItem.i);
+    if (!draggedItem || draggedItem.isHeaderLink) return;
+    if (!oldItem) return;
 
-    const targetCoords = computeSectionDropCoords(draggedLink, targetSectionId, clientX, clientY);
-    onMoveLink(draggedLink.id, targetSectionId, targetCoords);
-  }, [links, dragCursorCoords, computeSectionDropCoords, onMoveLink, onHeaderTargetChange]);
+    const others = links
+      .filter((l) => l.id !== draggedItem.id && !l.isHeaderLink && l.x !== undefined && l.y !== undefined)
+      .map((l) => ({
+        id: l.id,
+        rect: { x: l.x as number, y: l.y as number, w: l.w ?? 1, h: l.h ?? 1 },
+      }));
+
+    let swapTargetId: string | null = null;
+    const cursorCell = computeCursorCell(clientX, clientY);
+    if (cursorCell) {
+      const hit = others.find((o) =>
+        cursorCell.x >= o.rect.x &&
+        cursorCell.x < o.rect.x + o.rect.w &&
+        cursorCell.y >= o.rect.y &&
+        cursorCell.y < o.rect.y + o.rect.h,
+      );
+      if (hit) swapTargetId = hit.id;
+    }
+
+    if (!swapTargetId) {
+      const slot = computeMainGridDropSlot(draggedItem, clientX, clientY);
+      if (slot) {
+        const intendedRect = { x: slot.gridX, y: slot.gridY, w: slot.w, h: slot.h };
+        swapTargetId = pickSwapTarget(intendedRect, others);
+      }
+    }
+
+    if (swapTargetId) {
+      onSwap(draggedItem.id, swapTargetId, {
+        x: oldItem.x, y: oldItem.y, w: oldItem.w, h: oldItem.h,
+      });
+    }
+  }, [links, dragCursorCoords, computeMainGridDropSlot, computeCursorCell, computeSectionDropCoords, onMoveLink, onSwap, onHeaderTargetChange]);
 
   const handleExternalDrop = useCallback((linkId: string, clientX: number, clientY: number): boolean => {
     const externalPlaceholder = { viewMode: 'icon' as const, w: 1, h: 1 } as RegularLink;
@@ -325,6 +424,7 @@ export function useDashboardDrag({
   return {
     gridRef,
     activeDragSectionId,
+    activeSwapTargetId,
     draggedItem,
     dragCursorCoords,
     activeDragOutItem,

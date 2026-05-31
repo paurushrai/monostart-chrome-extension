@@ -123,7 +123,7 @@ const HeaderLink = ({
       className={`relative group rounded transition-all duration-150 flex items-center justify-center h-7
         ${showAsText ? 'min-w-[40px] max-w-[160px] px-2' : 'w-7'}
         ${isEditing ? 'cursor-grab active:cursor-grabbing hover:bg-secondary/70 border border-dashed border-border' : 'hover:bg-secondary/50'}
-        ${isDragOver ? 'ring-2 ring-primary ring-offset-1 scale-105' : ''}
+        ${isDragOver ? 'ring-2 ring-primary' : ''}
         ${isDragging ? 'opacity-30 scale-95' : ''}
       `}
       draggable={isEditing}

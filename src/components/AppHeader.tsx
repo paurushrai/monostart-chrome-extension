@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid, BookmarkPlus } from 'lucide-react';
+import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid, BookmarkPlus, Trash2 } from 'lucide-react';
 import type { LinkItem, RegularLink, Section, Settings as AppSettings, GridSlot } from '../types';
 import type { UseHeaderDrag } from '../hooks/useHeaderDrag';
 
@@ -23,6 +23,7 @@ interface Props {
   onEnterEdit: () => void;
   onSaveEdit: () => void;
   onCancelEdit: () => void;
+  onClearDashboard: () => void;
   onOpenAddLink: () => void;
   onOpenAddWidget: () => void;
   onOpenTheme: () => void;
@@ -43,6 +44,7 @@ export default function AppHeader({
   onEnterEdit,
   onSaveEdit,
   onCancelEdit,
+  onClearDashboard,
   onOpenAddLink,
   onOpenAddWidget,
   onOpenTheme,
@@ -61,7 +63,7 @@ export default function AppHeader({
   return (
     <header
       data-header-drop-target="true"
-      className={`grid grid-cols-3 items-center px-6 py-2 border-b border-border relative transition-colors ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
+      className={`grid grid-cols-3 items-center px-4 py-2 border-b border-border relative transition-colors ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
     >
       <div className="flex items-center gap-3">
         <Hexagon size={24} strokeWidth={2.5} className="text-foreground" />
@@ -107,6 +109,16 @@ export default function AppHeader({
       <div className="flex items-center justify-end gap-3 relative">
         {isEditing && (
           <div className="flex items-center gap-2 mr-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClearDashboard}
+              title="Clear dashboard"
+              className="text-red-500 hover:text-red-500 hover:bg-red-500/10 dark:hover:bg-red-500/15"
+            >
+              <Trash2 size={14} className="mr-1.5" />
+              Clear
+            </Button>
             <Button variant="outline" size="sm" onClick={onCancelEdit}>
               Cancel
             </Button>

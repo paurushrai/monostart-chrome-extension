@@ -77,9 +77,9 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
   return (
     <article className={`card-base w-full h-full relative group overflow-hidden flex flex-col transition-all duration-300 ${activeColor.bg}`}>
 
-      <header className={`flex items-center justify-between px-2 border-b border-border/40 shrink-0 rounded-t-xl transition-all duration-300 ${activeColor.headerBg} ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
+      <header className={`flex items-center justify-between px-2 border-b border-border/40 shrink-0 rounded-t-xl transition-all duration-300 ${activeColor.headerBg} ${isEditing ? 'py-1 drag-handle cursor-grab active:cursor-grabbing' : 'py-0.5'}`}>
         <div className="flex items-center gap-1.5 min-w-0">
-          <FileText size={isEditing ? 14 : 12} className="text-primary shrink-0" aria-hidden="true" />
+          <FileText size={isEditing ? 12 : 10} className="text-primary shrink-0" aria-hidden="true" />
           {isEditingTitle ? (
             <Input
               ref={titleInputRef}
@@ -88,12 +88,12 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
               onBlur={handleTitleBlur}
               onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
               aria-label="Note title"
-              className={`h-auto font-medium bg-background border border-border rounded px-1 py-0.5 focus-visible:ring-0 focus-visible:ring-offset-0 ${isEditing ? 'text-sm max-w-[140px]' : 'text-xs max-w-[120px]'}`}
+              className={`h-auto font-medium bg-background border border-border rounded px-1 py-0.5 focus-visible:ring-0 focus-visible:ring-offset-0 ${isEditing ? 'text-xs max-w-[140px]' : 'text-xs max-w-[120px]'}`}
             />
           ) : (
             <h3
               onClick={handleTitleClick}
-              className={`font-medium truncate select-none ${isEditing ? 'text-sm cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 px-1 rounded' : 'text-xs pointer-events-none'}`}
+              className={`font-medium truncate select-none ${isEditing ? 'text-xs cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 px-1 rounded' : 'text-2xs pointer-events-none'}`}
             >
               {title}
             </h3>
@@ -109,9 +109,9 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
                 size="icon"
                 onMouseDown={(e) => e.stopPropagation()}
                 title="Change Color"
-                className={`text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground ${isEditing ? 'h-7 w-7' : 'h-5 w-5'}`}
+                className={`text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground ${isEditing ? 'h-6 w-6' : 'h-5 w-5'}`}
               >
-                <Palette size={isEditing ? 14 : 11} />
+                <Palette size={isEditing ? 12 : 11} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="p-1 min-w-[120px]">
@@ -138,10 +138,10 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
               size="icon"
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-              className="h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
+              className="h-6 w-6 text-red-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
               title="Delete Widget"
             >
-              <Trash2 size={14} />
+              <Trash2 size={13} />
             </Button>
           )}
         </div>
