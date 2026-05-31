@@ -14,11 +14,11 @@ import type { ImageWidget as ImageWidgetItem } from '../../types';
 interface Props {
   item: ImageWidgetItem;
   onDelete: (id: string) => void;
-  onUpdateLink: (id: string, updates: Partial<ImageWidgetItem>) => void;
+  onUpdateItem: (id: string, updates: Partial<ImageWidgetItem>) => void;
   isEditing: boolean;
 }
 
-const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>) => {
+const ImageWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props>) => {
   const { title = 'Image', url = '', fit = 'cover' } = item;
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [showConfig, setShowConfig] = useState(!url);
@@ -42,12 +42,12 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
   const handleTitleBlur = () => {
     setIsEditingTitle(false);
     const newTitle = titleInputRef.current?.value.trim() || 'Image';
-    onUpdateLink(item.id, { title: newTitle });
+    onUpdateItem(item.id, { title: newTitle });
   };
 
   const handleSaveUrl = (targetUrl: string) => {
     setUploadError("");
-    onUpdateLink(item.id, { url: targetUrl.trim() });
+    onUpdateItem(item.id, { url: targetUrl.trim() });
     setShowConfig(false);
   };
 
@@ -64,7 +64,7 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
     reader.onload = (uploadEvent) => {
       const base64 = uploadEvent.target?.result;
       if (typeof base64 === 'string') {
-        onUpdateLink(item.id, { url: base64 });
+        onUpdateItem(item.id, { url: base64 });
         setShowConfig(false);
         setUploadError("");
       }
@@ -132,21 +132,21 @@ const ImageWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    onClick={() => onUpdateLink(item.id, { fit: 'cover' })}
+                    onClick={() => onUpdateItem(item.id, { fit: 'cover' })}
                     className="flex items-center justify-between py-1 cursor-pointer text-xs"
                   >
                     <span>Cover (Crop)</span>
                     {fit === 'cover' && <Check size={12} className="text-primary" />}
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={() => onUpdateLink(item.id, { fit: 'contain' })}
+                    onClick={() => onUpdateItem(item.id, { fit: 'contain' })}
                     className="flex items-center justify-between py-1 cursor-pointer text-xs"
                   >
                     <span>Contain (Aspect)</span>
                     {fit === 'contain' && <Check size={12} className="text-primary" />}
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={() => onUpdateLink(item.id, { fit: 'fill' })}
+                    onClick={() => onUpdateItem(item.id, { fit: 'fill' })}
                     className="flex items-center justify-between py-1 cursor-pointer text-xs"
                   >
                     <span>Fill (Stretch)</span>

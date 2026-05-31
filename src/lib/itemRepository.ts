@@ -1,21 +1,21 @@
 import { getLinks, saveLinks } from './storage';
-import { getMinSize, findFreeSlot, findSlotInSection, SECTION_DEFAULT_COLS } from './grid';
+import { getMinSize, findFreeSlot, findSlotInGroup, GROUP_DEFAULT_COLS } from './grid';
 import { WidgetType } from './widgetCatalog';
-import type { LinkItem, RegularLink, Section } from '../types';
+import type { WidgetItem, RegularLink, Group } from '../types';
 
-export type NewLinkInput = Partial<LinkItem> & { type: LinkItem['type'] };
+export type NewItemInput = Partial<WidgetItem> & { type: WidgetItem['type'] };
 
-export const saveLink = async (
-  newLink: NewLinkInput,
-  sectionId?: string,
-): Promise<LinkItem | null> => {
+export const saveItem = async (
+  newLink: NewItemInput,
+  groupId?: string,
+): Promise<WidgetItem | null> => {
   const currentLinks = await getLinks();
 
   const id = newLink.id || `${newLink.type || WidgetType.LINK}-${Date.now()}`;
-  const w = newLink.w || (newLink.type === WidgetType.SECTION ? 6 : 2);
-  const h = newLink.h || (newLink.type === WidgetType.SECTION ? 4 : 2);
+  const w = newLink.w || (newLink.type === WidgetType.GROUP ? 6 : 2);
+  const h = newLink.h || (newLink.type === WidgetType.GROUP ? 4 : 2);
 
-  const linkWithId: NewLinkInput & { id: string; i: string; w: number; h: number } = {
+  const linkWithId: NewItemInput & { id: string; i: string; w: number; h: number } = {
     w,
     h,
     ...newLink,
@@ -23,14 +23,14 @@ export const saveLink = async (
     i: id,
   };
 
-  if (sectionId) {
+  if (groupId) {
     const updatedLinks = currentLinks.map((item) => {
-      if (item.id === sectionId && item.type === WidgetType.SECTION) {
-        const section = item;
-        const innerLinks = section.links || [];
-        const slot = findSlotInSection(innerLinks, w, h, section.cols ?? SECTION_DEFAULT_COLS);
+      if (item.id === groupId && item.type === WidgetType.GROUP) {
+        const group = item;
+        const innerLinks = group.links || [];
+        const slot = findSlotInGroup(innerLinks, w, h, group.cols ?? GROUP_DEFAULT_COLS);
         return {
-          ...section,
+          ...group,
           links: [
             ...innerLinks,
             { ...(linkWithId as unknown as RegularLink), x: slot.x, y: slot.y },
@@ -40,7 +40,7 @@ export const saveLink = async (
       return item;
     });
     await saveLinks(updatedLinks);
-    return linkWithId as unknown as LinkItem;
+    return linkWithId as unknown as WidgetItem;
   }
 
   if (newLink.isHeaderLink) {
@@ -69,22 +69,22 @@ export const saveLink = async (
     linkWithId.y = slot.y;
   }
 
-  const updatedLinks: LinkItem[] = [...currentLinks, linkWithId as unknown as LinkItem];
+  const updatedLinks: WidgetItem[] = [...currentLinks, linkWithId as unknown as WidgetItem];
   await saveLinks(updatedLinks);
-  return linkWithId as unknown as LinkItem;
+  return linkWithId as unknown as WidgetItem;
 };
 
-export const deleteLink = async (id: string): Promise<void> => {
+export const deleteItem = async (id: string): Promise<void> => {
   const currentLinks = await getLinks();
-  const deleteNested = (items: LinkItem[]): LinkItem[] => {
+  const deleteNested = (items: WidgetItem[]): WidgetItem[] => {
     return items
       .filter((item) => item.id !== id)
       .map((item) => {
-        if (item.type === WidgetType.SECTION && item.links) {
-          const section = item as Section;
+        if (item.type === WidgetType.GROUP && item.links) {
+          const group = item as Group;
           return {
-            ...section,
-            links: deleteNested(section.links as unknown as LinkItem[]) as unknown as Section['links'],
+            ...group,
+            links: deleteNested(group.links as unknown as WidgetItem[]) as unknown as Group['links'],
           };
         }
         return item;

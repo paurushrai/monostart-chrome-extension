@@ -20,8 +20,8 @@ export interface RegularLink extends BaseItem {
   theme?: string;
 }
 
-export interface Section extends BaseItem {
-  type: 'section';
+export interface Group extends BaseItem {
+  type: 'group';
   title: string;
   borderColor: string;
   cols?: number;
@@ -83,8 +83,8 @@ export interface Reminders extends BaseItem {
   title: string;
 }
 
-export type LinkItem =
-  | RegularLink | Section | Iframe | TodoWidget | TimerWidget
+export type WidgetItem =
+  | RegularLink | Group | Iframe | TodoWidget | TimerWidget
   | Note | ImageWidget | Label | GoogleSearch | Reminders;
 
 export interface DragPlaceholder {
@@ -99,7 +99,7 @@ export interface DragPlaceholder {
   viewMode?: 'icon' | 'card';
 }
 
-export type DisplayItem = LinkItem | DragPlaceholder;
+export type DisplayItem = WidgetItem | DragPlaceholder;
 
 export interface TodoEntry {
   id: number;

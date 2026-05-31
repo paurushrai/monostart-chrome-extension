@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Layout } from 'react-grid-layout/legacy';
 import { getLinks, getLinksSync, saveLinks } from '../lib/storage';
-import { saveLink } from '../lib/linkRepository';
-import type { NewLinkInput } from '../lib/linkRepository';
+import { saveItem } from '../lib/itemRepository';
+import type { NewItemInput } from '../lib/itemRepository';
 import { RESIZABLE_TYPES, WidgetType, getWidgetLayout } from '../lib/widgetCatalog';
 import { findFirstFreeSlot, MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import { cleanupOrphanedWidgetData, removeWidgetDataForId } from '../lib/widgetDataCleanup';
@@ -10,34 +10,34 @@ import { resolveSwap } from '../lib/swapPlanner';
 import {
   removeLinkAnywhere,
   placeInHeader,
-  placeInSection,
+  placeInGroup,
   placeOnMain,
 } from '../lib/linkPlacement';
-import type { LinkItem, Section, GridSlot } from '../types';
+import type { WidgetItem, Group, GridSlot } from '../types';
 
 const HEADER_TARGET = 'header';
 
-export interface UseLinks {
-  links: LinkItem[];
-  replaceLinks: (next: LinkItem[]) => void;
+export interface UseDashboard {
+  links: WidgetItem[];
+  replaceLinks: (next: WidgetItem[]) => void;
   handleLayoutChange: (layout: Layout) => void;
   handleDelete: (id: string) => void;
   handleViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
-  handleUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
-  handleMoveLink: (linkId: string, targetSectionId: string | null | undefined, targetCoords?: GridSlot) => void;
+  handleUpdateLink: (id: string, updates: Partial<WidgetItem>) => void;
+  handleMoveLink: (linkId: string, targetGroupId: string | null | undefined, targetCoords?: GridSlot) => void;
   handleHeaderLinkReorder: (draggedId: string, targetId: string) => void;
   handleSwap: (draggedId: string, targetId: string, draggedSourceRect?: { x: number; y: number; w: number; h: number }) => void;
-  addWidget: (widget: { type: LinkItem['type']; defaults?: Partial<LinkItem> }) => Promise<LinkItem | null>;
+  addWidget: (widget: { type: WidgetItem['type']; defaults?: Partial<WidgetItem> }) => Promise<WidgetItem | null>;
 }
 
-const migrateGoogleSearchHeight = (items: LinkItem[]): LinkItem[] =>
+const migrateGoogleSearchHeight = (items: WidgetItem[]): WidgetItem[] =>
   items.map((l) =>
     l.type === WidgetType.GOOGLE_SEARCH && (l.h ?? 1) > 1 ? { ...l, h: 1 } : l,
   );
 
-const dedupeById = (items: LinkItem[]): LinkItem[] => {
+const dedupeById = (items: WidgetItem[]): WidgetItem[] => {
   const seen = new Set<string>();
-  const out: LinkItem[] = [];
+  const out: WidgetItem[] = [];
   for (const item of items) {
     if (seen.has(item.id)) continue;
     seen.add(item.id);
@@ -46,14 +46,14 @@ const dedupeById = (items: LinkItem[]): LinkItem[] => {
   return out;
 };
 
-const normalize = (items: LinkItem[]): LinkItem[] => dedupeById(migrateGoogleSearchHeight(items));
+const normalize = (items: WidgetItem[]): WidgetItem[] => dedupeById(migrateGoogleSearchHeight(items));
 
-export interface UseLinksOptions {
+export interface UseDashboardOptions {
   onSwapFailed?: (reason: string) => void;
 }
 
-export function useLinks(opts: UseLinksOptions = {}): UseLinks {
-  const [links, setLinks] = useState<LinkItem[]>(() => normalize(getLinksSync()));
+export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
+  const [links, setLinks] = useState<WidgetItem[]>(() => normalize(getLinksSync()));
   const swapSuppressUntilRef = useRef(0);
   const SWAP_SUPPRESS_MS = 250;
   const onSwapFailedRef = useRef(opts.onSwapFailed);
@@ -79,7 +79,7 @@ export function useLinks(opts: UseLinksOptions = {}): UseLinks {
         area: chrome.storage.AreaName,
       ): void => {
         if (area !== 'local' || !changes.dashboardLinks) return;
-        const incoming = dedupeById((changes.dashboardLinks.newValue as LinkItem[] | undefined) ?? []);
+        const incoming = dedupeById((changes.dashboardLinks.newValue as WidgetItem[] | undefined) ?? []);
         setLinks((prev) => {
           if (prev.length === incoming.length && JSON.stringify(prev) === JSON.stringify(incoming)) {
             return prev;
@@ -92,7 +92,7 @@ export function useLinks(opts: UseLinksOptions = {}): UseLinks {
     }
   }, []);
 
-  const replaceLinks = useCallback((next: LinkItem[]) => {
+  const replaceLinks = useCallback((next: WidgetItem[]) => {
     const clean = dedupeById(next);
     setLinks(clean);
     saveLinks(clean);
@@ -128,15 +128,15 @@ export function useLinks(opts: UseLinksOptions = {}): UseLinks {
   }, []);
 
   const handleDelete = useCallback((id: string) => {
-    const deleteNested = (items: LinkItem[]): LinkItem[] => {
+    const deleteNested = (items: WidgetItem[]): WidgetItem[] => {
       return items
         .filter((item) => item.id !== id)
         .map((item) => {
-          if (item.type === WidgetType.SECTION && (item as Section).links) {
-            const section = item as Section;
+          if (item.type === WidgetType.GROUP && (item as Group).links) {
+            const group = item as Group;
             return {
-              ...section,
-              links: deleteNested(section.links as unknown as LinkItem[]) as unknown as Section['links'],
+              ...group,
+              links: deleteNested(group.links as unknown as WidgetItem[]) as unknown as Group['links'],
             };
           }
           return item;
@@ -153,7 +153,7 @@ export function useLinks(opts: UseLinksOptions = {}): UseLinks {
   const handleViewModeChange = useCallback((id: string, newMode: 'icon' | 'icon+text') => {
     const isIconOnly = newMode === 'icon';
     setLinks((prevLinks) => {
-      const updateNested = (items: LinkItem[]): LinkItem[] => {
+      const updateNested = (items: WidgetItem[]): WidgetItem[] => {
         return items.map((l) => {
           if (l.id === id) {
             return {
@@ -163,11 +163,11 @@ export function useLinks(opts: UseLinksOptions = {}): UseLinks {
               h: 1,
             };
           }
-          if (l.type === WidgetType.SECTION && (l as Section).links) {
-            const section = l as Section;
+          if (l.type === WidgetType.GROUP && (l as Group).links) {
+            const group = l as Group;
             return {
-              ...section,
-              links: updateNested(section.links as unknown as LinkItem[]) as unknown as Section['links'],
+              ...group,
+              links: updateNested(group.links as unknown as WidgetItem[]) as unknown as Group['links'],
             };
           }
           return l;
@@ -179,18 +179,18 @@ export function useLinks(opts: UseLinksOptions = {}): UseLinks {
     });
   }, []);
 
-  const handleUpdateLink = useCallback((id: string, updates: Partial<LinkItem>) => {
+  const handleUpdateLink = useCallback((id: string, updates: Partial<WidgetItem>) => {
     setLinks((prevLinks) => {
-      const updateNested = (items: LinkItem[]): LinkItem[] => {
+      const updateNested = (items: WidgetItem[]): WidgetItem[] => {
         return items.map((l) => {
           if (l.id === id) {
-            return { ...l, ...updates } as LinkItem;
+            return { ...l, ...updates } as WidgetItem;
           }
-          if (l.type === WidgetType.SECTION && (l as Section).links) {
-            const section = l as Section;
+          if (l.type === WidgetType.GROUP && (l as Group).links) {
+            const group = l as Group;
             return {
-              ...section,
-              links: updateNested(section.links as unknown as LinkItem[]) as unknown as Section['links'],
+              ...group,
+              links: updateNested(group.links as unknown as WidgetItem[]) as unknown as Group['links'],
             };
           }
           return l;
@@ -230,18 +230,18 @@ export function useLinks(opts: UseLinksOptions = {}): UseLinks {
 
   const handleMoveLink = useCallback((
     linkId: string,
-    targetSectionId: string | null | undefined,
+    targetGroupId: string | null | undefined,
     targetCoords?: GridSlot,
   ) => {
     setLinks((prevLinks) => {
       const { cleanedLinks, foundLink } = removeLinkAnywhere(prevLinks, linkId);
       if (!foundLink) return prevLinks;
 
-      let updatedLinks: LinkItem[];
-      if (targetSectionId === HEADER_TARGET) {
+      let updatedLinks: WidgetItem[];
+      if (targetGroupId === HEADER_TARGET) {
         updatedLinks = placeInHeader(cleanedLinks, foundLink);
-      } else if (targetSectionId) {
-        updatedLinks = placeInSection(cleanedLinks, foundLink, targetSectionId, targetCoords);
+      } else if (targetGroupId) {
+        updatedLinks = placeInGroup(cleanedLinks, foundLink, targetGroupId, targetCoords);
       } else {
         updatedLinks = placeOnMain(cleanedLinks, foundLink, targetCoords);
       }
@@ -374,17 +374,17 @@ export function useLinks(opts: UseLinksOptions = {}): UseLinks {
     });
   }, []);
 
-  const addWidget = useCallback(async (widget: { type: LinkItem['type']; defaults?: Partial<LinkItem> }) => {
+  const addWidget = useCallback(async (widget: { type: WidgetItem['type']; defaults?: Partial<WidgetItem> }) => {
     if (widget.type === WidgetType.GOOGLE_SEARCH) {
       const alreadyExists = links.some((l) => l.type === WidgetType.GOOGLE_SEARCH);
       if (alreadyExists) return null;
     }
 
-    const input: NewLinkInput = {
+    const input: NewItemInput = {
       type: widget.type,
       ...widget.defaults,
     };
-    const saved = await saveLink(input);
+    const saved = await saveItem(input);
     if (!saved) return null;
     setLinks((prev) => (prev.some((l) => l.id === saved.id) ? prev : [...prev, saved]));
     return saved;

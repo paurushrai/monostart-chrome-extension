@@ -24,11 +24,11 @@ const DEFAULT_NOTE_COLOR = NOTE_COLORS[0];
 interface Props {
   item: Note;
   onDelete: (id: string) => void;
-  onUpdateLink: (id: string, updates: Partial<Note>) => void;
+  onUpdateItem: (id: string, updates: Partial<Note>) => void;
   isEditing: boolean;
 }
 
-const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>) => {
+const NoteWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props>) => {
   const { title = 'Note', content = '', noteColor = 'default' } = item;
   const [text, setText] = useState(content);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -50,13 +50,13 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      onUpdateLink(item.id, { content: newVal });
+      onUpdateItem(item.id, { content: newVal });
     }, 800);
   };
 
   const handleBlur = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    onUpdateLink(item.id, { content: text });
+    onUpdateItem(item.id, { content: text });
   };
 
   const handleTitleClick = () => {
@@ -69,7 +69,7 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
   const handleTitleBlur = () => {
     setIsEditingTitle(false);
     const newTitle = titleInputRef.current?.value.trim() || 'Note';
-    onUpdateLink(item.id, { title: newTitle });
+    onUpdateItem(item.id, { title: newTitle });
   };
 
   const activeColor = NOTE_COLORS.find(c => c.id === noteColor) ?? DEFAULT_NOTE_COLOR;
@@ -118,7 +118,7 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
               {NOTE_COLORS.map((c) => (
                 <DropdownMenuItem
                   key={c.id}
-                  onClick={() => onUpdateLink(item.id, { noteColor: c.id })}
+                  onClick={() => onUpdateItem(item.id, { noteColor: c.id })}
                   className="flex items-center justify-between py-1 cursor-pointer text-xs"
                 >
                   <div className="flex items-center gap-2">

@@ -8,17 +8,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid, Trash2 } from 'lucide-react';
-import type { LinkItem, RegularLink, Section, Settings as AppSettings, GridSlot } from '../types';
+import type { WidgetItem, RegularLink, Group, Settings as AppSettings, GridSlot } from '../types';
 import type { UseHeaderDrag } from '../hooks/useHeaderDrag';
 
 interface Props {
-  links: LinkItem[];
+  links: WidgetItem[];
   isEditing: boolean;
   settings: AppSettings;
   onUpdateSettings: (next: AppSettings) => void;
-  onMoveLink: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  onMoveItem: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
   onDelete: (id: string) => void;
-  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
+  onUpdateItem: (id: string, updates: Partial<WidgetItem>) => void;
   headerDrag: UseHeaderDrag;
   onEnterEdit: () => void;
   onSaveEdit: () => void;
@@ -35,9 +35,9 @@ export default function AppHeader({
   isEditing,
   settings,
   onUpdateSettings,
-  onMoveLink,
+  onMoveItem,
   onDelete,
-  onUpdateLink,
+  onUpdateItem,
   headerDrag,
   onEnterEdit,
   onSaveEdit,
@@ -52,8 +52,8 @@ export default function AppHeader({
     .filter((l): l is RegularLink => l.isHeaderLink === true && l.type === 'link')
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-  const sections = links
-    .filter((l): l is Section => l.type === 'section')
+  const groups = links
+    .filter((l): l is Group => l.type === 'group')
     .map(s => ({ id: s.id, title: s.title }));
 
   return (
@@ -88,10 +88,10 @@ export default function AppHeader({
             item={link}
             isEditing={isEditing}
             openInNewTab={settings.openInNewTab}
-            sections={sections}
-            onMoveLink={onMoveLink}
+            groups={groups}
+            onMoveItem={onMoveItem}
             onDelete={onDelete}
-            onUpdateLink={onUpdateLink}
+            onUpdateItem={onUpdateItem}
             draggedHeaderLinkId={headerDrag.draggedHeaderLinkId}
             dragOverHeaderLinkId={headerDrag.dragOverHeaderLinkId}
             onDragStart={headerDrag.onDragStart}

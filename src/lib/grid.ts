@@ -1,9 +1,9 @@
 import { getWidgetMinSize } from './widgetCatalog';
-import type { LinkItem, RegularLink, GridSlot } from '../types';
+import type { WidgetItem, RegularLink, GridSlot } from '../types';
 
 export const MAIN_COLS = 18;
 export const MAIN_ROWS = 12;
-export const SECTION_DEFAULT_COLS = 3;
+export const GROUP_DEFAULT_COLS = 3;
 
 export const getMinSize = (type: string | undefined) => getWidgetMinSize(type);
 
@@ -58,12 +58,12 @@ export const findFirstFreeSlot = (
 };
 
 const resolveOccupancy = (
-  links: readonly LinkItem[],
+  links: readonly WidgetItem[],
   defaultW = 1,
   defaultH = 1,
 ): OccupiedRect[] =>
   links
-    .filter((l): l is LinkItem & { x: number; y: number } =>
+    .filter((l): l is WidgetItem & { x: number; y: number } =>
       !l.isHeaderLink && l.x !== undefined && l.y !== undefined,
     )
     .map((l) => ({
@@ -74,7 +74,7 @@ const resolveOccupancy = (
     }));
 
 export const findFreeSlot = (
-  links: readonly LinkItem[],
+  links: readonly WidgetItem[],
   w: number,
   h: number,
   maxCols: number = MAIN_COLS,
@@ -84,13 +84,13 @@ export const findFreeSlot = (
   return findFirstFreeSlot(resolveOccupancy(links), w, h, maxCols, maxRows);
 };
 
-export const findSlotInSection = (
-  sectionLinks: readonly RegularLink[],
+export const findSlotInGroup = (
+  groupLinks: readonly RegularLink[],
   itemW: number = 3,
   itemH: number = 1,
-  cols: number = SECTION_DEFAULT_COLS,
+  cols: number = GROUP_DEFAULT_COLS,
 ): GridSlot => {
-  const occupied: OccupiedRect[] = sectionLinks.map((l) => ({
+  const occupied: OccupiedRect[] = groupLinks.map((l) => ({
     x: l.x ?? 0,
     y: l.y ?? 0,
     w: Math.min(l.w ?? itemW, cols),

@@ -11,10 +11,10 @@ import {
   DropdownMenuSeparator,
 } from './ui/dropdown-menu';
 import { ChevronDown, Check, LayoutGrid, Bookmark, Folder } from 'lucide-react';
-import { saveLink } from '../lib/linkRepository';
+import { saveItem } from '../lib/itemRepository';
 import { siteFaviconUrl } from '../lib/favicon';
 
-interface SectionRef {
+interface GroupRef {
   id: string;
   title: string;
 }
@@ -23,10 +23,10 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onAfterAdd?: () => void;
-  sections?: SectionRef[];
+  groups?: GroupRef[];
 }
 
-const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Readonly<Props>) => {
+const AddLinkModal = ({ open, onClose, onAfterAdd, groups = [] }: Readonly<Props>) => {
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('dashboard');
@@ -35,9 +35,9 @@ const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Readonly<Pro
   const { locationLabel, LocationIcon } = useMemo(() => {
     if (location === 'dashboard') return { locationLabel: 'Main Dashboard', LocationIcon: LayoutGrid };
     if (location === 'header') return { locationLabel: 'Header (Favicon only)', LocationIcon: Bookmark };
-    const section = sections.find((s) => s.id === location);
-    return { locationLabel: section ? `Folder: ${section.title}` : 'Main Dashboard', LocationIcon: Folder };
-  }, [location, sections]);
+    const group = groups.find((s) => s.id === location);
+    return { locationLabel: group ? `Group: ${group.title}` : 'Main Dashboard', LocationIcon: Folder };
+  }, [location, groups]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -63,9 +63,9 @@ const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Readonly<Pro
     setIsSubmitting(true);
 
     const isHeader = location === 'header';
-    const sectionId = (location !== 'dashboard' && location !== 'header') ? location : undefined;
+    const groupId = (location !== 'dashboard' && location !== 'header') ? location : undefined;
 
-    await saveLink({
+    await saveItem({
       url: finalUrl,
       title: finalTitle,
       favicon: faviconUrl,
@@ -75,7 +75,7 @@ const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Readonly<Pro
       w: 1,
       h: 1,
       isHeaderLink: isHeader
-    }, sectionId);
+    }, groupId);
     
     setIsSubmitting(false);
     setUrl('');
@@ -145,8 +145,8 @@ const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Readonly<Pro
                   <span className="flex-1">Header (Favicon only)</span>
                   {location === 'header' && <Check size={14} className="ml-2 text-primary" aria-hidden="true" />}
                 </DropdownMenuItem>
-                {sections.length > 0 && <DropdownMenuSeparator />}
-                {sections.map((s) => (
+                {groups.length > 0 && <DropdownMenuSeparator />}
+                {groups.map((s) => (
                   <DropdownMenuItem key={s.id} onClick={() => setLocation(s.id)} className="text-sm">
                     <Folder size={14} className="mr-2 text-muted-foreground" aria-hidden="true" />
                     <span className="flex-1 truncate">Folder: {s.title}</span>
