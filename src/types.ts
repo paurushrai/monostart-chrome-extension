@@ -126,10 +126,18 @@ export interface ReminderEntry {
   completed?: boolean;
 }
 
+export interface DashboardBackground {
+  type: 'none' | 'color' | 'gradient' | 'image';
+  value?: string;
+  blur?: number;
+  dim?: number;
+}
+
 export interface Settings {
   openInNewTab: boolean;
   themeMode?: 'light' | 'dark' | 'device';
   themeColor?: string;
+  background?: DashboardBackground;
 }
 
 export interface DragCoords { x: number; y: number; }
