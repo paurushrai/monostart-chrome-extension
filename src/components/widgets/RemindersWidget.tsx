@@ -214,14 +214,14 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
         })}
       </ul>
 
-      <form onSubmit={handleAdd} className="p-2 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl space-y-1.5">
+      <form onSubmit={handleAdd} className="p-1.5 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl space-y-1">
         <Input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Remind me to..."
           aria-label="Reminder text"
-          className="h-8 w-full bg-gray-100 dark:bg-white/5 border-none rounded-sm px-3 text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
+          className="h-7 w-full bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2.5 text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
         />
         <div className="flex items-center gap-1.5">
           <div className="flex-1 min-w-0">
@@ -234,7 +234,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
                 variant="secondary"
                 size="sm"
                 title="Recurrence"
-                className="h-8 px-2 rounded-sm text-xs font-medium bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 shrink-0"
+                className="h-7 px-2 rounded-sm text-xs font-medium bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 shrink-0"
               >
                 {recurrence === 'custom'
                   ? formatCustomMs(customValue * unitToMs(customUnit))
@@ -321,10 +321,10 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             type="submit"
             size="icon"
             disabled={!text.trim()}
-            className="h-8 w-8 rounded-sm bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 dark:active:bg-primary/80 disabled:opacity-40 shrink-0"
+            className="h-7 w-7 rounded-sm bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 dark:active:bg-primary/80 disabled:opacity-40 shrink-0"
             title="Add reminder"
           >
-            <Plus size={16} strokeWidth={3} />
+            <Plus size={14} strokeWidth={3} />
           </Button>
         </div>
       </form>

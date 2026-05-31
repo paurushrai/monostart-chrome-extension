@@ -85,7 +85,7 @@ const TodoWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
         ))}
       </ul>
 
-      <form onSubmit={handleAdd} className="p-2 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl">
+      <form onSubmit={handleAdd} className="p-1.5 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl">
         <div className="relative">
           <Input
             type="text"
@@ -93,7 +93,7 @@ const TodoWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             onChange={(e) => setNewTask(e.target.value)}
             placeholder="Add a task..."
             aria-label="New task"
-            className="h-8 w-full bg-gray-100 dark:bg-white/5 border-none rounded-sm pl-3 pr-8 text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
+            className="h-7 w-full bg-gray-100 dark:bg-white/5 border-none rounded-sm pl-2.5 pr-8 text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
           <Button
             type="submit"

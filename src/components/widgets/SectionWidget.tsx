@@ -307,7 +307,7 @@ const SectionWidget = ({
       {isEditing && isAddingLink && (
         <form
           onSubmit={handleAddLinkSubmit}
-          className="mt-4 mx-3 p-2 bg-secondary/25 border border-border/30 rounded-lg flex gap-2 items-center shrink-0"
+          className="mt-2 mx-3 p-1.5 bg-secondary/25 border border-border/30 rounded-lg flex gap-1.5 items-center shrink-0"
           onMouseDown={(e) => e.stopPropagation()}
         >
           <Input
@@ -316,17 +316,17 @@ const SectionWidget = ({
             placeholder="Paste URL..."
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
-            className="h-8 text-xs flex-1 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-3 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
+            className="h-7 text-xs flex-1 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2.5 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
           <div className="flex gap-1">
-            <Button type="submit" size="icon" className="h-8 w-8 bg-primary hover:bg-primary/90 text-primary-foreground dark:bg-primary dark:hover:bg-primary/90">
+            <Button type="submit" size="icon" className="h-7 w-7 bg-primary hover:bg-primary/90 text-primary-foreground dark:bg-primary dark:hover:bg-primary/90">
               <Check size={12} />
             </Button>
             <Button
               type="button"
               variant="outline"
               size="icon"
-              className="h-8 w-8"
+              className="h-7 w-7"
               onClick={() => {
                 setIsAddingLink(false);
                 setNewUrl('');
