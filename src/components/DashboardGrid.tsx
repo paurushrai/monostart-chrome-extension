@@ -1,16 +1,18 @@
-import { useState, type DragEvent as ReactDragEvent } from 'react';
+import { useEffect, useState, type DragEvent as ReactDragEvent } from 'react';
 import GridLayout, { WidthProvider } from 'react-grid-layout/legacy';
 import type { Layout } from 'react-grid-layout/legacy';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+import { ExternalLink } from 'lucide-react';
 import WidgetRenderer from './WidgetRenderer';
+import { resolveFavicon } from '../lib/favicon';
 import { useGridDimensions } from '../hooks/useGridDimensions';
 import { useDashboardDrag } from '../hooks/useDashboardDrag';
 import { HEADER_LINK_DRAG_TYPE } from '../hooks/useHeaderDrag';
 import { MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import { getWidgetMeta, WidgetType } from '../lib/widgetCatalog';
 import type { WidgetMeta } from '../lib/widgetCatalog';
-import type { LinkItem, DisplayItem, DragPlaceholder, GridSlot, GoogleSearch } from '../types';
+import type { LinkItem, RegularLink, DisplayItem, DragPlaceholder, GridSlot, GoogleSearch } from '../types';
 
 const ReactGridLayout = WidthProvider(GridLayout);
 
@@ -95,7 +97,16 @@ const DashboardGrid = ({
 }: Readonly<Props>) => {
   const { rowHeight } = useGridDimensions();
   const drag = useDashboardDrag({ links, rowHeight, onMoveLink, onSwap, onHeaderTargetChange });
-  const [isHeaderDragOver, setIsHeaderDragOver] = useState(false);
+  const dragOutLink = drag.activeDragOutItem?.type === 'link' ? (drag.activeDragOutItem as RegularLink) : null;
+  const ghostFavicon = dragOutLink ? resolveFavicon(dragOutLink) : null;
+  const showGhost = !!dragOutLink && !!drag.dragCursorCoords;
+  const [isDashboardDragOver, setIsDashboardDragOver] = useState(false);
+
+  useEffect(() => {
+    const clear = () => setIsDashboardDragOver(false);
+    document.addEventListener('dragend', clear);
+    return () => document.removeEventListener('dragend', clear);
+  }, []);
 
   const isHeaderLinkDrag = (e: ReactDragEvent<HTMLDivElement>) =>
     e.dataTransfer.types.includes(HEADER_LINK_DRAG_TYPE);
@@ -104,16 +115,17 @@ const DashboardGrid = ({
     if (!isHeaderLinkDrag(e)) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    if (!isHeaderDragOver) setIsHeaderDragOver(true);
+    const overSection = !!(e.target as HTMLElement).closest('[data-section-id]');
+    setIsDashboardDragOver(!overSection);
   };
 
   const handleHeaderDragLeave = (e: ReactDragEvent<HTMLDivElement>) => {
     if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
-    setIsHeaderDragOver(false);
+    setIsDashboardDragOver(false);
   };
 
   const handleHeaderDrop = (e: ReactDragEvent<HTMLDivElement>) => {
-    setIsHeaderDragOver(false);
+    setIsDashboardDragOver(false);
     if (!isHeaderLinkDrag(e)) return;
     e.preventDefault();
     const linkId = e.dataTransfer.getData(HEADER_LINK_DRAG_TYPE);
@@ -142,7 +154,7 @@ const DashboardGrid = ({
 
   return (
     <div
-      className={`w-full min-h-full rounded-lg transition-colors ${isHeaderDragOver ? 'bg-primary/5 ring-2 ring-primary/40' : ''}`}
+      className={`w-full min-h-full rounded-lg transition-colors ${isDashboardDragOver ? 'bg-primary/5 ring-2 ring-primary/40' : ''}`}
       ref={drag.gridRef}
       onDragOver={handleHeaderDragOver}
       onDragLeave={handleHeaderDragLeave}
@@ -207,6 +219,24 @@ const DashboardGrid = ({
           );
         })}
       </ReactGridLayout>
+      {showGhost && drag.dragCursorCoords && (
+        <div
+          className="fixed pointer-events-none z-[9999] rounded-md bg-card border border-border shadow-lg flex items-center justify-center"
+          style={{
+            left: drag.dragCursorCoords.x - 20,
+            top: drag.dragCursorCoords.y - 20,
+            width: 40,
+            height: 40,
+            opacity: 0.85,
+          }}
+        >
+          {ghostFavicon ? (
+            <img src={ghostFavicon} alt="" className="w-7 h-7 object-contain rounded-sm" draggable={false} />
+          ) : (
+            <ExternalLink size={18} className="text-muted-foreground" />
+          )}
+        </div>
+      )}
     </div>
   );
 };

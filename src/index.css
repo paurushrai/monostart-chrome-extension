@@ -129,7 +129,8 @@
 }
 
 .react-grid-item.dropping {
-  visibility: hidden;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .react-grid-item.react-grid-placeholder {
