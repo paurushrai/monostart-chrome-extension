@@ -77,9 +77,9 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
   return (
     <article className={`card-base w-full h-full relative group overflow-hidden flex flex-col transition-all duration-300 ${activeColor.bg}`}>
 
-      <header className={`flex items-center justify-between px-2 border-b border-border/40 shrink-0 rounded-t-xl transition-all duration-300 ${activeColor.headerBg} ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-1'}`}>
+      <header className={`flex items-center justify-between px-2 border-b border-border/40 shrink-0 rounded-t-xl transition-all duration-300 ${activeColor.headerBg} ${isEditing ? 'py-1.5 drag-handle cursor-grab active:cursor-grabbing' : 'py-0.5'}`}>
         <div className="flex items-center gap-1.5 min-w-0">
-          <FileText size={isEditing ? 14 : 12} className="text-primary shrink-0" aria-hidden="true" />
+          <FileText size={isEditing ? 14 : 10} className="text-primary shrink-0" aria-hidden="true" />
           {isEditingTitle ? (
             <Input
               ref={titleInputRef}
@@ -93,7 +93,7 @@ const NoteWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>
           ) : (
             <h3
               onClick={handleTitleClick}
-              className={`font-medium truncate select-none ${isEditing ? 'text-sm cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 px-1 rounded' : 'text-xs pointer-events-none'}`}
+              className={`font-medium truncate select-none ${isEditing ? 'text-sm cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 px-1 rounded' : 'text-2xs pointer-events-none'}`}
             >
               {title}
             </h3>
