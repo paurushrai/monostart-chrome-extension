@@ -171,12 +171,14 @@ export function useDashboardDrag({
       const localX = clientX - rect.left + scrollLeft;
       const localY = clientY - rect.top + scrollTop;
 
-      const cols = sectionItem.cols || SECTION_DEFAULT_COLS;
-      const w = Math.min(item.viewMode === 'icon' ? 1 : 3, cols);
+      const isList = sectionItem.layout === 'list';
+      const cols = isList ? 1 : (sectionItem.cols || SECTION_DEFAULT_COLS);
+      const rowPitch = isList ? 31 : SECTION_INNER_ROW_HEIGHT;
+      const w = isList ? 1 : Math.min(item.viewMode === 'icon' ? 1 : 3, cols);
 
       const colWidth = rect.width / cols;
       const placeholderX = Math.max(0, Math.min(cols - w, Math.floor(localX / colWidth)));
-      const placeholderY = Math.max(0, Math.floor(localY / SECTION_INNER_ROW_HEIGHT));
+      const placeholderY = Math.max(0, Math.floor(localY / rowPitch));
       return { x: placeholderX, y: placeholderY };
     },
     [links],

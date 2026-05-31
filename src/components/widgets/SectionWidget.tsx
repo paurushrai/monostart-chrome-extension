@@ -61,7 +61,7 @@ const SectionWidget = ({
   onInnerDragStop,
   draggedItem,
 }: Readonly<Props>) => {
-  const { title, borderColor = '200 73% 52%', links = [], cols = 3 } = item;
+  const { title, borderColor = '200 73% 52%', links = [], cols = 3, layout = 'grid' } = item;
 
   const [isAddingLink, setIsAddingLink] = useState(false);
   const [newUrl, setNewUrl] = useState('');
@@ -177,12 +177,25 @@ const SectionWidget = ({
       dragOut.isMovingOutRef.current = false;
       return;
     }
+    if (layout === 'list') {
+      const yById = new Map(newLayout.map((li) => [li.i, li.y]));
+      const reordered = [...links].sort(
+        (a, b) => (yById.get(a.id) ?? 0) - (yById.get(b.id) ?? 0),
+      );
+      const changed = reordered.some((l, i) => l.id !== links[i]?.id);
+      if (changed) onUpdateLink(item.id, { links: reordered });
+      return;
+    }
     const updatedLinks = links.map((l) => {
       const layoutItem = newLayout.find((li) => li.i === l.id);
       if (!layoutItem) return l;
       return { ...l, x: layoutItem.x, y: layoutItem.y, w: layoutItem.w, h: layoutItem.h };
     });
     onUpdateLink(item.id, { links: updatedLinks });
+  };
+
+  const handleUpdateLayout = (next: 'grid' | 'list') => {
+    onUpdateLink(item.id, { layout: next });
   };
 
   const handleInnerDelete = (linkId: string) => {
@@ -241,6 +254,7 @@ const SectionWidget = ({
         title={title}
         count={links.length}
         cols={cols}
+        layout={layout}
         isEditing={isEditing}
         borderMutedCssColor={borderMutedCssColor}
         borderCssColor={borderCssColor}
@@ -250,6 +264,7 @@ const SectionWidget = ({
         onAddLink={() => setIsAddingLink(true)}
         onTogglePalette={() => setShowColorPicker(!showColorPicker)}
         onUpdateCols={handleUpdateCols}
+        onUpdateLayout={handleUpdateLayout}
         onDelete={() => onDelete(item.id)}
       />
 
@@ -326,6 +341,7 @@ const SectionWidget = ({
       <SectionInnerGrid
         sectionId={item.id}
         cols={cols}
+        sectionLayout={layout}
         isEditing={isEditing}
         links={links}
         isDraggedOver={isDraggedOver}

@@ -1,5 +1,5 @@
 import type { FocusEvent, KeyboardEvent } from 'react';
-import { Plus, Trash2, Palette, Folder, Check, MoreVertical, LayoutGrid } from 'lucide-react';
+import { Plus, Trash2, Palette, Folder, Check, MoreVertical, LayoutGrid, List, Rows3 } from 'lucide-react';
 import { Button } from "../../ui/button";
 import {
   DropdownMenu,
@@ -19,6 +19,7 @@ interface Props {
   title: string;
   count: number;
   cols: number;
+  layout: 'grid' | 'list';
   isEditing: boolean;
   borderMutedCssColor: string;
   borderCssColor: string;
@@ -28,6 +29,7 @@ interface Props {
   onAddLink: () => void;
   onTogglePalette: () => void;
   onUpdateCols: (num: number) => void;
+  onUpdateLayout: (next: 'grid' | 'list') => void;
   onDelete: () => void;
 }
 
@@ -35,6 +37,7 @@ export default function SectionHeader({
   title,
   count,
   cols,
+  layout,
   isEditing,
   borderMutedCssColor,
   borderCssColor,
@@ -44,6 +47,7 @@ export default function SectionHeader({
   onAddLink,
   onTogglePalette,
   onUpdateCols,
+  onUpdateLayout,
   onDelete,
 }: Readonly<Props>) {
   return (
@@ -117,24 +121,57 @@ export default function SectionHeader({
 
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center">
-                  <LayoutGrid className="mr-2 h-3.5 w-3.5" />
-                  Grid Columns
+                  <Rows3 className="mr-2 h-3.5 w-3.5" />
+                  Layout
                 </DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
                   <DropdownMenuSubContent className="w-36" onMouseDown={(e) => e.stopPropagation()}>
-                    {COLUMN_OPTIONS.map((num) => (
-                      <DropdownMenuItem
-                        key={num}
-                        onClick={() => onUpdateCols(num)}
-                        className="flex items-center justify-between"
-                      >
-                        <span>{num} {num === 1 ? 'Column' : 'Columns'}</span>
-                        {cols === num && <Check className="h-3.5 w-3.5 text-primary" />}
-                      </DropdownMenuItem>
-                    ))}
+                    <DropdownMenuItem
+                      onClick={() => onUpdateLayout('grid')}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="flex items-center">
+                        <LayoutGrid className="mr-2 h-3.5 w-3.5" />
+                        Grid
+                      </span>
+                      {layout === 'grid' && <Check className="h-3.5 w-3.5 text-primary" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => onUpdateLayout('list')}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="flex items-center">
+                        <List className="mr-2 h-3.5 w-3.5" />
+                        List
+                      </span>
+                      {layout === 'list' && <Check className="h-3.5 w-3.5 text-primary" />}
+                    </DropdownMenuItem>
                   </DropdownMenuSubContent>
                 </DropdownMenuPortal>
               </DropdownMenuSub>
+
+              {layout === 'grid' && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="flex items-center">
+                    <LayoutGrid className="mr-2 h-3.5 w-3.5" />
+                    Grid Columns
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent className="w-36" onMouseDown={(e) => e.stopPropagation()}>
+                      {COLUMN_OPTIONS.map((num) => (
+                        <DropdownMenuItem
+                          key={num}
+                          onClick={() => onUpdateCols(num)}
+                          className="flex items-center justify-between"
+                        >
+                          <span>{num} {num === 1 ? 'Column' : 'Columns'}</span>
+                          {cols === num && <Check className="h-3.5 w-3.5 text-primary" />}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+              )}
 
               <DropdownMenuSeparator />
 
