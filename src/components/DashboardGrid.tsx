@@ -6,13 +6,13 @@ import 'react-resizable/css/styles.css';
 import { ExternalLink } from 'lucide-react';
 import WidgetRenderer from './WidgetRenderer';
 import { resolveFavicon } from '../lib/favicon';
-import { useGridDimensions } from '../hooks/useGridDimensions';
+import { useGridDimensions, photoConfigFitsAt3Rows } from '../hooks/useGridDimensions';
 import { useDashboardDrag } from '../hooks/useDashboardDrag';
 import { HEADER_LINK_DRAG_TYPE } from '../hooks/useHeaderDrag';
 import { MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import { getWidgetMeta, WidgetType } from '../lib/widgetCatalog';
 import type { WidgetMeta } from '../lib/widgetCatalog';
-import type { LinkItem, RegularLink, DisplayItem, DragPlaceholder, GridSlot, GoogleSearch } from '../types';
+import type { LinkItem, RegularLink, DisplayItem, DragPlaceholder, GridSlot, GoogleSearch, ImageWidget } from '../types';
 
 const ReactGridLayout = WidthProvider(GridLayout);
 
@@ -54,8 +54,8 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
   displayLinks.map((link) => {
     const isPlaceholder = link.id === PLACEHOLDER_ID;
     const meta = getWidgetMeta(link.type);
-    const { minW, maxW, resizable } = meta?.layout ?? {};
-    let { minH, maxH } = meta?.layout ?? {};
+    const { maxW, resizable } = meta?.layout ?? {};
+    let { minW, minH, maxH } = meta?.layout ?? {};
     const initial = initialSize(link, meta);
     const w = initial.w;
     let h = initial.h;
@@ -66,6 +66,13 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
       else { minH = 1; maxH = 1; }
       if (h < minH) h = minH;
       if (h > maxH) h = maxH;
+    }
+
+    if (link.type === WidgetType.IMAGE) {
+      const hasImage = !!((link as ImageWidget).url ?? '').trim();
+      const emptyMin = photoConfigFitsAt3Rows() ? 3 : 4;
+      minW = hasImage ? 3 : emptyMin;
+      minH = hasImage ? 3 : emptyMin;
     }
 
     return {

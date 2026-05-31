@@ -265,7 +265,7 @@ const LinkCard = ({
               onBlur={handleNameBlur}
               onKeyDown={handleKeyDown}
               onMouseDown={(e) => isEditing && e.stopPropagation()}
-              className={`m-0 text-sm font-medium text-foreground truncate leading-tight ${isLarge ? 'mb-1' : ''} ${isEditing ? 'cursor-text outline-none hover:bg-secondary focus:bg-secondary rounded px-1 -ml-1 transition-colors' : ''}`}
+              className={`m-0 text-sm font-medium text-foreground truncate leading-tight ${isLarge ? 'mb-0.5' : ''} ${isEditing ? 'cursor-text outline-none hover:bg-secondary focus:bg-secondary rounded px-1 -ml-1 transition-colors' : ''}`}
             >
               {siteName}
             </h4>
@@ -276,7 +276,7 @@ const LinkCard = ({
                 onBlur={handleDescBlur}
                 onKeyDown={handleKeyDown}
                 onMouseDown={(e) => isEditing && e.stopPropagation()}
-                className={`text-2xs text-muted-foreground truncate block ${isEditing ? 'cursor-text outline-none hover:bg-secondary focus:bg-secondary rounded px-1 -ml-1 mt-1 transition-colors' : ''}`}
+                className={`text-2xs text-muted-foreground truncate block ${isEditing ? 'cursor-text outline-none hover:bg-secondary focus:bg-secondary rounded px-1 -ml-1 mt-0.5 transition-colors' : ''}`}
               >
                 {title}
               </span>
