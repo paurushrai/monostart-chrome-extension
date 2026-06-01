@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import DashboardGrid from './components/DashboardGrid';
 import DashboardBackground from './components/DashboardBackground';
 import AddWidgetModal from './components/AddWidgetModal';
@@ -143,6 +143,14 @@ function App() {
   );
 
   const hasBackground = !!(settings.background && settings.background.type !== 'none' && settings.background.value);
+
+  // theme-init.js injects a one-time <style> (pre-React anti-flash background).
+  // Remove it once React mounts so DashboardBackground fully owns the background;
+  // otherwise removing/changing the background at runtime wouldn't take effect
+  // until a refresh (the injected pseudo-element background would persist).
+  useEffect(() => {
+    document.getElementById('monostart-bg-init')?.remove();
+  }, []);
 
   return (
     <div className={`flex flex-col h-screen w-screen overflow-hidden transition-colors duration-200 ${hasBackground ? 'bg-transparent' : 'bg-background'}`}>
