@@ -1,7 +1,7 @@
 import { MAIN_COLS, MAIN_ROWS, GROUP_DEFAULT_COLS, findFirstFreeSlot } from './grid';
 import type { OccupiedRect } from './grid';
 import { WidgetType } from './widgetCatalog';
-import type { WidgetItem, RegularLink, Group, GridSlot } from '../types';
+import type { WidgetItem, LinkItem, GroupItem, GridSlot } from '../types';
 
 export const removeLinkAnywhere = (
   links: readonly WidgetItem[],
@@ -52,7 +52,7 @@ export const placeInHeader = (
   ];
 };
 
-const resolveGroupRect = (l: RegularLink, cols: number): OccupiedRect => ({
+const resolveGroupRect = (l: LinkItem, cols: number): OccupiedRect => ({
   x: l.x ?? 0,
   y: l.y ?? 0,
   w: Math.min(l.w ?? (l.viewMode === 'icon' ? 1 : Math.min(3, cols)), cols),
@@ -60,7 +60,7 @@ const resolveGroupRect = (l: RegularLink, cols: number): OccupiedRect => ({
 });
 
 const findGroupSlot = (
-  groupLinks: readonly RegularLink[],
+  groupLinks: readonly LinkItem[],
   cols: number,
   itemW: number,
   itemH: number,
@@ -81,7 +81,7 @@ export const placeInGroup = (
   return cleanedLinks.map((item) => {
     if (item.id !== targetGroupId || item.type !== WidgetType.GROUP) return item;
 
-    const group = item as Group;
+    const group = item as GroupItem;
     const groupLinks = group.links || [];
     const cols = group.cols || GROUP_DEFAULT_COLS;
     const { w: rawW, h } = defaultLinkSize(foundLink);
@@ -102,7 +102,7 @@ export const placeInGroup = (
       ...group,
       links: [
         ...groupLinks,
-        { ...(foundLink as RegularLink), isHeaderLink: false, x, y, w, h },
+        { ...(foundLink as LinkItem), isHeaderLink: false, x, y, w, h },
       ],
     };
   });

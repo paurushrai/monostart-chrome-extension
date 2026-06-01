@@ -3,10 +3,10 @@ import { CheckSquare, Plus, Trash2, X } from 'lucide-react';
 import { useWidgetStorage } from '../../hooks/useWidgetStorage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { TodoWidget as TodoWidgetItem, TodoEntry } from '../../types';
+import type { TodoItem, TodoEntry } from '../../types';
 
 interface Props {
-  item: TodoWidgetItem;
+  item: TodoItem;
   onDelete: (id: string) => void;
   isEditing: boolean;
 }

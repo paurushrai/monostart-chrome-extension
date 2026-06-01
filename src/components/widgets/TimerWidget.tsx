@@ -3,7 +3,7 @@ import { Clock, Plus, Trash2, X, Play, Pause, RotateCcw } from 'lucide-react';
 import { useWidgetStorage } from '../../hooks/useWidgetStorage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { TimerWidget as TimerWidgetItem, TimerEntry } from '../../types';
+import type { TimerItem, TimerEntry } from '../../types';
 
 const formatTime = (ms: number): string => {
   if (ms <= 0) return "00:00";
@@ -102,7 +102,7 @@ const TimerItem = ({ timer, onUpdate, onDelete }: Readonly<TimerItemProps>) => {
 };
 
 interface Props {
-  item: TimerWidgetItem;
+  item: TimerItem;
   onDelete: (id: string) => void;
   isEditing: boolean;
 }

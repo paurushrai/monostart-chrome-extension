@@ -14,16 +14,16 @@ import type {
   DisplayItem,
   DragPlaceholder,
   WidgetItem,
-  RegularLink,
-  Group,
-  Iframe,
-  TodoWidget as TodoWidgetItem,
-  TimerWidget as TimerWidgetItem,
-  Reminders as RemindersItem,
-  Note,
-  ImageWidget as ImageWidgetItem,
-  Label,
-  GoogleSearch,
+  LinkItem,
+  GroupItem,
+  IframeItem,
+  TodoItem,
+  TimerItem,
+  RemindersItem,
+  NoteItem,
+  ImageItem,
+  LabelItem,
+  GoogleSearchItem,
   DragCoords,
   GridSlot,
 } from '../types';
@@ -45,9 +45,9 @@ interface Props {
   activeDragGroupId: string | null;
   dragCursorCoords: DragCoords | null;
   draggedItem: WidgetItem | null;
-  onInnerDragStart: (link: RegularLink, groupId: string) => void;
-  onInnerDrag: (link: RegularLink, groupId: string, x: number, y: number) => void;
-  onInnerDragStop: (link: RegularLink, groupId: string, x: number, y: number) => void;
+  onInnerDragStart: (link: LinkItem, groupId: string) => void;
+  onInnerDrag: (link: LinkItem, groupId: string, x: number, y: number) => void;
+  onInnerDragStop: (link: LinkItem, groupId: string, x: number, y: number) => void;
 }
 
 const isPlaceholder = (item: DisplayItem): item is DragPlaceholder =>
@@ -83,25 +83,25 @@ function WidgetRendererInner({
 
   switch (linkItem.type) {
     case WidgetType.GOOGLE_SEARCH:
-      return <GoogleSearchWidget item={linkItem as GoogleSearch} onDelete={onDelete} onUpdateItem={onUpdateItem} isEditing={isEditing} />;
+      return <GoogleSearchWidget item={linkItem as GoogleSearchItem} onDelete={onDelete} onUpdateItem={onUpdateItem} isEditing={isEditing} />;
     case WidgetType.IFRAME:
-      return <IframeWidget item={linkItem as Iframe} onDelete={onDelete} isEditing={isEditing} />;
+      return <IframeWidget item={linkItem as IframeItem} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.TODO:
-      return <TodoWidget item={linkItem as TodoWidgetItem} onDelete={onDelete} isEditing={isEditing} />;
+      return <TodoWidget item={linkItem as TodoItem} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.TIMER:
-      return <TimerWidget item={linkItem as TimerWidgetItem} onDelete={onDelete} isEditing={isEditing} />;
+      return <TimerWidget item={linkItem as TimerItem} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.REMINDERS:
       return <RemindersWidget item={linkItem as RemindersItem} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.NOTE:
-      return <NoteWidget item={linkItem as Note} onDelete={onDelete} onUpdateItem={onUpdateItem} isEditing={isEditing} />;
+      return <NoteWidget item={linkItem as NoteItem} onDelete={onDelete} onUpdateItem={onUpdateItem} isEditing={isEditing} />;
     case WidgetType.IMAGE:
-      return <ImageWidget item={linkItem as ImageWidgetItem} onDelete={onDelete} onUpdateItem={onUpdateItem} isEditing={isEditing} />;
+      return <ImageWidget item={linkItem as ImageItem} onDelete={onDelete} onUpdateItem={onUpdateItem} isEditing={isEditing} />;
     case WidgetType.LABEL:
-      return <LabelWidget item={linkItem as Label} onDelete={onDelete} onUpdateItem={onUpdateItem} isEditing={isEditing} />;
+      return <LabelWidget item={linkItem as LabelItem} onDelete={onDelete} onUpdateItem={onUpdateItem} isEditing={isEditing} />;
     case WidgetType.GROUP:
       return (
         <GroupWidget
-          item={linkItem as Group}
+          item={linkItem as GroupItem}
           onDelete={onDelete}
           onUpdateItem={onUpdateItem}
           isEditing={isEditing}
@@ -120,7 +120,7 @@ function WidgetRendererInner({
     default:
       return (
         <LinkCard
-          item={linkItem as RegularLink}
+          item={linkItem as LinkItem}
           onDelete={onDelete}
           onViewModeChange={onViewModeChange}
           onUpdateItem={onUpdateItem}

@@ -14,7 +14,7 @@ import { Button } from './ui/button';
 import { MoreHorizontal, Trash2, FolderInput, Home, Folder, Edit2, Link2, Eye, Image as ImageIcon, Type, Check } from 'lucide-react';
 import { siteFaviconUrl } from '../lib/favicon';
 import Favicon from './Favicon';
-import type { RegularLink, GridSlot } from '../types';
+import type { LinkItem, GridSlot } from '../types';
 
 interface GroupRef {
   id: string;
@@ -22,13 +22,13 @@ interface GroupRef {
 }
 
 interface Props {
-  item: RegularLink;
+  item: LinkItem;
   isEditing: boolean;
   openInNewTab?: boolean;
   groups?: GroupRef[];
   onMoveItem?: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
   onDelete: (id: string) => void;
-  onUpdateItem: (id: string, updates: Partial<RegularLink>) => void;
+  onUpdateItem: (id: string, updates: Partial<LinkItem>) => void;
   draggedHeaderLinkId: string | null;
   dragOverHeaderLinkId: string | null;
   onDragStart: (id: string, e: DragEvent) => void;

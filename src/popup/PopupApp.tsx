@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import type { Settings, Group } from '../types';
+import type { Settings, GroupItem } from '../types';
 
 interface PendingReminder {
   firedId: string;
@@ -36,12 +36,12 @@ function PopupApp() {
   const [tabInfo, setTabInfo] = useState<TabInfo | null>(null);
   const [canSave, setCanSave] = useState(false);
   const [pending, setPending] = useState<PendingReminder[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
+  const [groups, setGroups] = useState<GroupItem[]>([]);
   const [destination, setDestination] = useState<Destination>('main');
 
   useEffect(() => {
     getLinks().then((links) => {
-      setGroups(links.filter((l): l is Group => l.type === 'group'));
+      setGroups(links.filter((l): l is GroupItem => l.type === 'group'));
     });
 
     if (typeof chrome !== 'undefined' && chrome.storage) {
