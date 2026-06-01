@@ -76,7 +76,7 @@ const TodoWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
               variant="ghost"
               size="icon"
               onClick={() => deleteTodo(todo.id)}
-              title="Delete task"
+              title="Delete Task"
               className="h-5 w-5 opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-red-500 hover:bg-transparent transition-opacity shrink-0"
             >
               <X size={14} />
@@ -100,7 +100,7 @@ const TodoWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             variant="ghost"
             size="icon"
             disabled={!newTask.trim()}
-            title="Add task"
+            title="Add Task"
             className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-primary hover:bg-primary/10 hover:text-primary disabled:opacity-50"
           >
             <Plus size={14} />
