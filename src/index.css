@@ -113,7 +113,7 @@
 /* ─── React Grid Layout Overrides ─────────────────────────────────────────── */
 .react-grid-layout {
   position: relative;
-  /* transition: height 200ms ease; */
+  transition: height 200ms ease;
 }
 
 .react-grid-item.react-draggable-dragging {
@@ -181,10 +181,32 @@
   filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.6)) !important;
 }
 
-/* Disable transition animations for all grid items to prevent right-to-left layout slides on mount/reload */
+/* Disable all transitions on grid items and their contents so the layout
+   (and widgets inside it) never animate/glide on move, resize, or reload */
+.react-grid-item,
+.react-grid-item * {
+  transition: transform 200ms ease-in-out, opacity 200ms ease-in-out !important;
+  transform-origin: center !important;
+}
+
+/* Items should appear from their own center, not slide in from a corner.
+   RGL positions items with `transform: translate()`, so transitioning the
+   item's transform animates that translation (the left-to-right slide) and
+   transform-origin can't fix it. Instead: don't transition the item's own
+   position, and scale/fade the item's content in from center on mount. */
 .react-grid-item {
   transition: none !important;
 }
+@keyframes gridItemAppear {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.react-grid-item > * {
+  animation: gridItemAppear 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: center center;
+}
+
+
 
 /* Make pasted embed snippets (iframe / blockquote) fill the widget regardless of their hardcoded dimensions */
 .embed-html-container {
