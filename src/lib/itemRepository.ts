@@ -1,4 +1,4 @@
-import { getLinks, saveLinks } from './storage';
+import { getItems, saveItems } from './storage';
 import { getMinSize, findFreeSlot, findSlotInGroup, GROUP_DEFAULT_COLS } from './grid';
 import { WidgetType } from './widgetCatalog';
 import type { WidgetItem, LinkItem, GroupItem } from '../types';
@@ -9,7 +9,7 @@ export const saveItem = async (
   newLink: NewItemInput,
   groupId?: string,
 ): Promise<WidgetItem | null> => {
-  const currentLinks = await getLinks();
+  const currentLinks = await getItems();
 
   const id = newLink.id || `${newLink.type || WidgetType.LINK}-${Date.now()}`;
   const w = newLink.w || (newLink.type === WidgetType.GROUP ? 6 : 2);
@@ -39,7 +39,7 @@ export const saveItem = async (
       }
       return item;
     });
-    await saveLinks(updatedLinks);
+    await saveItems(updatedLinks);
     return linkWithId as unknown as WidgetItem;
   }
 
@@ -70,12 +70,12 @@ export const saveItem = async (
   }
 
   const updatedLinks: WidgetItem[] = [...currentLinks, linkWithId as unknown as WidgetItem];
-  await saveLinks(updatedLinks);
+  await saveItems(updatedLinks);
   return linkWithId as unknown as WidgetItem;
 };
 
 export const deleteItem = async (id: string): Promise<void> => {
-  const currentLinks = await getLinks();
+  const currentLinks = await getItems();
   const deleteNested = (items: WidgetItem[]): WidgetItem[] => {
     return items
       .filter((item) => item.id !== id)
@@ -90,5 +90,5 @@ export const deleteItem = async (id: string): Promise<void> => {
         return item;
       });
   };
-  await saveLinks(deleteNested(currentLinks));
+  await saveItems(deleteNested(currentLinks));
 };

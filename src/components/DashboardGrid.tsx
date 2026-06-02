@@ -6,7 +6,7 @@ import 'react-resizable/css/styles.css';
 import { ExternalLink } from 'lucide-react';
 import WidgetRenderer from './WidgetRenderer';
 import Favicon from './Favicon';
-import { useGridDimensions, photoConfigFitsAt3Rows } from '../hooks/useGridDimensions';
+import { useGridDimensions, imageConfigFitsAt3Rows } from '../hooks/useGridDimensions';
 import { useDashboardDrag } from '../hooks/useDashboardDrag';
 import { HEADER_LINK_DRAG_TYPE } from '../hooks/useHeaderDrag';
 import { MAIN_COLS, MAIN_ROWS } from '../lib/grid';
@@ -76,7 +76,7 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
 
     if (link.type === WidgetType.IMAGE) {
       const hasImage = !!((link as ImageItem).url ?? '').trim();
-      const emptyMin = photoConfigFitsAt3Rows() ? 3 : 4;
+      const emptyMin = imageConfigFitsAt3Rows() ? 3 : 4;
       minW = hasImage ? 3 : emptyMin;
       minH = hasImage ? 3 : emptyMin;
     }
