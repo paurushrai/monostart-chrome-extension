@@ -29,7 +29,7 @@ interface TabInfo {
   favicon: string;
 }
 
-type Destination = 'main' | 'header' | string;
+type Destination = 'main' | 'header' | (string & {});
 
 function PopupApp() {
   const [saved, setSaved] = useState(false);
@@ -59,7 +59,9 @@ function PopupApp() {
         }
       });
     } else {
-      setTabInfo({ url: 'https://www.google.com', title: 'Example Site', favicon: '' });
+      Promise.resolve().then(() => {
+        setTabInfo({ url: 'https://www.google.com', title: 'Example Site', favicon: '' });
+      });
     }
 
     getSettings().then((settings: Settings) => {
@@ -67,22 +69,22 @@ function PopupApp() {
       if (settings.themeColor) {
         document.documentElement.style.setProperty('--primary', settings.themeColor);
         document.documentElement.style.setProperty('--ring', settings.themeColor);
-        
+
         const parts = settings.themeColor.split(' ');
         if (parts.length >= 2 && parts[0] && parts[1]) {
           document.documentElement.style.setProperty('--theme-hue', parts[0]);
-          const baseSat = parseInt(parts[1], 10);
+          const baseSat = Number.parseInt(parts[1], 10);
           if (baseSat === 0) {
             document.documentElement.style.setProperty('--theme-sat', '0%');
           } else {
             const mode = settings.themeMode || 'device';
-            const isDark = mode === 'dark' || (mode === 'device' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            const isDark = mode === 'dark' || (mode === 'device' && globalThis.matchMedia('(prefers-color-scheme: dark)').matches);
             document.documentElement.style.setProperty('--theme-sat', isDark ? '30%' : '40%');
           }
         }
       }
       const applyMode = (mode: Settings['themeMode']) => {
-        const isDark = mode === 'dark' || (mode === 'device' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const isDark = mode === 'dark' || (mode === 'device' && globalThis.matchMedia('(prefers-color-scheme: dark)').matches);
         if (isDark) {
           document.documentElement.classList.add('dark');
         } else {
@@ -121,14 +123,18 @@ function PopupApp() {
   }, [tabUrl]);
 
   const displaySections = useMemo(() => disambiguateSections(sections), [sections]);
-  const destinationLabel =
-    destination === 'main' ? 'Main dashboard' :
-    destination === 'header' ? 'Header bar' :
-    displaySections.find((s) => s.id === destination)?.title ?? 'Main dashboard';
-  const DestinationIcon =
-    destination === 'main' ? LayoutGrid :
-    destination === 'header' ? Bookmark :
-    Folder;
+  const destinationLabel = (() => {
+    if (destination === 'main') return 'Main dashboard';
+    if (destination === 'header') return 'Header bar';
+    const found = displaySections.find((s) => s.id === destination)?.title;
+    return found ?? 'Main dashboard';
+  })();
+
+  const DestinationIcon = useMemo(() => {
+    if (destination === 'main') return LayoutGrid;
+    if (destination === 'header') return Bookmark;
+    return Folder;
+  }, [destination]);
 
   const handleOpenDashboard = () => {
     if (typeof chrome !== 'undefined' && chrome.tabs) {
@@ -178,16 +184,16 @@ function PopupApp() {
                 key={p.firedId}
                 className="group flex items-start gap-2 px-2 py-1.5 rounded-lg bg-white/60 dark:bg-black/20"
               >
-                {p.recurrence !== 'none' ? (
-                  <Repeat size={11} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
-                ) : (
+                {p.recurrence === 'none' ? (
                   <span className="w-[11px]" aria-hidden="true" />
+                ) : (
+                  <Repeat size={11} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-ink break-words">{p.text}</p>
                   <p className="text-2xs text-muted-foreground mt-0.5">
                     {p.timeLabel}
-                    {p.recurrence !== 'none' && <span> · {p.recurrence}</span>}
+                    {p.recurrence === 'none' ? null : <span> · {p.recurrence}</span>}
                   </p>
                 </div>
                 <Button
