@@ -12,6 +12,7 @@ import {
 } from './ui/dropdown-menu';
 import { ChevronDown, Check, LayoutGrid, Bookmark, Folder } from 'lucide-react';
 import { saveLink } from '../lib/linkRepository';
+import { siteFaviconUrl } from '../lib/favicon';
 
 interface SectionRef {
   id: string;
@@ -54,7 +55,7 @@ const AddLinkModal = ({ open, onClose, onAfterAdd, sections = [] }: Readonly<Pro
       if (!finalTitle) {
         finalTitle = urlObj.hostname.replace('www.', '');
       }
-      faviconUrl = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(finalUrl)}&size=128`;
+      faviconUrl = siteFaviconUrl(finalUrl);
     } catch {
       if (!finalTitle) finalTitle = finalUrl;
     }

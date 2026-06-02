@@ -12,7 +12,8 @@ import {
 } from './ui/dropdown-menu';
 import { Button } from './ui/button';
 import { MoreHorizontal, Trash2, FolderInput, Home, Folder, Edit2, Link2, Eye, Image as ImageIcon, Type, Check } from 'lucide-react';
-import { resolveFavicon, buildFaviconUrl } from '../lib/favicon';
+import { siteFaviconUrl } from '../lib/favicon';
+import Favicon from './Favicon';
 import type { RegularLink, GridSlot } from '../types';
 
 interface SectionRef {
@@ -56,7 +57,6 @@ const HeaderLink = ({
   const siteName = item.customName || item.title || 'Link';
   const url = item.url;
 
-  const favicon = resolveFavicon(item);
   const showAsText = item.viewMode === 'text';
 
   const handleRename = (e: MouseEvent) => {
@@ -80,12 +80,7 @@ const HeaderLink = ({
         if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
           trimmed = 'https://' + trimmed;
         }
-        const newFavicon = buildFaviconUrl(trimmed);
-        if (newFavicon) {
-          onUpdateLink(item.id, { url: trimmed, favicon: newFavicon });
-        } else {
-          onUpdateLink(item.id, { url: trimmed });
-        }
+        onUpdateLink(item.id, { url: trimmed, favicon: siteFaviconUrl(trimmed) });
       }
     }
     setIsMenuOpen(false);
@@ -101,20 +96,17 @@ const HeaderLink = ({
         {siteName}
       </span>
     );
-  } else if (favicon) {
-    linkContent = (
-      <img
-        src={favicon}
-        alt=""
-        draggable={false}
-        className="w-5 h-5 object-contain rounded-[3px] pointer-events-none"
-      />
-    );
   } else {
     linkContent = (
-      <div className="flex items-center justify-center text-muted-foreground w-5 h-5 pointer-events-none">
-        <Link2 size={14} />
-      </div>
+      <Favicon
+        item={item}
+        className="w-5 h-5 object-contain rounded-[3px] pointer-events-none"
+        fallback={
+          <div className="flex items-center justify-center text-muted-foreground w-5 h-5 pointer-events-none">
+            <Link2 size={14} />
+          </div>
+        }
+      />
     );
   }
 
