@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getSettings, saveSettings } from '../lib/storage';
 import type { Settings } from '../types';
 
-const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '239 84% 67%' };
+const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '271 91% 65%' };
 
 export interface UseTheme {
   settings: Settings;
