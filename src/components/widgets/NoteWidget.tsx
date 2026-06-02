@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import type { Note } from '../../types';
 
 const NOTE_COLORS = [
-  { id: 'default', name: 'Default', bg: 'bg-white dark:bg-card border-border text-foreground', headerBg: 'bg-gray-50/50 dark:bg-black/10', dot: 'bg-gray-300 dark:bg-gray-600' },
+  { id: 'default', name: 'Default', bg: 'bg-card/65 backdrop-blur-md border-border text-foreground', headerBg: 'bg-gray-50/50 dark:bg-black/10', dot: 'bg-gray-300 dark:bg-gray-600' },
   { id: 'amber', name: 'Yellow', bg: 'bg-amber-50/95 dark:bg-amber-950/20 border-amber-200/40 text-amber-950 dark:text-amber-200', headerBg: 'bg-amber-100/50 dark:bg-amber-950/40', dot: 'bg-amber-400' },
   { id: 'sky', name: 'Blue', bg: 'bg-sky-50/95 dark:bg-sky-950/20 border-sky-200/40 text-sky-950 dark:text-sky-200', headerBg: 'bg-sky-100/50 dark:bg-sky-950/40', dot: 'bg-sky-400' },
   { id: 'rose', name: 'Pink', bg: 'bg-rose-50/95 dark:bg-rose-950/20 border-rose-200/40 text-rose-950 dark:text-rose-200', headerBg: 'bg-rose-100/50 dark:bg-rose-950/40', dot: 'bg-rose-400' },

@@ -32,7 +32,7 @@ const TodoWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
   };
 
   return (
-    <article className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
+    <article className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-card/65 backdrop-blur-md">
       <header className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'py-1 drag-handle cursor-grab active:cursor-grabbing' : 'py-0.5'}`}>
         <div className="flex items-center gap-1.5">
           <CheckSquare size={isEditing ? 12 : 10} className="text-primary" aria-hidden="true" />
@@ -85,7 +85,7 @@ const TodoWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
         ))}
       </ul>
 
-      <form onSubmit={handleAdd} className="p-1.5 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl">
+      <form onSubmit={handleAdd} className="p-1.5 border-t border-border shrink-0 bg-gray-50/50 dark:bg-black/10 rounded-b-xl">
         <div className="relative">
           <Input
             type="text"
