@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState, type DragEvent as ReactDragEvent } from 'react';
-import GridLayout, { WidthProvider } from 'react-grid-layout/legacy';
+import GridLayout from 'react-grid-layout/legacy';
 import type { Layout } from 'react-grid-layout/legacy';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -14,7 +14,13 @@ import { getWidgetMeta, WidgetType } from '../lib/widgetCatalog';
 import type { WidgetMeta } from '../lib/widgetCatalog';
 import type { LinkItem, RegularLink, DisplayItem, DragPlaceholder, GridSlot, GoogleSearch, ImageWidget } from '../types';
 
-const ReactGridLayout = WidthProvider(GridLayout);
+// Use GridLayout directly instead of WidthProvider. WidthProvider initializes
+// width to a hardcoded 1280 and only corrects to the real container width one
+// frame AFTER mount (via a post-paint ResizeObserver), which makes every item
+// render at the wrong size/position on first paint and then visibly jump.
+// Instead we measure the container width synchronously in useLayoutEffect
+// (pre-paint) and feed it in, so items render correctly on the very first paint.
+const ReactGridLayout = GridLayout;
 
 const PLACEHOLDER_ID = 'drag-out-placeholder';
 
@@ -104,12 +110,13 @@ const DashboardGrid = ({
 }: Readonly<Props>) => {
   const { rowHeight: fallbackRowHeight } = useGridDimensions();
   const [rowHeight, setRowHeight] = useState(fallbackRowHeight);
+  const [gridWidth, setGridWidth] = useState(0);
   const drag = useDashboardDrag({ links, rowHeight, onMoveLink, onSwap, onHeaderTargetChange });
 
   useLayoutEffect(() => {
     const el = drag.gridRef.current;
     const host = el?.parentElement;
-    if (!host) return;
+    if (!el || !host) return;
     const GRID_MARGIN = 16;
     const measure = () => {
       const cs = getComputedStyle(host);
@@ -120,6 +127,8 @@ const DashboardGrid = ({
         (available - 2 * GRID_MARGIN - (MAIN_ROWS - 1) * GRID_MARGIN) / MAIN_ROWS,
       );
       if (Number.isFinite(next)) setRowHeight((prev) => (prev === next ? prev : next));
+      const w = el.clientWidth;
+      if (w > 0) setGridWidth((prev) => (prev === w ? prev : w));
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -188,8 +197,10 @@ const DashboardGrid = ({
       onDragLeave={handleHeaderDragLeave}
       onDrop={handleHeaderDrop}
     >
+      {gridWidth > 0 && (
       <ReactGridLayout
         className="layout"
+        width={gridWidth}
         layout={layout}
         cols={MAIN_COLS}
         maxRows={MAIN_ROWS}
@@ -200,7 +211,6 @@ const DashboardGrid = ({
         isDraggable={isEditing}
         isResizable={isEditing}
         draggableHandle=".drag-handle"
-        measureBeforeMount={true}
         onDragStart={drag.handleDragStart}
         onDrag={drag.handleDrag}
         onDragStop={drag.handleDragStop}
@@ -247,6 +257,7 @@ const DashboardGrid = ({
           );
         })}
       </ReactGridLayout>
+      )}
       {showGhost && drag.dragCursorCoords && (
         <div
           className="fixed pointer-events-none z-[9999] rounded-md bg-card border border-border shadow-lg flex items-center justify-center"
