@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Layout } from 'react-grid-layout/legacy';
-import { getLinks, getLinksSync, saveLinks } from '../lib/storage';
+import { getItems, getItemsSync, saveItems } from '../lib/storage';
 import { saveItem } from '../lib/itemRepository';
 import type { NewItemInput } from '../lib/itemRepository';
 import { RESIZABLE_TYPES, WidgetType, getWidgetLayout } from '../lib/widgetCatalog';
@@ -8,7 +8,7 @@ import { findFirstFreeSlot, MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import { cleanupOrphanedWidgetData, removeWidgetDataForId } from '../lib/widgetDataCleanup';
 import { resolveSwap } from '../lib/swapPlanner';
 import {
-  removeLinkAnywhere,
+  removeItemAnywhere,
   placeInHeader,
   placeInGroup,
   placeOnMain,
@@ -53,17 +53,17 @@ export interface UseDashboardOptions {
 }
 
 export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
-  const [links, setLinks] = useState<WidgetItem[]>(() => normalize(getLinksSync()));
+  const [links, setLinks] = useState<WidgetItem[]>(() => normalize(getItemsSync()));
   const swapSuppressUntilRef = useRef(0);
   const SWAP_SUPPRESS_MS = 250;
   const onSwapFailedRef = useRef(opts.onSwapFailed);
   onSwapFailedRef.current = opts.onSwapFailed;
 
   useEffect(() => {
-    getLinks().then((stored) => {
+    getItems().then((stored) => {
       const migrated = normalize(stored);
       if (JSON.stringify(migrated) !== JSON.stringify(stored)) {
-        saveLinks(migrated);
+        saveItems(migrated);
       }
       setLinks((prev) => {
         if (prev.length === migrated.length && JSON.stringify(prev) === JSON.stringify(migrated)) return prev;
@@ -95,7 +95,7 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
   const replaceLinks = useCallback((next: WidgetItem[]) => {
     const clean = dedupeById(next);
     setLinks(clean);
-    saveLinks(clean);
+    saveItems(clean);
   }, []);
 
   const handleLayoutChange = useCallback((layout: Layout) => {
@@ -122,7 +122,7 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
         };
       });
       if (!mutated) return prevLinks;
-      saveLinks(updatedLinks);
+      saveItems(updatedLinks);
       return updatedLinks;
     });
   }, []);
@@ -144,7 +144,7 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
     };
     setLinks((prev) => {
       const next = deleteNested(prev);
-      saveLinks(next);
+      saveItems(next);
       removeWidgetDataForId(id);
       return next;
     });
@@ -174,7 +174,7 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
         });
       };
       const updatedLinks = updateNested(prevLinks);
-      saveLinks(updatedLinks);
+      saveItems(updatedLinks);
       return updatedLinks;
     });
   }, []);
@@ -223,7 +223,7 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
         }
       }
 
-      saveLinks(updatedLinks);
+      saveItems(updatedLinks);
       return updatedLinks;
     });
   }, []);
@@ -234,7 +234,7 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
     targetCoords?: GridSlot,
   ) => {
     setLinks((prevLinks) => {
-      const { cleanedLinks, foundLink } = removeLinkAnywhere(prevLinks, linkId);
+      const { cleanedLinks, foundLink } = removeItemAnywhere(prevLinks, linkId);
       if (!foundLink) return prevLinks;
 
       let updatedLinks: WidgetItem[];
@@ -246,7 +246,7 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
         updatedLinks = placeOnMain(cleanedLinks, foundLink, targetCoords);
       }
 
-      saveLinks(updatedLinks);
+      saveItems(updatedLinks);
       return updatedLinks;
     });
   }, []);
@@ -339,7 +339,7 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
         return l;
       });
 
-      saveLinks(updated);
+      saveItems(updated);
       return updated;
     });
   }, []);
@@ -369,7 +369,7 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
         return headerMatch ? headerMatch : link;
       });
 
-      saveLinks(updatedLinks);
+      saveItems(updatedLinks);
       return updatedLinks;
     });
   }, []);
