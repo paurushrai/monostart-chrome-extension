@@ -205,7 +205,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
                 size="icon"
                 onClick={() => removeOne(r.id)}
                 className="h-5 w-5 opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-red-500 hover:bg-transparent transition-opacity shrink-0 mt-0.5"
-                title="Delete reminder"
+                title="Delete Reminder"
               >
                 <X size={14} />
               </Button>
@@ -322,7 +322,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             size="icon"
             disabled={!text.trim()}
             className="h-7 w-7 rounded-sm bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 dark:active:bg-primary/80 disabled:opacity-40 shrink-0"
-            title="Add reminder"
+            title="Add Reminder"
           >
             <Plus size={14} strokeWidth={3} />
           </Button>

@@ -78,7 +78,7 @@ const TimerItem = ({ timer, onUpdate, onDelete }: Readonly<TimerItemProps>) => {
           variant="ghost"
           size="icon"
           onClick={() => onDelete(timer.id)}
-          title="Delete timer"
+          title="Delete Timer"
           className="h-5 w-5 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 hover:bg-transparent transition-opacity"
         >
           <X size={12} />
@@ -193,7 +193,7 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             type="text"
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
-            placeholder="Label (opt)"
+            placeholder="Label (optional)"
             aria-label="Timer label (optional)"
             className="h-7 flex-1 min-w-0 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
@@ -201,7 +201,7 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             type="submit"
             size="icon"
             disabled={!newMinutes}
-            title="Add timer"
+            title="Add Timer"
             className="h-7 w-7 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 disabled:opacity-50 rounded-sm"
           >
             <Plus size={14} />
