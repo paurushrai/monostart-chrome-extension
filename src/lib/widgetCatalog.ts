@@ -77,7 +77,7 @@ const WIDGETS = [
     name: 'Todo List',
     description: 'Keep track of your tasks.',
     icon: CheckSquare,
-    defaults: { w: 3, h: 3, title: 'Todos' },
+    defaults: { w: 3, h: 3, title: 'Todo List' },
     layout: { minW: 3, minH: 3, resizable: true },
   },
   {
@@ -101,10 +101,10 @@ const WIDGETS = [
   {
     type: WidgetType.IMAGE,
     addable: true,
-    name: 'Photo / Image',
+    name: 'Image',
     description: 'Add an image from a URL or upload a local file.',
     icon: Image,
-    defaults: { w: 4, h: 4, title: 'Photo Frame', url: '', fit: 'cover' },
+    defaults: { w: 4, h: 4, title: 'Image', url: '', fit: 'cover' },
     layout: { minW: 4, minH: 4, resizable: true },
   },
   {
@@ -113,7 +113,7 @@ const WIDGETS = [
     name: 'Text Label',
     description: 'Add a clean floating text header or title to style your grid.',
     icon: Type,
-    defaults: { w: 4, h: 1, text: 'Google', align: 'left', size: 'text-3xl', fontWeight: 'font-bold', opacity: 'opacity-100' },
+    defaults: { w: 4, h: 1, text: 'Heading', align: 'left', size: 'text-3xl', fontWeight: 'font-bold', opacity: 'opacity-100' },
     layout: { minW: 2, minH: 1, resizable: true },
   },
   {
@@ -122,7 +122,7 @@ const WIDGETS = [
     name: 'Embedded Page',
     description: 'Embed any website as a live widget.',
     icon: Globe,
-    defaults: { w: 4, h: 4, title: 'Embed', url: 'https://www.google.com' },
+    defaults: { w: 4, h: 4, title: 'Embedded Page', url: 'https://www.google.com' },
     layout: { minW: 3, minH: 3, resizable: true },
   },
 ] as const satisfies readonly WidgetMeta[];
