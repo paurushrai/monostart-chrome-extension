@@ -3,7 +3,7 @@ import type { Layout, LayoutItem } from 'react-grid-layout/legacy';
 import { MAIN_COLS, GROUP_DEFAULT_COLS } from '../lib/grid';
 import { WidgetType } from '../lib/widgetCatalog';
 import { pickSwapTarget } from '../lib/swapPlanner';
-import type { WidgetItem, RegularLink, Group, DragCoords, GridSlot } from '../types';
+import type { WidgetItem, LinkItem, GroupItem, DragCoords, GridSlot } from '../types';
 
 const ROW_MARGIN_PX = 16;
 const SECTION_INNER_ROW_HEIGHT = 58; // 50 rowHeight + 8 margin
@@ -72,9 +72,9 @@ export interface UseDashboardDrag {
   handleDragStart: RglDragHandler;
   handleDrag: RglDragHandler;
   handleDragStop: RglDragHandler;
-  handleInnerDragStart: (item: RegularLink, parentGroupId: string) => void;
-  handleInnerDrag: (item: RegularLink, parentGroupId: string, clientX: number, clientY: number) => void;
-  handleInnerDragStop: (item: RegularLink, parentGroupId: string, clientX: number, clientY: number) => void;
+  handleInnerDragStart: (item: LinkItem, parentGroupId: string) => void;
+  handleInnerDrag: (item: LinkItem, parentGroupId: string, clientX: number, clientY: number) => void;
+  handleInnerDragStop: (item: LinkItem, parentGroupId: string, clientX: number, clientY: number) => void;
   handleExternalDrop: (linkId: string, clientX: number, clientY: number) => boolean;
 }
 
@@ -118,7 +118,7 @@ export function useDashboardDrag({
   }, [links]);
 
   const computeMainGridDropSlot = useCallback(
-    (item: WidgetItem | RegularLink, clientX: number, clientY: number): MainDropSlot | null => {
+    (item: WidgetItem | LinkItem, clientX: number, clientY: number): MainDropSlot | null => {
       const gridEl = gridRef.current;
       if (!gridEl) return null;
       const gridRect = gridEl.getBoundingClientRect();
@@ -158,9 +158,9 @@ export function useDashboardDrag({
   );
 
   const computeGroupDropCoords = useCallback(
-    (item: RegularLink, groupId: string, clientX: number, clientY: number): GridSlot | undefined => {
+    (item: LinkItem, groupId: string, clientX: number, clientY: number): GridSlot | undefined => {
       const groupEl = document.querySelector(`[data-group-id="${groupId}"]`);
-      const groupItem = links.find((l) => l.id === groupId) as Group | undefined;
+      const groupItem = links.find((l) => l.id === groupId) as GroupItem | undefined;
       if (!groupEl || !groupItem) return undefined;
       const containerEl = groupEl.querySelector<HTMLElement>('.overflow-y-auto');
       if (!containerEl) return undefined;
@@ -184,12 +184,12 @@ export function useDashboardDrag({
     [links],
   );
 
-  const handleInnerDragStart = useCallback((item: RegularLink, _parentGroupId: string) => {
+  const handleInnerDragStart = useCallback((item: LinkItem, _parentGroupId: string) => {
     setActiveDragOutItem(item);
     lastInnerDragCoordsRef.current = null;
   }, []);
 
-  const handleInnerDrag = useCallback((item: RegularLink, parentGroupId: string, clientX: number, clientY: number) => {
+  const handleInnerDrag = useCallback((item: LinkItem, parentGroupId: string, clientX: number, clientY: number) => {
     lastInnerDragCoordsRef.current = { x: clientX, y: clientY };
     setDragCursorCoords({ x: clientX, y: clientY });
     setDraggedItem(item);
@@ -235,7 +235,7 @@ export function useDashboardDrag({
     }
   }, [computeMainGridDropSlot, checkCollision, onHeaderTargetChange]);
 
-  const handleInnerDragStop = useCallback((item: RegularLink, parentGroupId: string, clientX: number, clientY: number) => {
+  const handleInnerDragStop = useCallback((item: LinkItem, parentGroupId: string, clientX: number, clientY: number) => {
     let finalX: number | undefined = clientX;
     let finalY: number | undefined = clientY;
     if ((finalX === undefined || finalY === undefined) && lastInnerDragCoordsRef.current) {
@@ -359,14 +359,14 @@ export function useDashboardDrag({
     }
 
     if (isPointOverHeader(clientX, clientY)) {
-      const draggedLinkForHeader = links.find((l) => l.id === newItem.i && l.type === WidgetType.LINK) as RegularLink | undefined;
+      const draggedLinkForHeader = links.find((l) => l.id === newItem.i && l.type === WidgetType.LINK) as LinkItem | undefined;
       if (draggedLinkForHeader) onMoveItem(draggedLinkForHeader.id, HEADER_TARGET);
       return;
     }
 
     const targetGroupId = findGroupAtPoint(clientX, clientY);
     if (targetGroupId) {
-      const draggedLink = links.find((l) => l.id === newItem.i && l.type === WidgetType.LINK) as RegularLink | undefined;
+      const draggedLink = links.find((l) => l.id === newItem.i && l.type === WidgetType.LINK) as LinkItem | undefined;
       if (draggedLink) {
         const targetCoords = computeGroupDropCoords(draggedLink, targetGroupId, clientX, clientY);
         onMoveItem(draggedLink.id, targetGroupId, targetCoords);
@@ -413,7 +413,7 @@ export function useDashboardDrag({
   }, [links, dragCursorCoords, computeMainGridDropSlot, computeCursorCell, computeGroupDropCoords, onMoveItem, onSwap, onHeaderTargetChange]);
 
   const handleExternalDrop = useCallback((linkId: string, clientX: number, clientY: number): boolean => {
-    const externalPlaceholder = { viewMode: 'icon' as const, w: 1, h: 1 } as RegularLink;
+    const externalPlaceholder = { viewMode: 'icon' as const, w: 1, h: 1 } as LinkItem;
     const slot = computeMainGridDropSlot(externalPlaceholder, clientX, clientY);
     if (!slot) return false;
     if (checkCollision(slot.gridX, slot.gridY, slot.w, slot.h)) return false;

@@ -1,6 +1,6 @@
-import type { Group } from '../types';
+import type { GroupItem } from '../types';
 
-export function disambiguateGroups(groups: readonly Group[]): Array<{ id: string; title: string }> {
+export function disambiguateGroups(groups: readonly GroupItem[]): Array<{ id: string; title: string }> {
   const seenIds = new Set<string>();
   const unique = groups.filter((s) => {
     if (seenIds.has(s.id)) return false;

@@ -9,7 +9,7 @@ import { useGroupDragOut } from '../../hooks/useGroupDragOut';
 import { HEADER_LINK_DRAG_TYPE } from '../../hooks/useHeaderDrag';
 import { findFirstFreeSlot } from '../../lib/grid';
 import { siteFaviconUrl } from '../../lib/favicon';
-import type { Group, RegularLink, WidgetItem, DragCoords, GridSlot } from '../../types';
+import type { GroupItem, LinkItem, WidgetItem, DragCoords, GridSlot } from '../../types';
 
 const PRESET_COLORS = [
   { name: 'Red', hsl: '346 87% 61%' },
@@ -32,7 +32,7 @@ interface GroupRef {
 }
 
 interface Props {
-  item: Group;
+  item: GroupItem;
   onDelete: (id: string) => void;
   onUpdateItem: (id: string, updates: Partial<WidgetItem>) => void;
   isEditing: boolean;
@@ -41,9 +41,9 @@ interface Props {
   onMoveItem?: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
   isDraggedOver: boolean;
   dragCursorCoords: DragCoords | null;
-  onInnerDragStart: (link: RegularLink, groupId: string) => void;
-  onInnerDrag: (link: RegularLink, groupId: string, x: number, y: number) => void;
-  onInnerDragStop: (link: RegularLink, groupId: string, x: number, y: number) => void;
+  onInnerDragStart: (link: LinkItem, groupId: string) => void;
+  onInnerDrag: (link: LinkItem, groupId: string, x: number, y: number) => void;
+  onInnerDragStop: (link: LinkItem, groupId: string, x: number, y: number) => void;
   draggedItem: WidgetItem | null;
 }
 
@@ -145,7 +145,7 @@ const GroupWidget = ({
     }
 
     const currentCols = cols;
-    const newLinkItem: RegularLink = {
+    const newLinkItem: LinkItem = {
       id: `link-${Date.now()}`,
       type: 'link',
       url,
@@ -219,7 +219,7 @@ const GroupWidget = ({
     onUpdateItem(item.id, { links: updatedLinks });
   };
 
-  const handleInnerUpdateLink = (linkId: string, updates: Partial<RegularLink>) => {
+  const handleInnerUpdateLink = (linkId: string, updates: Partial<LinkItem>) => {
     const updatedLinks = links.map((l) => (l.id === linkId ? { ...l, ...updates } : l));
     onUpdateItem(item.id, { links: updatedLinks });
   };

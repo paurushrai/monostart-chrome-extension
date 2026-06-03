@@ -11,7 +11,7 @@ interface BaseItem {
   viewMode?: 'icon' | 'icon+text' | 'card' | 'text';
 }
 
-export interface RegularLink extends BaseItem {
+export interface LinkItem extends BaseItem {
   type: 'link';
   url: string;
   title: string;
@@ -20,16 +20,16 @@ export interface RegularLink extends BaseItem {
   theme?: string;
 }
 
-export interface Group extends BaseItem {
+export interface GroupItem extends BaseItem {
   type: 'group';
   title: string;
   borderColor: string;
   cols?: number;
   layout?: 'grid' | 'list';
-  links: RegularLink[];
+  links: LinkItem[];
 }
 
-export interface Iframe extends BaseItem {
+export interface IframeItem extends BaseItem {
   type: 'iframe';
   title: string;
   url?: string;
@@ -37,31 +37,31 @@ export interface Iframe extends BaseItem {
   embedHtml?: string;
 }
 
-export interface TodoWidget extends BaseItem {
+export interface TodoItem extends BaseItem {
   type: 'todo';
   title: string;
 }
 
-export interface TimerWidget extends BaseItem {
+export interface TimerItem extends BaseItem {
   type: 'timer';
   title: string;
 }
 
-export interface Note extends BaseItem {
+export interface NoteItem extends BaseItem {
   type: 'note';
   title: string;
   content?: string;
   noteColor?: string;
 }
 
-export interface ImageWidget extends BaseItem {
+export interface ImageItem extends BaseItem {
   type: 'image';
   title: string;
   url?: string;
   fit?: 'cover' | 'contain' | 'fill';
 }
 
-export interface Label extends BaseItem {
+export interface LabelItem extends BaseItem {
   type: 'label';
   text: string;
   align?: 'left' | 'center' | 'right';
@@ -71,21 +71,21 @@ export interface Label extends BaseItem {
   cardStyle?: boolean;
 }
 
-export interface GoogleSearch extends BaseItem {
+export interface GoogleSearchItem extends BaseItem {
   type: 'google-search';
   title: string;
   variant?: 'bar' | 'logo';
   logoStyle?: 'color' | 'mono';
 }
 
-export interface Reminders extends BaseItem {
+export interface RemindersItem extends BaseItem {
   type: 'reminders';
   title: string;
 }
 
 export type WidgetItem =
-  | RegularLink | Group | Iframe | TodoWidget | TimerWidget
-  | Note | ImageWidget | Label | GoogleSearch | Reminders;
+  | LinkItem | GroupItem | IframeItem | TodoItem | TimerItem
+  | NoteItem | ImageItem | LabelItem | GoogleSearchItem | RemindersItem;
 
 export interface DragPlaceholder {
   id: 'drag-out-placeholder' | 'drag-placeholder';

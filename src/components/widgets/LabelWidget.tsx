@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { Label as LabelItem } from '../../types';
+import type { LabelItem } from '../../types';
 
 const FONT_SIZES = [
   { id: 'text-sm', name: 'Small' },

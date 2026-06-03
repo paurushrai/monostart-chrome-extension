@@ -5,7 +5,7 @@ import VoiceSearchOverlay from './VoiceSearchOverlay';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Favicon from '../Favicon';
-import type { GoogleSearch, WidgetItem } from '../../types';
+import type { GoogleSearchItem, WidgetItem } from '../../types';
 
 const GoogleLogo = ({ className = '', mono = false }: { className?: string; mono?: boolean }) => (
   <span
@@ -95,7 +95,7 @@ const GoogleMicIcon = ({ size = 20 }: { size?: number }) => (
 const isLikelyUrl = (text: string) => /^(https?:\/\/|[\w-]+\.[\w-]+)/.test(text.trim());
 
 interface Props {
-  item: GoogleSearch;
+  item: GoogleSearchItem;
   onDelete: (id: string) => void;
   onUpdateItem: (id: string, updates: Partial<WidgetItem>) => void;
   isEditing: boolean;

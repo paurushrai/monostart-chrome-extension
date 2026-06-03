@@ -1,6 +1,6 @@
 import { useRef, useCallback, type RefObject, type MutableRefObject } from 'react';
 import type { Layout, LayoutItem } from 'react-grid-layout/legacy';
-import type { RegularLink, DragCoords } from '../types';
+import type { LinkItem, DragCoords } from '../types';
 
 type RglDragHandler = (
   layout: Layout,
@@ -11,13 +11,13 @@ type RglDragHandler = (
   element: HTMLElement | null,
 ) => void;
 
-type InnerDragCallback = (link: RegularLink, groupId: string) => void;
-type InnerDragMoveCallback = (link: RegularLink, groupId: string, clientX: number, clientY: number) => void;
+type InnerDragCallback = (link: LinkItem, groupId: string) => void;
+type InnerDragMoveCallback = (link: LinkItem, groupId: string, clientX: number, clientY: number) => void;
 
 interface UseGroupDragOutOptions {
   containerRef: RefObject<HTMLElement | null>;
   groupId: string;
-  links: readonly RegularLink[];
+  links: readonly LinkItem[];
   onInnerDragStart?: InnerDragCallback;
   onInnerDrag?: InnerDragMoveCallback;
   onInnerDragStop?: InnerDragMoveCallback;

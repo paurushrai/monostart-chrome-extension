@@ -14,7 +14,7 @@ import { useHeaderDrag } from './hooks/useHeaderDrag';
 import { useToast } from './hooks/useToast';
 import { disambiguateGroups } from './lib/disambiguateGroups';
 import { getLinksSync } from './lib/storage';
-import type { WidgetItem, Group } from './types';
+import type { WidgetItem, GroupItem } from './types';
 
 interface AddWidgetInput {
   type: WidgetItem['type'];
@@ -139,7 +139,7 @@ function App() {
   }, [addWidget, showToast, links, isEditing, enterEditModeAfterAdd]);
 
   const groups = disambiguateGroups(
-    links.filter((l): l is Group => l.type === 'group'),
+    links.filter((l): l is GroupItem => l.type === 'group'),
   );
 
   const hasBackground = !!(settings.background && settings.background.type !== 'none' && settings.background.value);
