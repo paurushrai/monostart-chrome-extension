@@ -1,5 +1,5 @@
 import { getWidgetMinSize } from './widgetCatalog';
-import type { WidgetItem, RegularLink, GridSlot } from '../types';
+import type { WidgetItem, LinkItem, GridSlot } from '../types';
 
 export const MAIN_COLS = 18;
 export const MAIN_ROWS = 12;
@@ -85,7 +85,7 @@ export const findFreeSlot = (
 };
 
 export const findSlotInGroup = (
-  groupLinks: readonly RegularLink[],
+  groupLinks: readonly LinkItem[],
   itemW: number = 3,
   itemH: number = 1,
   cols: number = GROUP_DEFAULT_COLS,

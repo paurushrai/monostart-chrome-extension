@@ -13,7 +13,7 @@ import {
   placeInGroup,
   placeOnMain,
 } from '../lib/linkPlacement';
-import type { WidgetItem, Group, GridSlot } from '../types';
+import type { WidgetItem, GroupItem, GridSlot } from '../types';
 
 const HEADER_TARGET = 'header';
 
@@ -132,11 +132,11 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
       return items
         .filter((item) => item.id !== id)
         .map((item) => {
-          if (item.type === WidgetType.GROUP && (item as Group).links) {
-            const group = item as Group;
+          if (item.type === WidgetType.GROUP && (item as GroupItem).links) {
+            const group = item as GroupItem;
             return {
               ...group,
-              links: deleteNested(group.links as unknown as WidgetItem[]) as unknown as Group['links'],
+              links: deleteNested(group.links as unknown as WidgetItem[]) as unknown as GroupItem['links'],
             };
           }
           return item;
@@ -163,11 +163,11 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
               h: 1,
             };
           }
-          if (l.type === WidgetType.GROUP && (l as Group).links) {
-            const group = l as Group;
+          if (l.type === WidgetType.GROUP && (l as GroupItem).links) {
+            const group = l as GroupItem;
             return {
               ...group,
-              links: updateNested(group.links as unknown as WidgetItem[]) as unknown as Group['links'],
+              links: updateNested(group.links as unknown as WidgetItem[]) as unknown as GroupItem['links'],
             };
           }
           return l;
@@ -186,11 +186,11 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
           if (l.id === id) {
             return { ...l, ...updates } as WidgetItem;
           }
-          if (l.type === WidgetType.GROUP && (l as Group).links) {
-            const group = l as Group;
+          if (l.type === WidgetType.GROUP && (l as GroupItem).links) {
+            const group = l as GroupItem;
             return {
               ...group,
-              links: updateNested(group.links as unknown as WidgetItem[]) as unknown as Group['links'],
+              links: updateNested(group.links as unknown as WidgetItem[]) as unknown as GroupItem['links'],
             };
           }
           return l;

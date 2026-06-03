@@ -9,12 +9,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import type { ImageWidget as ImageWidgetItem } from '../../types';
+import type { ImageItem } from '../../types';
 
 interface Props {
-  item: ImageWidgetItem;
+  item: ImageItem;
   onDelete: (id: string) => void;
-  onUpdateItem: (id: string, updates: Partial<ImageWidgetItem>) => void;
+  onUpdateItem: (id: string, updates: Partial<ImageItem>) => void;
   isEditing: boolean;
 }
 
