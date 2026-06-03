@@ -3,7 +3,7 @@ import type { OccupiedRect } from './grid';
 import { WidgetType } from './widgetCatalog';
 import type { WidgetItem, LinkItem, GroupItem, GridSlot } from '../types';
 
-export const removeLinkAnywhere = (
+export const removeItemAnywhere = (
   links: readonly WidgetItem[],
   linkId: string,
 ): { cleanedLinks: WidgetItem[]; foundLink: WidgetItem | null } => {

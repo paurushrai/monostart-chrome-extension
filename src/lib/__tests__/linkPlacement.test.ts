@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  removeLinkAnywhere,
+  removeItemAnywhere,
   placeInHeader,
   placeInGroup,
   placeOnMain,
@@ -28,10 +28,10 @@ const group = (id: string, links: LinkItem[] = [], cols = 3): GroupItem => ({
   links,
 });
 
-describe('removeLinkAnywhere', () => {
+describe('removeItemAnywhere', () => {
   it('removes a top-level link', () => {
     const links: WidgetItem[] = [linkAt('a', 0, 0), linkAt('b', 1, 0)];
-    const { cleanedLinks, foundLink } = removeLinkAnywhere(links, 'a');
+    const { cleanedLinks, foundLink } = removeItemAnywhere(links, 'a');
     expect(foundLink?.id).toBe('a');
     expect(cleanedLinks.map((l) => l.id)).toEqual(['b']);
   });
@@ -40,19 +40,19 @@ describe('removeLinkAnywhere', () => {
     const links: WidgetItem[] = [
       group('s1', [linkAt('a', 0, 0), linkAt('b', 1, 0)]),
     ];
-    const { cleanedLinks, foundLink } = removeLinkAnywhere(links, 'a');
+    const { cleanedLinks, foundLink } = removeItemAnywhere(links, 'a');
     expect(foundLink?.id).toBe('a');
     expect((cleanedLinks[0] as GroupItem).links.map((l) => l.id)).toEqual(['b']);
   });
 
   it('returns foundLink=null when id is missing', () => {
-    const { foundLink } = removeLinkAnywhere([linkAt('a', 0, 0)], 'missing');
+    const { foundLink } = removeItemAnywhere([linkAt('a', 0, 0)], 'missing');
     expect(foundLink).toBeNull();
   });
 
   it('does not mutate the input array', () => {
     const links: WidgetItem[] = [linkAt('a', 0, 0)];
-    removeLinkAnywhere(links, 'a');
+    removeItemAnywhere(links, 'a');
     expect(links).toHaveLength(1);
   });
 });

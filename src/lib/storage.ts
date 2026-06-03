@@ -6,7 +6,7 @@ const SETTINGS_KEY = 'dashboardSettings';
 const hasChromeStorage = (): boolean =>
   typeof chrome !== 'undefined' && !!chrome.storage;
 
-export const getLinksSync = (): WidgetItem[] => {
+export const getItemsSync = (): WidgetItem[] => {
   try {
     const raw = localStorage.getItem(LINKS_KEY);
     return raw ? (JSON.parse(raw) as WidgetItem[]) : [];
@@ -15,7 +15,7 @@ export const getLinksSync = (): WidgetItem[] => {
   }
 };
 
-export const getLinks = async (): Promise<WidgetItem[]> => {
+export const getItems = async (): Promise<WidgetItem[]> => {
   if (hasChromeStorage()) {
     return new Promise<WidgetItem[]>((resolve) => {
       chrome.storage.local.get([LINKS_KEY], (result) => {
@@ -23,10 +23,10 @@ export const getLinks = async (): Promise<WidgetItem[]> => {
       });
     });
   }
-  return getLinksSync();
+  return getItemsSync();
 };
 
-export const saveLinks = async (links: readonly WidgetItem[]): Promise<void> => {
+export const saveItems = async (links: readonly WidgetItem[]): Promise<void> => {
   try { localStorage.setItem(LINKS_KEY, JSON.stringify(links)); } catch { /* empty */ }
 
   if (hasChromeStorage()) {

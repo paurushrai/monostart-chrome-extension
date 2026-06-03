@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getSettings, getLinks } from '../lib/storage';
+import { getSettings, getItems } from '../lib/storage';
 import { saveItem } from '../lib/itemRepository';
 import { disambiguateGroups } from '../lib/disambiguateGroups';
 import { BookmarkPlus, Check, ExternalLink, Bell, X, Repeat, LayoutGrid, Bookmark, Folder, ChevronDown, Hexagon } from 'lucide-react';
@@ -40,7 +40,7 @@ function PopupApp() {
   const [destination, setDestination] = useState<Destination>('main');
 
   useEffect(() => {
-    getLinks().then((links) => {
+    getItems().then((links) => {
       setGroups(links.filter((l): l is GroupItem => l.type === 'group'));
     });
 
