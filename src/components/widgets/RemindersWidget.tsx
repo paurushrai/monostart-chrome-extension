@@ -17,7 +17,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
-import type { Reminders as RemindersItem, ReminderEntry } from '../../types';
+import type { RemindersItem, ReminderEntry } from '../../types';
 
 interface Props {
   item: RemindersItem;

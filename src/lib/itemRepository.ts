@@ -1,7 +1,7 @@
 import { getLinks, saveLinks } from './storage';
 import { getMinSize, findFreeSlot, findSlotInGroup, GROUP_DEFAULT_COLS } from './grid';
 import { WidgetType } from './widgetCatalog';
-import type { WidgetItem, RegularLink, Group } from '../types';
+import type { WidgetItem, LinkItem, GroupItem } from '../types';
 
 export type NewItemInput = Partial<WidgetItem> & { type: WidgetItem['type'] };
 
@@ -33,7 +33,7 @@ export const saveItem = async (
           ...group,
           links: [
             ...innerLinks,
-            { ...(linkWithId as unknown as RegularLink), x: slot.x, y: slot.y },
+            { ...(linkWithId as unknown as LinkItem), x: slot.x, y: slot.y },
           ],
         };
       }
@@ -81,10 +81,10 @@ export const deleteItem = async (id: string): Promise<void> => {
       .filter((item) => item.id !== id)
       .map((item) => {
         if (item.type === WidgetType.GROUP && item.links) {
-          const group = item as Group;
+          const group = item as GroupItem;
           return {
             ...group,
-            links: deleteNested(group.links as unknown as WidgetItem[]) as unknown as Group['links'],
+            links: deleteNested(group.links as unknown as WidgetItem[]) as unknown as GroupItem['links'],
           };
         }
         return item;

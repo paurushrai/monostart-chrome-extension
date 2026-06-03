@@ -8,9 +8,9 @@ import {
   MAIN_ROWS,
   GROUP_DEFAULT_COLS,
 } from '../grid';
-import type { WidgetItem, RegularLink } from '../../types';
+import type { WidgetItem, LinkItem } from '../../types';
 
-const link = (id: string, x: number, y: number, w = 1, h = 1, extra: Partial<RegularLink> = {}): RegularLink => ({
+const link = (id: string, x: number, y: number, w = 1, h = 1, extra: Partial<LinkItem> = {}): LinkItem => ({
   id,
   type: 'link',
   url: `https://example.com/${id}`,
@@ -86,7 +86,7 @@ describe('findSlotInGroup', () => {
   });
 
   it('grows vertically without limit', () => {
-    const groupLinks: RegularLink[] = Array.from({ length: 50 }, (_, y) =>
+    const groupLinks: LinkItem[] = Array.from({ length: 50 }, (_, y) =>
       link(`l-${y}`, 0, y, 3, 1),
     );
     const slot = findSlotInGroup(groupLinks, 1, 1, GROUP_DEFAULT_COLS);
@@ -95,13 +95,13 @@ describe('findSlotInGroup', () => {
 
   it('respects per-group cols', () => {
     // 6-column group, place a 3-wide item next to an existing 3-wide one
-    const groupLinks: RegularLink[] = [link('a', 0, 0, 3, 1)];
+    const groupLinks: LinkItem[] = [link('a', 0, 0, 3, 1)];
     expect(findSlotInGroup(groupLinks, 3, 1, 6)).toEqual({ x: 3, y: 0 });
   });
 
   it('clamps an oversized existing link to cols when computing occupancy', () => {
     // Link with w=10 in a 3-col group should still allow new items below it
-    const groupLinks: RegularLink[] = [link('a', 0, 0, 10, 1)];
+    const groupLinks: LinkItem[] = [link('a', 0, 0, 10, 1)];
     expect(findSlotInGroup(groupLinks, 1, 1, 3)).toEqual({ x: 0, y: 1 });
   });
 });

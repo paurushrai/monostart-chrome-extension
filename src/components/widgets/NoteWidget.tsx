@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { Note } from '../../types';
+import type { NoteItem } from '../../types';
 
 const NOTE_COLORS = [
   { id: 'default', name: 'Default', bg: 'bg-card/65 backdrop-blur-md border-border text-foreground', headerBg: 'bg-gray-50/50 dark:bg-black/10', dot: 'bg-gray-300 dark:bg-gray-600' },
@@ -22,9 +22,9 @@ const NOTE_COLORS = [
 const DEFAULT_NOTE_COLOR = NOTE_COLORS[0];
 
 interface Props {
-  item: Note;
+  item: NoteItem;
   onDelete: (id: string) => void;
-  onUpdateItem: (id: string, updates: Partial<Note>) => void;
+  onUpdateItem: (id: string, updates: Partial<NoteItem>) => void;
   isEditing: boolean;
 }
 
