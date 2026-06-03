@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid, Trash2 } from 'lucide-react';
-import type { WidgetItem, RegularLink, Group, Settings as AppSettings, GridSlot } from '../types';
+import type { WidgetItem, LinkItem, GroupItem, Settings as AppSettings, GridSlot } from '../types';
 import type { UseHeaderDrag } from '../hooks/useHeaderDrag';
 
 interface Props {
@@ -49,11 +49,11 @@ export default function AppHeader({
   isDropTarget = false,
 }: Readonly<Props>) {
   const headerLinks = links
-    .filter((l): l is RegularLink => l.isHeaderLink === true && l.type === 'link')
+    .filter((l): l is LinkItem => l.isHeaderLink === true && l.type === 'link')
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 
   const groups = links
-    .filter((l): l is Group => l.type === 'group')
+    .filter((l): l is GroupItem => l.type === 'group')
     .map(s => ({ id: s.id, title: s.title }));
 
   return (

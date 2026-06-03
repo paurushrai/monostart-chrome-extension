@@ -5,7 +5,7 @@ import { Folder } from 'lucide-react';
 import LinkCard from '../../LinkCard';
 import { Button } from "../../ui/button";
 import { findFirstFreeSlot } from '../../../lib/grid';
-import type { RegularLink, DragPlaceholder, DragCoords, WidgetItem, GridSlot } from '../../../types';
+import type { LinkItem, DragPlaceholder, DragCoords, WidgetItem, GridSlot } from '../../../types';
 import type { UseGroupDragOut } from '../../../hooks/useGroupDragOut';
 
 const ReactGridLayout = WidthProvider(GridLayout);
@@ -20,7 +20,7 @@ interface Props {
   cols: number;
   groupLayout?: 'grid' | 'list';
   isEditing: boolean;
-  links: RegularLink[];
+  links: LinkItem[];
   isDraggedOver: boolean;
   draggedItem: WidgetItem | null;
   dragCursorCoords: DragCoords | null;
@@ -36,12 +36,12 @@ interface Props {
   onRglDragStop: UseGroupDragOut['handleRglDragStop'];
   onInnerDelete: (id: string) => void;
   onInnerViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
-  onInnerUpdateLink: (id: string, updates: Partial<RegularLink>) => void;
+  onInnerUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
   onAddFirstLink: () => void;
 }
 
 const findPlaceholderSlot = (
-  links: readonly RegularLink[],
+  links: readonly LinkItem[],
   cols: number,
   itemW: number,
   itemH: number,
@@ -84,7 +84,7 @@ export default function GroupInnerGrid({
   const rowPx = isList ? 25 : 50;
   const rowMarginY = isList ? 6 : 8;
   const rowPitch = rowPx + rowMarginY;
-  type RowItem = RegularLink | DragPlaceholder;
+  type RowItem = LinkItem | DragPlaceholder;
   const displayLinks: RowItem[] = [...links];
 
   if (isDraggedOver) {

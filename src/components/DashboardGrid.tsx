@@ -12,7 +12,7 @@ import { HEADER_LINK_DRAG_TYPE } from '../hooks/useHeaderDrag';
 import { MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import { getWidgetMeta, WidgetType } from '../lib/widgetCatalog';
 import type { WidgetMeta } from '../lib/widgetCatalog';
-import type { WidgetItem, RegularLink, DisplayItem, DragPlaceholder, GridSlot, GoogleSearch, ImageWidget } from '../types';
+import type { WidgetItem, LinkItem, DisplayItem, DragPlaceholder, GridSlot, GoogleSearchItem, ImageItem } from '../types';
 
 // Use GridLayout directly instead of WidthProvider. WidthProvider initializes
 // width to a hardcoded 1280 and only corrects to the real container width one
@@ -67,7 +67,7 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
     let h = initial.h;
 
     if (link.type === WidgetType.GOOGLE_SEARCH) {
-      const v = (link as GoogleSearch).variant ?? 'bar';
+      const v = (link as GoogleSearchItem).variant ?? 'bar';
       if (v === 'logo') { minH = 4; maxH = 4; }
       else { minH = 1; maxH = 1; }
       if (h < minH) h = minH;
@@ -75,7 +75,7 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
     }
 
     if (link.type === WidgetType.IMAGE) {
-      const hasImage = !!((link as ImageWidget).url ?? '').trim();
+      const hasImage = !!((link as ImageItem).url ?? '').trim();
       const emptyMin = photoConfigFitsAt3Rows() ? 3 : 4;
       minW = hasImage ? 3 : emptyMin;
       minH = hasImage ? 3 : emptyMin;
@@ -135,7 +135,7 @@ const DashboardGrid = ({
     ro.observe(host);
     return () => ro.disconnect();
   }, [drag.gridRef]);
-  const dragOutLink = drag.activeDragOutItem?.type === 'link' ? (drag.activeDragOutItem as RegularLink) : null;
+  const dragOutLink = drag.activeDragOutItem?.type === 'link' ? (drag.activeDragOutItem as LinkItem) : null;
   const showGhost = !!dragOutLink && !!drag.dragCursorCoords;
   const [isDashboardDragOver, setIsDashboardDragOver] = useState(false);
 

@@ -26,7 +26,7 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import Favicon from './Favicon';
-import type { RegularLink, GridSlot } from '../types';
+import type { LinkItem, GridSlot } from '../types';
 
 interface GroupRef {
   id: string;
@@ -34,10 +34,10 @@ interface GroupRef {
 }
 
 interface Props {
-  item: RegularLink;
+  item: LinkItem;
   onDelete: (id: string) => void;
   onViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
-  onUpdateItem: (id: string, updates: Partial<RegularLink>) => void;
+  onUpdateItem: (id: string, updates: Partial<LinkItem>) => void;
   isEditing: boolean;
   openInNewTab?: boolean;
   groups?: GroupRef[];
