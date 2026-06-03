@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Mic, Camera } from "lucide-react";
 import { isEmbedCode, extractEmbedSrc, extractEmbedTitle, sanitizeEmbed, rewriteToEmbedUrl } from '@/lib/embedSanitizer';
-import type { LinkItem } from '../types';
+import type { WidgetItem } from '../types';
 
 const PreviewLogo = () => (
   <span
@@ -38,7 +38,7 @@ const PreviewBar = () => (
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSelect: (widget: { type: LinkItem['type']; defaults?: Partial<LinkItem> }) => void;
+  onSelect: (widget: { type: WidgetItem['type']; defaults?: Partial<WidgetItem> }) => void;
 }
 
 const AddWidgetModal = ({ open, onClose, onSelect }: Readonly<Props>) => {
@@ -74,7 +74,7 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Readonly<Props>) => {
         ...selectedWidget.defaults,
         variant,
         h: variant === 'logo' ? 4 : 1,
-      } as Partial<LinkItem>,
+      } as Partial<WidgetItem>,
     });
     handleClose();
   };
@@ -85,7 +85,7 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Readonly<Props>) => {
     if (!trimmed) return;
 
     if (!selectedWidget) return;
-    let defaults: Partial<LinkItem>;
+    let defaults: Partial<WidgetItem>;
     if (isEmbedCode(trimmed)) {
       const sanitized = sanitizeEmbed(trimmed);
       if (!sanitized) return;
@@ -96,7 +96,7 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Readonly<Props>) => {
         embedHtml: sanitized,
         url: src,
         title: extractEmbedTitle(sanitized) || 'Embed',
-      } as Partial<LinkItem>;
+      } as Partial<WidgetItem>;
     } else {
       const embedUrl = rewriteToEmbedUrl(trimmed);
       let hostname = 'Embed';
@@ -108,7 +108,7 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Readonly<Props>) => {
         mode: 'url',
         url: embedUrl ?? undefined,
         title: hostname,
-      } as Partial<LinkItem>;
+      } as Partial<WidgetItem>;
     }
 
     onSelect({ type: selectedWidget.type, defaults });

@@ -1,10 +1,10 @@
 import { Search, Globe, CheckSquare, Clock, Folder, FileText, Image, Type, Bell } from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
-import type { LinkItem } from '../types';
+import type { WidgetItem } from '../types';
 
 export const WidgetType = {
   LINK: 'link',
-  SECTION: 'section',
+  GROUP: 'group',
   GOOGLE_SEARCH: 'google-search',
   IFRAME: 'iframe',
   TODO: 'todo',
@@ -34,7 +34,7 @@ export interface WidgetMeta {
   name?: string;
   description?: string;
   icon?: LucideIcon;
-  defaults?: Partial<LinkItem>;
+  defaults?: Partial<WidgetItem>;
   layout: WidgetLayoutMeta;
 }
 
@@ -54,12 +54,12 @@ const WIDGETS = [
     layout: { minW: 6, maxW: 8, minH: 1, maxH: 4, resizable: true },
   },
   {
-    type: WidgetType.SECTION,
+    type: WidgetType.GROUP,
     addable: true,
-    name: 'Link Section',
-    description: 'Create an elegant, custom-colored folder container for organizing links.',
+    name: 'Group',
+    description: 'A custom-colored group for organizing your links.',
     icon: Folder,
-    defaults: { w: 6, h: 4, title: 'New Section', borderColor: '200 73% 52%', links: [] },
+    defaults: { w: 6, h: 4, title: 'New Group', borderColor: '200 73% 52%', links: [] },
     layout: { minW: 3, minH: 4, resizable: true },
   },
   {

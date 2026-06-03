@@ -5,35 +5,35 @@ import { Folder } from 'lucide-react';
 import LinkCard from '../../LinkCard';
 import { Button } from "../../ui/button";
 import { findFirstFreeSlot } from '../../../lib/grid';
-import type { RegularLink, DragPlaceholder, DragCoords, LinkItem, GridSlot } from '../../../types';
-import type { UseSectionDragOut } from '../../../hooks/useSectionDragOut';
+import type { RegularLink, DragPlaceholder, DragCoords, WidgetItem, GridSlot } from '../../../types';
+import type { UseGroupDragOut } from '../../../hooks/useGroupDragOut';
 
 const ReactGridLayout = WidthProvider(GridLayout);
 
-interface SectionRef {
+interface GroupRef {
   id: string;
   title: string;
 }
 
 interface Props {
-  sectionId: string;
+  groupId: string;
   cols: number;
-  sectionLayout?: 'grid' | 'list';
+  groupLayout?: 'grid' | 'list';
   isEditing: boolean;
   links: RegularLink[];
   isDraggedOver: boolean;
-  draggedItem: LinkItem | null;
+  draggedItem: WidgetItem | null;
   dragCursorCoords: DragCoords | null;
   openInNewTab?: boolean;
-  sections?: SectionRef[];
-  onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  groups?: GroupRef[];
+  onMoveItem?: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
   borderCssColor: string;
   textCssColor: string;
   containerRef: RefObject<HTMLDivElement | null>;
   onInnerLayoutChange: (newLayout: Layout) => void;
-  onRglDragStart: UseSectionDragOut['handleRglDragStart'];
-  onRglDrag: UseSectionDragOut['handleRglDrag'];
-  onRglDragStop: UseSectionDragOut['handleRglDragStop'];
+  onRglDragStart: UseGroupDragOut['handleRglDragStart'];
+  onRglDrag: UseGroupDragOut['handleRglDrag'];
+  onRglDragStop: UseGroupDragOut['handleRglDragStop'];
   onInnerDelete: (id: string) => void;
   onInnerViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
   onInnerUpdateLink: (id: string, updates: Partial<RegularLink>) => void;
@@ -55,18 +55,18 @@ const findPlaceholderSlot = (
   return findFirstFreeSlot(occupied, itemW, itemH, cols) as GridSlot;
 };
 
-export default function SectionInnerGrid({
-  sectionId,
+export default function GroupInnerGrid({
+  groupId,
   cols,
-  sectionLayout = 'grid',
+  groupLayout = 'grid',
   isEditing,
   links,
   isDraggedOver,
   draggedItem,
   dragCursorCoords,
   openInNewTab,
-  sections,
-  onMoveLink,
+  groups,
+  onMoveItem,
   borderCssColor,
   textCssColor,
   containerRef,
@@ -79,7 +79,7 @@ export default function SectionInnerGrid({
   onInnerUpdateLink,
   onAddFirstLink,
 }: Readonly<Props>) {
-  const isList = sectionLayout === 'list';
+  const isList = groupLayout === 'list';
   const gridCols = isList ? 1 : cols;
   const rowPx = isList ? 25 : 50;
   const rowMarginY = isList ? 6 : 8;
@@ -197,7 +197,7 @@ export default function SectionInnerGrid({
       {displayLinks.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-center p-4 min-h-[120px]">
           <Folder size={28} className="text-muted-foreground/30 mb-1.5" />
-          <span className="text-xs text-muted-foreground/60 font-medium">Empty Section</span>
+          <span className="text-xs text-muted-foreground/60 font-medium">Empty Group</span>
           {isEditing && (
             <Button
               variant="link"
@@ -244,12 +244,12 @@ export default function SectionInnerGrid({
                     item={subItem}
                     onDelete={onInnerDelete}
                     onViewModeChange={onInnerViewModeChange}
-                    onUpdateLink={onInnerUpdateLink}
+                    onUpdateItem={onInnerUpdateLink}
                     isEditing={isEditing}
                     openInNewTab={openInNewTab}
-                    sections={sections}
-                    onMoveLink={onMoveLink}
-                    parentId={sectionId}
+                    groups={groups}
+                    onMoveItem={onMoveItem}
+                    parentId={groupId}
                     displayMode={isList ? 'list' : undefined}
                   />
                 </div>

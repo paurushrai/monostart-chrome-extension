@@ -16,7 +16,7 @@ import { siteFaviconUrl } from '../lib/favicon';
 import Favicon from './Favicon';
 import type { RegularLink, GridSlot } from '../types';
 
-interface SectionRef {
+interface GroupRef {
   id: string;
   title: string;
 }
@@ -25,10 +25,10 @@ interface Props {
   item: RegularLink;
   isEditing: boolean;
   openInNewTab?: boolean;
-  sections?: SectionRef[];
-  onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  groups?: GroupRef[];
+  onMoveItem?: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
   onDelete: (id: string) => void;
-  onUpdateLink: (id: string, updates: Partial<RegularLink>) => void;
+  onUpdateItem: (id: string, updates: Partial<RegularLink>) => void;
   draggedHeaderLinkId: string | null;
   dragOverHeaderLinkId: string | null;
   onDragStart: (id: string, e: DragEvent) => void;
@@ -41,10 +41,10 @@ const HeaderLink = ({
   item,
   isEditing,
   openInNewTab,
-  sections = [],
-  onMoveLink,
+  groups = [],
+  onMoveItem,
   onDelete,
-  onUpdateLink,
+  onUpdateItem,
   draggedHeaderLinkId,
   dragOverHeaderLinkId,
   onDragStart,
@@ -65,7 +65,7 @@ const HeaderLink = ({
     if (newName !== null) {
       const trimmed = newName.trim();
       if (trimmed) {
-        onUpdateLink(item.id, { customName: trimmed });
+        onUpdateItem(item.id, { customName: trimmed });
       }
     }
     setIsMenuOpen(false);
@@ -80,7 +80,7 @@ const HeaderLink = ({
         if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
           trimmed = 'https://' + trimmed;
         }
-        onUpdateLink(item.id, { url: trimmed, favicon: siteFaviconUrl(trimmed) });
+        onUpdateItem(item.id, { url: trimmed, favicon: siteFaviconUrl(trimmed) });
       }
     }
     setIsMenuOpen(false);
@@ -181,7 +181,7 @@ const HeaderLink = ({
                   <DropdownMenuSubContent className="w-36" onMouseDown={(e) => e.stopPropagation()}>
                     <DropdownMenuItem
                       onClick={() => {
-                        onUpdateLink(item.id, { viewMode: 'icon' });
+                        onUpdateItem(item.id, { viewMode: 'icon' });
                         setIsMenuOpen(false);
                       }}
                       className="flex items-center justify-between cursor-pointer"
@@ -194,7 +194,7 @@ const HeaderLink = ({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
-                        onUpdateLink(item.id, { viewMode: 'text' });
+                        onUpdateItem(item.id, { viewMode: 'text' });
                         setIsMenuOpen(false);
                       }}
                       className="flex items-center justify-between cursor-pointer"
@@ -209,7 +209,7 @@ const HeaderLink = ({
                 </DropdownMenuPortal>
               </DropdownMenuSub>
 
-              {onMoveLink && (
+              {onMoveItem && (
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="flex items-center gap-2">
                     <FolderInput size={13} className="text-muted-foreground" />
@@ -219,7 +219,7 @@ const HeaderLink = ({
                     <DropdownMenuSubContent className="w-44" onMouseDown={(e) => e.stopPropagation()}>
                       <DropdownMenuItem 
                         onClick={() => {
-                          onMoveLink(item.id, null);
+                          onMoveItem(item.id, null);
                           setIsMenuOpen(false);
                         }}
                         className="flex items-center gap-2"
@@ -227,11 +227,11 @@ const HeaderLink = ({
                         <Home size={13} className="text-muted-foreground" />
                         <span>Main Dashboard</span>
                       </DropdownMenuItem>
-                      {sections.map(s => (
+                      {groups.map(s => (
                         <DropdownMenuItem 
                           key={s.id} 
                           onClick={() => {
-                            onMoveLink(item.id, s.id);
+                            onMoveItem(item.id, s.id);
                             setIsMenuOpen(false);
                           }}
                           className="flex items-center gap-2"

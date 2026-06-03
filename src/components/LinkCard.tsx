@@ -28,7 +28,7 @@ import {
 import Favicon from './Favicon';
 import type { RegularLink, GridSlot } from '../types';
 
-interface SectionRef {
+interface GroupRef {
   id: string;
   title: string;
 }
@@ -37,11 +37,11 @@ interface Props {
   item: RegularLink;
   onDelete: (id: string) => void;
   onViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
-  onUpdateLink: (id: string, updates: Partial<RegularLink>) => void;
+  onUpdateItem: (id: string, updates: Partial<RegularLink>) => void;
   isEditing: boolean;
   openInNewTab?: boolean;
-  sections?: SectionRef[];
-  onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  groups?: GroupRef[];
+  onMoveItem?: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
   parentId?: string;
   displayMode?: 'list';
 }
@@ -50,11 +50,11 @@ const LinkCard = ({
   item,
   onDelete,
   onViewModeChange,
-  onUpdateLink,
+  onUpdateItem,
   isEditing,
   openInNewTab,
-  sections = [],
-  onMoveLink,
+  groups = [],
+  onMoveItem,
   parentId,
   displayMode,
 }: Readonly<Props>) => {
@@ -84,7 +84,7 @@ const LinkCard = ({
   const handleNameBlur = (e: FocusEvent<HTMLHeadingElement>) => {
     const newName = e.target.innerText.trim();
     if (newName && newName !== siteName) {
-      onUpdateLink(item.id, { customName: newName });
+      onUpdateItem(item.id, { customName: newName });
     }
   };
 
@@ -92,7 +92,7 @@ const LinkCard = ({
     const next = window.prompt('Rename link:', siteName);
     if (next !== null) {
       const trimmed = next.trim();
-      if (trimmed) onUpdateLink(item.id, { customName: trimmed });
+      if (trimmed) onUpdateItem(item.id, { customName: trimmed });
     }
     setIsMenuOpen(false);
   };
@@ -100,7 +100,7 @@ const LinkCard = ({
   const handleDescBlur = (e: FocusEvent<HTMLSpanElement>) => {
     const newDesc = e.target.innerText.trim();
     if (newDesc !== title) {
-      onUpdateLink(item.id, { title: newDesc });
+      onUpdateItem(item.id, { title: newDesc });
     }
   };
 
@@ -179,7 +179,7 @@ const LinkCard = ({
                 </DropdownMenuPortal>
               </DropdownMenuSub>
               
-              {onMoveLink && (
+              {onMoveItem && (
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="flex items-center gap-2">
                     <FolderInput size={13} className="text-muted-foreground" />
@@ -190,7 +190,7 @@ const LinkCard = ({
                       {(parentId || item.isHeaderLink) && (
                         <DropdownMenuItem 
                           onClick={() => {
-                            onMoveLink(item.id, null);
+                            onMoveItem(item.id, null);
                             setIsMenuOpen(false);
                           }}
                           className="flex items-center gap-2"
@@ -202,7 +202,7 @@ const LinkCard = ({
                       {!item.isHeaderLink && (
                         <DropdownMenuItem 
                           onClick={() => {
-                            onMoveLink(item.id, 'header');
+                            onMoveItem(item.id, 'header');
                             setIsMenuOpen(false);
                           }}
                           className="flex items-center gap-2"
@@ -211,13 +211,13 @@ const LinkCard = ({
                           <span>Header</span>
                         </DropdownMenuItem>
                       )}
-                      {sections
+                      {groups
                         .filter(s => s.id !== parentId)
                         .map(s => (
                           <DropdownMenuItem 
                             key={s.id} 
                             onClick={() => {
-                              onMoveLink(item.id, s.id);
+                              onMoveItem(item.id, s.id);
                               setIsMenuOpen(false);
                             }}
                             className="flex items-center gap-2"

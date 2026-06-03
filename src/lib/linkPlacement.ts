@@ -1,15 +1,15 @@
-import { MAIN_COLS, MAIN_ROWS, SECTION_DEFAULT_COLS, findFirstFreeSlot } from './grid';
+import { MAIN_COLS, MAIN_ROWS, GROUP_DEFAULT_COLS, findFirstFreeSlot } from './grid';
 import type { OccupiedRect } from './grid';
 import { WidgetType } from './widgetCatalog';
-import type { LinkItem, RegularLink, Section, GridSlot } from '../types';
+import type { WidgetItem, RegularLink, Group, GridSlot } from '../types';
 
 export const removeLinkAnywhere = (
-  links: readonly LinkItem[],
+  links: readonly WidgetItem[],
   linkId: string,
-): { cleanedLinks: LinkItem[]; foundLink: LinkItem | null } => {
-  let foundLink: LinkItem | null = null;
+): { cleanedLinks: WidgetItem[]; foundLink: WidgetItem | null } => {
+  let foundLink: WidgetItem | null = null;
 
-  let cleanedLinks: LinkItem[] = links.filter((l) => {
+  let cleanedLinks: WidgetItem[] = links.filter((l) => {
     if (l.id === linkId) {
       foundLink = l;
       return false;
@@ -18,7 +18,7 @@ export const removeLinkAnywhere = (
   });
 
   cleanedLinks = cleanedLinks.map((item) => {
-    if (item.type !== WidgetType.SECTION || !item.links) return item;
+    if (item.type !== WidgetType.GROUP || !item.links) return item;
     const hasLink = item.links.some((l) => l.id === linkId);
     if (!hasLink) return item;
     foundLink = item.links.find((l) => l.id === linkId) ?? null;
@@ -28,15 +28,15 @@ export const removeLinkAnywhere = (
   return { cleanedLinks, foundLink };
 };
 
-const defaultLinkSize = (link: LinkItem): { w: number; h: number } => ({
+const defaultLinkSize = (link: WidgetItem): { w: number; h: number } => ({
   w: link.w ?? (link.viewMode === 'icon' ? 1 : 3),
   h: link.h ?? 1,
 });
 
 export const placeInHeader = (
-  cleanedLinks: readonly LinkItem[],
-  foundLink: LinkItem,
-): LinkItem[] => {
+  cleanedLinks: readonly WidgetItem[],
+  foundLink: WidgetItem,
+): WidgetItem[] => {
   const headerLinks = cleanedLinks.filter((l) => l.isHeaderLink);
   const maxOrder = headerLinks.reduce((max, l) => Math.max(max, l.order || 0), -1);
   return [
@@ -52,38 +52,38 @@ export const placeInHeader = (
   ];
 };
 
-const resolveSectionRect = (l: RegularLink, cols: number): OccupiedRect => ({
+const resolveGroupRect = (l: RegularLink, cols: number): OccupiedRect => ({
   x: l.x ?? 0,
   y: l.y ?? 0,
   w: Math.min(l.w ?? (l.viewMode === 'icon' ? 1 : Math.min(3, cols)), cols),
   h: l.h ?? 1,
 });
 
-const findSectionSlot = (
-  sectionLinks: readonly RegularLink[],
+const findGroupSlot = (
+  groupLinks: readonly RegularLink[],
   cols: number,
   itemW: number,
   itemH: number,
 ): GridSlot =>
   findFirstFreeSlot(
-    sectionLinks.map((l) => resolveSectionRect(l, cols)),
+    groupLinks.map((l) => resolveGroupRect(l, cols)),
     itemW,
     itemH,
     cols,
   ) as GridSlot;
 
-export const placeInSection = (
-  cleanedLinks: readonly LinkItem[],
-  foundLink: LinkItem,
-  targetSectionId: string,
+export const placeInGroup = (
+  cleanedLinks: readonly WidgetItem[],
+  foundLink: WidgetItem,
+  targetGroupId: string,
   targetCoords?: GridSlot,
-): LinkItem[] => {
+): WidgetItem[] => {
   return cleanedLinks.map((item) => {
-    if (item.id !== targetSectionId || item.type !== WidgetType.SECTION) return item;
+    if (item.id !== targetGroupId || item.type !== WidgetType.GROUP) return item;
 
-    const section = item as Section;
-    const sectionLinks = section.links || [];
-    const cols = section.cols || SECTION_DEFAULT_COLS;
+    const group = item as Group;
+    const groupLinks = group.links || [];
+    const cols = group.cols || GROUP_DEFAULT_COLS;
     const { w: rawW, h } = defaultLinkSize(foundLink);
     const w = Math.min(rawW, cols);
 
@@ -93,15 +93,15 @@ export const placeInSection = (
       x = Math.max(0, Math.min(cols - w, targetCoords.x));
       y = Math.max(0, targetCoords.y);
     } else {
-      const slot = findSectionSlot(sectionLinks, cols, w, h);
+      const slot = findGroupSlot(groupLinks, cols, w, h);
       x = slot.x;
       y = slot.y;
     }
 
     return {
-      ...section,
+      ...group,
       links: [
-        ...sectionLinks,
+        ...groupLinks,
         { ...(foundLink as RegularLink), isHeaderLink: false, x, y, w, h },
       ],
     };
@@ -109,12 +109,12 @@ export const placeInSection = (
 };
 
 const findMainSlot = (
-  occupiedLinks: readonly LinkItem[],
+  occupiedLinks: readonly WidgetItem[],
   itemW: number,
   itemH: number,
 ): GridSlot => {
   const occupied: OccupiedRect[] = occupiedLinks
-    .filter((l): l is LinkItem & { x: number; y: number } =>
+    .filter((l): l is WidgetItem & { x: number; y: number } =>
       l.x !== undefined && l.y !== undefined,
     )
     .map((l) => ({ x: l.x, y: l.y, w: l.w || 1, h: l.h || 1 }));
@@ -125,10 +125,10 @@ const findMainSlot = (
 };
 
 export const placeOnMain = (
-  cleanedLinks: readonly LinkItem[],
-  foundLink: LinkItem,
+  cleanedLinks: readonly WidgetItem[],
+  foundLink: WidgetItem,
   targetCoords?: GridSlot,
-): LinkItem[] => {
+): WidgetItem[] => {
   const { w, h } = defaultLinkSize(foundLink);
 
   let x: number;
