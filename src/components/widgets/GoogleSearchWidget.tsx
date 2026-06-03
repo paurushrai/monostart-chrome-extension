@@ -5,7 +5,7 @@ import VoiceSearchOverlay from './VoiceSearchOverlay';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Favicon from '../Favicon';
-import type { GoogleSearch, LinkItem } from '../../types';
+import type { GoogleSearch, WidgetItem } from '../../types';
 
 const GoogleLogo = ({ className = '', mono = false }: { className?: string; mono?: boolean }) => (
   <span
@@ -97,19 +97,19 @@ const isLikelyUrl = (text: string) => /^(https?:\/\/|[\w-]+\.[\w-]+)/.test(text.
 interface Props {
   item: GoogleSearch;
   onDelete: (id: string) => void;
-  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
+  onUpdateItem: (id: string, updates: Partial<WidgetItem>) => void;
   isEditing: boolean;
 }
 
-const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>) => {
+const GoogleSearchWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props>) => {
   const variant: 'bar' | 'logo' = item.variant ?? 'bar';
   const logoStyle: 'color' | 'mono' = item.logoStyle ?? 'color';
   const toggleVariant = () => {
     const nextVariant = variant === 'logo' ? 'bar' : 'logo';
-    onUpdateLink(item.id, { variant: nextVariant, h: nextVariant === 'logo' ? 4 : 1 } as Partial<LinkItem>);
+    onUpdateItem(item.id, { variant: nextVariant, h: nextVariant === 'logo' ? 4 : 1 } as Partial<WidgetItem>);
   };
   const toggleLogoStyle = () => {
-    onUpdateLink(item.id, { logoStyle: logoStyle === 'color' ? 'mono' : 'color' } as Partial<LinkItem>);
+    onUpdateItem(item.id, { logoStyle: logoStyle === 'color' ? 'mono' : 'color' } as Partial<WidgetItem>);
   };
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);

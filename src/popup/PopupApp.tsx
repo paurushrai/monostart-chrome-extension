@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getSettings, getLinks } from '../lib/storage';
-import { saveLink } from '../lib/linkRepository';
-import { disambiguateSections } from '../lib/disambiguateSections';
+import { saveItem } from '../lib/itemRepository';
+import { disambiguateGroups } from '../lib/disambiguateGroups';
 import { BookmarkPlus, Check, ExternalLink, Bell, X, Repeat, LayoutGrid, Bookmark, Folder, ChevronDown, Hexagon } from 'lucide-react';
 import {
   DropdownMenu,
@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import type { Settings, Section } from '../types';
+import type { Settings, Group } from '../types';
 
 interface PendingReminder {
   firedId: string;
@@ -36,12 +36,12 @@ function PopupApp() {
   const [tabInfo, setTabInfo] = useState<TabInfo | null>(null);
   const [canSave, setCanSave] = useState(false);
   const [pending, setPending] = useState<PendingReminder[]>([]);
-  const [sections, setSections] = useState<Section[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [destination, setDestination] = useState<Destination>('main');
 
   useEffect(() => {
     getLinks().then((links) => {
-      setSections(links.filter((l): l is Section => l.type === 'section'));
+      setGroups(links.filter((l): l is Group => l.type === 'group'));
     });
 
     if (typeof chrome !== 'undefined' && chrome.storage) {
@@ -102,11 +102,11 @@ function PopupApp() {
     if (!tabInfo || !canSave) return;
     const base = { type: 'link' as const, url: tabInfo.url, title: tabInfo.title, favicon: tabInfo.favicon };
     if (destination === 'header') {
-      await saveLink({ ...base, isHeaderLink: true });
+      await saveItem({ ...base, isHeaderLink: true });
     } else if (destination === 'main') {
-      await saveLink({ ...base, viewMode: 'icon', w: 1, h: 1 });
+      await saveItem({ ...base, viewMode: 'icon', w: 1, h: 1 });
     } else {
-      await saveLink({ ...base, viewMode: 'icon', w: 1, h: 1 }, destination);
+      await saveItem({ ...base, viewMode: 'icon', w: 1, h: 1 }, destination);
     }
     setSaved(true);
     setTimeout(() => window.close(), 1500);
@@ -122,11 +122,11 @@ function PopupApp() {
     }
   }, [tabUrl]);
 
-  const displaySections = useMemo(() => disambiguateSections(sections), [sections]);
+  const displayGroups = useMemo(() => disambiguateGroups(groups), [groups]);
   const destinationLabel = (() => {
     if (destination === 'main') return 'Main dashboard';
     if (destination === 'header') return 'Header bar';
-    const found = displaySections.find((s) => s.id === destination)?.title;
+    const found = displayGroups.find((s) => s.id === destination)?.title;
     return found ?? 'Main dashboard';
   })();
 
@@ -261,8 +261,8 @@ function PopupApp() {
           <DropdownMenuItem onClick={() => setDestination('header')} className="text-xs">
             <Bookmark size={13} className="mr-2" aria-hidden="true" /> Header bar
           </DropdownMenuItem>
-          {displaySections.length > 0 && <DropdownMenuSeparator />}
-          {displaySections.map((s) => (
+          {displayGroups.length > 0 && <DropdownMenuSeparator />}
+          {displayGroups.map((s) => (
             <DropdownMenuItem key={s.id} onClick={() => setDestination(s.id)} className="text-xs">
               <Folder size={13} className="mr-2" aria-hidden="true" /> {s.title}
             </DropdownMenuItem>

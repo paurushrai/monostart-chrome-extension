@@ -12,7 +12,7 @@ import { HEADER_LINK_DRAG_TYPE } from '../hooks/useHeaderDrag';
 import { MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import { getWidgetMeta, WidgetType } from '../lib/widgetCatalog';
 import type { WidgetMeta } from '../lib/widgetCatalog';
-import type { LinkItem, RegularLink, DisplayItem, DragPlaceholder, GridSlot, GoogleSearch, ImageWidget } from '../types';
+import type { WidgetItem, RegularLink, DisplayItem, DragPlaceholder, GridSlot, GoogleSearch, ImageWidget } from '../types';
 
 // Use GridLayout directly instead of WidthProvider. WidthProvider initializes
 // width to a hardcoded 1280 and only corrects to the real container width one
@@ -24,21 +24,21 @@ const ReactGridLayout = GridLayout;
 
 const PLACEHOLDER_ID = 'drag-out-placeholder';
 
-interface SectionRef {
+interface GroupRef {
   id: string;
   title: string;
 }
 
 interface Props {
-  links: LinkItem[];
+  links: WidgetItem[];
   onLayoutChange: (layout: Layout) => void;
   onDelete: (id: string) => void;
   onViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
-  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
+  onUpdateItem: (id: string, updates: Partial<WidgetItem>) => void;
   isEditing: boolean;
   openInNewTab?: boolean;
-  sections?: SectionRef[];
-  onMoveLink: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  groups?: GroupRef[];
+  onMoveItem: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
   onSwap: (draggedId: string, targetId: string, draggedSourceRect?: { x: number; y: number; w: number; h: number }) => void;
   onHeaderTargetChange?: (isOver: boolean) => void;
 }
@@ -100,18 +100,18 @@ const DashboardGrid = ({
   onLayoutChange,
   onDelete,
   onViewModeChange,
-  onUpdateLink,
+  onUpdateItem,
   isEditing,
   openInNewTab,
-  sections = [],
-  onMoveLink,
+  groups = [],
+  onMoveItem,
   onSwap,
   onHeaderTargetChange,
 }: Readonly<Props>) => {
   const { rowHeight: fallbackRowHeight } = useGridDimensions();
   const [rowHeight, setRowHeight] = useState(fallbackRowHeight);
   const [gridWidth, setGridWidth] = useState(0);
-  const drag = useDashboardDrag({ links, rowHeight, onMoveLink, onSwap, onHeaderTargetChange });
+  const drag = useDashboardDrag({ links, rowHeight, onMoveItem, onSwap, onHeaderTargetChange });
 
   useLayoutEffect(() => {
     const el = drag.gridRef.current;
@@ -152,8 +152,8 @@ const DashboardGrid = ({
     if (!isHeaderLinkDrag(e)) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    const overSection = !!(e.target as HTMLElement).closest('[data-section-id]');
-    setIsDashboardDragOver(!overSection);
+    const overGroup = !!(e.target as HTMLElement).closest('[data-group-id]');
+    setIsDashboardDragOver(!overGroup);
   };
 
   const handleHeaderDragLeave = (e: ReactDragEvent<HTMLDivElement>) => {
@@ -240,12 +240,12 @@ const DashboardGrid = ({
                 item={item}
                 isEditing={isEditing}
                 openInNewTab={openInNewTab}
-                sections={sections}
+                groups={groups}
                 onDelete={onDelete}
                 onViewModeChange={onViewModeChange}
-                onUpdateLink={onUpdateLink}
-                onMoveLink={onMoveLink}
-                activeDragSectionId={drag.activeDragSectionId}
+                onUpdateItem={onUpdateItem}
+                onMoveItem={onMoveItem}
+                activeDragGroupId={drag.activeDragGroupId}
                 dragCursorCoords={drag.dragCursorCoords}
                 draggedItem={drag.draggedItem}
                 onInnerDragStart={drag.handleInnerDragStart}

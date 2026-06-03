@@ -7,18 +7,18 @@ import AddLinkModal from './components/AddLinkModal';
 import AppHeader from './components/AppHeader';
 import ClearDashboardModal from './components/ClearDashboardModal';
 import Toast from './components/Toast';
-import { useLinks } from './hooks/useLinks';
+import { useDashboard } from './hooks/useDashboard';
 import { getPhotoWidgetSize } from './hooks/useGridDimensions';
 import { useTheme } from './hooks/useTheme';
 import { useHeaderDrag } from './hooks/useHeaderDrag';
 import { useToast } from './hooks/useToast';
-import { disambiguateSections } from './lib/disambiguateSections';
+import { disambiguateGroups } from './lib/disambiguateGroups';
 import { getLinksSync } from './lib/storage';
-import type { LinkItem, Section } from './types';
+import type { WidgetItem, Group } from './types';
 
 interface AddWidgetInput {
-  type: LinkItem['type'];
-  defaults?: Partial<LinkItem>;
+  type: WidgetItem['type'];
+  defaults?: Partial<WidgetItem>;
 }
 
 const EDIT_MODE_KEY = 'dashboardEditMode';
@@ -38,7 +38,7 @@ function App() {
     handleHeaderLinkReorder,
     handleSwap,
     addWidget,
-  } = useLinks({ onSwapFailed: showToast });
+  } = useDashboard({ onSwapFailed: showToast });
 
   const { settings, updateSettings } = useTheme();
   const headerDrag = useHeaderDrag(handleHeaderLinkReorder);
@@ -46,10 +46,10 @@ function App() {
   const [isEditing, setIsEditing] = useState<boolean>(() => {
     try { return localStorage.getItem(EDIT_MODE_KEY) === 'true'; } catch { return false; }
   });
-  const [originalLinks, setOriginalLinks] = useState<LinkItem[]>(() => {
+  const [originalLinks, setOriginalLinks] = useState<WidgetItem[]>(() => {
     try {
       const raw = localStorage.getItem(ORIGINAL_LINKS_KEY);
-      return raw ? (JSON.parse(raw) as LinkItem[]) : [];
+      return raw ? (JSON.parse(raw) as WidgetItem[]) : [];
     } catch { return []; }
   });
   const [modalOpen, setModalOpen] = useState(false);
@@ -58,9 +58,9 @@ function App() {
   const [clearModalOpen, setClearModalOpen] = useState(false);
   const [isHeaderTargeted, setIsHeaderTargeted] = useState(false);
 
-  const preAddSnapshotRef = useRef<LinkItem[] | null>(null);
+  const preAddSnapshotRef = useRef<WidgetItem[] | null>(null);
 
-  const enterEditModeWithSnapshot = useCallback((snapshot: LinkItem[]) => {
+  const enterEditModeWithSnapshot = useCallback((snapshot: WidgetItem[]) => {
     setOriginalLinks(snapshot);
     setIsEditing(true);
     try {
@@ -84,7 +84,7 @@ function App() {
   }, [isEditing, enterEditModeWithSnapshot]);
 
   const saveEditMode = useCallback(() => {
-    const isEmptyImage = (l: LinkItem) => l.type === 'image' && !(l.url ?? '').trim();
+    const isEmptyImage = (l: WidgetItem) => l.type === 'image' && !(l.url ?? '').trim();
     const emptyImageCount = links.filter(isEmptyImage).length;
     if (emptyImageCount > 0) {
       replaceLinks(links.filter((l) => !isEmptyImage(l)));
@@ -138,8 +138,8 @@ function App() {
     enterEditModeAfterAdd();
   }, [addWidget, showToast, links, isEditing, enterEditModeAfterAdd]);
 
-  const sections = disambiguateSections(
-    links.filter((l): l is Section => l.type === 'section'),
+  const groups = disambiguateGroups(
+    links.filter((l): l is Group => l.type === 'group'),
   );
 
   const hasBackground = !!(settings.background && settings.background.type !== 'none' && settings.background.value);
@@ -161,9 +161,9 @@ function App() {
         isEditing={isEditing}
         settings={settings}
         onUpdateSettings={updateSettings}
-        onMoveLink={handleMoveLink}
+        onMoveItem={handleMoveLink}
         onDelete={handleDelete}
-        onUpdateLink={handleUpdateLink}
+        onUpdateItem={handleUpdateLink}
         headerDrag={headerDrag}
         onEnterEdit={enterEditMode}
         onSaveEdit={saveEditMode}
@@ -184,11 +184,11 @@ function App() {
           onLayoutChange={handleLayoutChange}
           onDelete={handleDelete}
           onViewModeChange={handleViewModeChange}
-          onUpdateLink={handleUpdateLink}
+          onUpdateItem={handleUpdateLink}
           isEditing={isEditing}
           openInNewTab={settings.openInNewTab}
-          sections={sections}
-          onMoveLink={handleMoveLink}
+          groups={groups}
+          onMoveItem={handleMoveLink}
           onSwap={handleSwap}
           onHeaderTargetChange={setIsHeaderTargeted}
         />
@@ -215,7 +215,7 @@ function App() {
           setAddLinkModalOpen(false);
         }}
         onAfterAdd={enterEditModeAfterAdd}
-        sections={sections}
+        groups={groups}
       />
 
       <ClearDashboardModal

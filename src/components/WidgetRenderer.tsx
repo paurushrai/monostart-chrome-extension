@@ -5,7 +5,7 @@ import GoogleSearchWidget from './widgets/GoogleSearchWidget';
 import TodoWidget from './widgets/TodoWidget';
 import TimerWidget from './widgets/TimerWidget';
 import RemindersWidget from './widgets/RemindersWidget';
-import SectionWidget from './widgets/SectionWidget';
+import GroupWidget from './widgets/GroupWidget';
 import NoteWidget from './widgets/NoteWidget';
 import ImageWidget from './widgets/ImageWidget';
 import LabelWidget from './widgets/LabelWidget';
@@ -13,9 +13,9 @@ import { WidgetType } from '../lib/widgetCatalog';
 import type {
   DisplayItem,
   DragPlaceholder,
-  LinkItem,
+  WidgetItem,
   RegularLink,
-  Section,
+  Group,
   Iframe,
   TodoWidget as TodoWidgetItem,
   TimerWidget as TimerWidgetItem,
@@ -28,7 +28,7 @@ import type {
   GridSlot,
 } from '../types';
 
-interface SectionRef {
+interface GroupRef {
   id: string;
   title: string;
 }
@@ -37,17 +37,17 @@ interface Props {
   item: DisplayItem;
   isEditing: boolean;
   openInNewTab?: boolean;
-  sections?: SectionRef[];
+  groups?: GroupRef[];
   onDelete: (id: string) => void;
   onViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
-  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
-  onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
-  activeDragSectionId: string | null;
+  onUpdateItem: (id: string, updates: Partial<WidgetItem>) => void;
+  onMoveItem?: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
+  activeDragGroupId: string | null;
   dragCursorCoords: DragCoords | null;
-  draggedItem: LinkItem | null;
-  onInnerDragStart: (link: RegularLink, sectionId: string) => void;
-  onInnerDrag: (link: RegularLink, sectionId: string, x: number, y: number) => void;
-  onInnerDragStop: (link: RegularLink, sectionId: string, x: number, y: number) => void;
+  draggedItem: WidgetItem | null;
+  onInnerDragStart: (link: RegularLink, groupId: string) => void;
+  onInnerDrag: (link: RegularLink, groupId: string, x: number, y: number) => void;
+  onInnerDragStop: (link: RegularLink, groupId: string, x: number, y: number) => void;
 }
 
 const isPlaceholder = (item: DisplayItem): item is DragPlaceholder =>
@@ -57,12 +57,12 @@ function WidgetRendererInner({
   item,
   isEditing,
   openInNewTab,
-  sections,
+  groups,
   onDelete,
   onViewModeChange,
-  onUpdateLink,
-  onMoveLink,
-  activeDragSectionId,
+  onUpdateItem,
+  onMoveItem,
+  activeDragGroupId,
   dragCursorCoords,
   draggedItem,
   onInnerDragStart,
@@ -79,11 +79,11 @@ function WidgetRendererInner({
     );
   }
 
-  const linkItem = item as LinkItem;
+  const linkItem = item as WidgetItem;
 
   switch (linkItem.type) {
     case WidgetType.GOOGLE_SEARCH:
-      return <GoogleSearchWidget item={linkItem as GoogleSearch} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
+      return <GoogleSearchWidget item={linkItem as GoogleSearch} onDelete={onDelete} onUpdateItem={onUpdateItem} isEditing={isEditing} />;
     case WidgetType.IFRAME:
       return <IframeWidget item={linkItem as Iframe} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.TODO:
@@ -93,22 +93,22 @@ function WidgetRendererInner({
     case WidgetType.REMINDERS:
       return <RemindersWidget item={linkItem as RemindersItem} onDelete={onDelete} isEditing={isEditing} />;
     case WidgetType.NOTE:
-      return <NoteWidget item={linkItem as Note} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
+      return <NoteWidget item={linkItem as Note} onDelete={onDelete} onUpdateItem={onUpdateItem} isEditing={isEditing} />;
     case WidgetType.IMAGE:
-      return <ImageWidget item={linkItem as ImageWidgetItem} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
+      return <ImageWidget item={linkItem as ImageWidgetItem} onDelete={onDelete} onUpdateItem={onUpdateItem} isEditing={isEditing} />;
     case WidgetType.LABEL:
-      return <LabelWidget item={linkItem as Label} onDelete={onDelete} onUpdateLink={onUpdateLink} isEditing={isEditing} />;
-    case WidgetType.SECTION:
+      return <LabelWidget item={linkItem as Label} onDelete={onDelete} onUpdateItem={onUpdateItem} isEditing={isEditing} />;
+    case WidgetType.GROUP:
       return (
-        <SectionWidget
-          item={linkItem as Section}
+        <GroupWidget
+          item={linkItem as Group}
           onDelete={onDelete}
-          onUpdateLink={onUpdateLink}
+          onUpdateItem={onUpdateItem}
           isEditing={isEditing}
           openInNewTab={openInNewTab}
-          sections={sections}
-          onMoveLink={onMoveLink}
-          isDraggedOver={activeDragSectionId === linkItem.id}
+          groups={groups}
+          onMoveItem={onMoveItem}
+          isDraggedOver={activeDragGroupId === linkItem.id}
           dragCursorCoords={dragCursorCoords}
           onInnerDragStart={onInnerDragStart}
           onInnerDrag={onInnerDrag}
@@ -123,11 +123,11 @@ function WidgetRendererInner({
           item={linkItem as RegularLink}
           onDelete={onDelete}
           onViewModeChange={onViewModeChange}
-          onUpdateLink={onUpdateLink}
+          onUpdateItem={onUpdateItem}
           isEditing={isEditing}
           openInNewTab={openInNewTab}
-          sections={sections}
-          onMoveLink={onMoveLink}
+          groups={groups}
+          onMoveItem={onMoveItem}
           parentId={undefined}
         />
       );
@@ -140,14 +140,14 @@ const WidgetRenderer = memo(WidgetRendererInner, (prev, next) => {
   if (prev.openInNewTab !== next.openInNewTab) return false;
   if (prev.onDelete !== next.onDelete) return false;
   if (prev.onViewModeChange !== next.onViewModeChange) return false;
-  if (prev.onUpdateLink !== next.onUpdateLink) return false;
-  if (prev.onMoveLink !== next.onMoveLink) return false;
+  if (prev.onUpdateItem !== next.onUpdateItem) return false;
+  if (prev.onMoveItem !== next.onMoveItem) return false;
 
-  if (next.item.type === 'section') {
-    if (prev.activeDragSectionId !== next.activeDragSectionId) return false;
+  if (next.item.type === 'group') {
+    if (prev.activeDragGroupId !== next.activeDragGroupId) return false;
     if (prev.dragCursorCoords !== next.dragCursorCoords) return false;
     if (prev.draggedItem !== next.draggedItem) return false;
-    if (prev.sections !== next.sections) return false;
+    if (prev.groups !== next.groups) return false;
     if (prev.onInnerDragStart !== next.onInnerDragStart) return false;
     if (prev.onInnerDrag !== next.onInnerDrag) return false;
     if (prev.onInnerDragStop !== next.onInnerDragStop) return false;
