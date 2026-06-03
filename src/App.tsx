@@ -8,12 +8,12 @@ import AppHeader from './components/AppHeader';
 import ClearDashboardModal from './components/ClearDashboardModal';
 import Toast from './components/Toast';
 import { useDashboard } from './hooks/useDashboard';
-import { getPhotoWidgetSize } from './hooks/useGridDimensions';
+import { getImageWidgetSize } from './hooks/useGridDimensions';
 import { useTheme } from './hooks/useTheme';
 import { useHeaderDrag } from './hooks/useHeaderDrag';
 import { useToast } from './hooks/useToast';
 import { disambiguateGroups } from './lib/disambiguateGroups';
-import { getLinksSync } from './lib/storage';
+import { getItemsSync } from './lib/storage';
 import type { WidgetItem, GroupItem } from './types';
 
 interface AddWidgetInput {
@@ -70,7 +70,7 @@ function App() {
   }, []);
 
   const enterEditMode = useCallback(() => {
-    enterEditModeWithSnapshot(getLinksSync());
+    enterEditModeWithSnapshot(getItemsSync());
   }, [enterEditModeWithSnapshot]);
 
   const enterEditModeAfterAdd = useCallback(() => {
@@ -78,7 +78,7 @@ function App() {
       preAddSnapshotRef.current = null;
       return;
     }
-    const snapshot = preAddSnapshotRef.current ?? getLinksSync();
+    const snapshot = preAddSnapshotRef.current ?? getItemsSync();
     preAddSnapshotRef.current = null;
     enterEditModeWithSnapshot(snapshot);
   }, [isEditing, enterEditModeWithSnapshot]);
@@ -125,9 +125,9 @@ function App() {
       showToast('Only one Google search widget is allowed.');
       return;
     }
-    if (!isEditing) preAddSnapshotRef.current = getLinksSync();
+    if (!isEditing) preAddSnapshotRef.current = getItemsSync();
     const sized = widget.type === 'image'
-      ? { ...widget, defaults: { ...widget.defaults, ...getPhotoWidgetSize() } }
+      ? { ...widget, defaults: { ...widget.defaults, ...getImageWidgetSize() } }
       : widget;
     const saved = await addWidget(sized);
     if (!saved) {
@@ -169,7 +169,7 @@ function App() {
         onSaveEdit={saveEditMode}
         onCancelEdit={cancelEditMode}
         onOpenAddLink={() => {
-          if (!isEditing) preAddSnapshotRef.current = getLinksSync();
+          if (!isEditing) preAddSnapshotRef.current = getItemsSync();
           setAddLinkModalOpen(true);
         }}
         onOpenAddWidget={() => setModalOpen(true)}
