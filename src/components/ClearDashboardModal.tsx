@@ -9,40 +9,40 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import type { LinkItem } from '../types';
+import type { WidgetItem } from '../types';
 
 interface Counts {
   mainItems: number;
-  sections: number;
-  bookmarksInsideSections: number;
+  groups: number;
+  linksInsideGroups: number;
   headerLinks: number;
 }
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  links: LinkItem[];
+  links: WidgetItem[];
   onConfirm: (clearHeaderToo: boolean) => void;
 }
 
-const computeCounts = (links: readonly LinkItem[]): Counts => {
+const computeCounts = (links: readonly WidgetItem[]): Counts => {
   let mainItems = 0;
-  let sections = 0;
-  let bookmarksInsideSections = 0;
+  let groups = 0;
+  let linksInsideGroups = 0;
   let headerLinks = 0;
   for (const l of links) {
     if (l.isHeaderLink) {
       headerLinks += 1;
       continue;
     }
-    if (l.type === 'section') {
-      sections += 1;
-      bookmarksInsideSections += (l as { links?: unknown[] }).links?.length ?? 0;
+    if (l.type === 'group') {
+      groups += 1;
+      linksInsideGroups += (l as { links?: unknown[] }).links?.length ?? 0;
       continue;
     }
     mainItems += 1;
   }
-  return { mainItems, sections, bookmarksInsideSections, headerLinks };
+  return { mainItems, groups, linksInsideGroups, headerLinks };
 };
 
 export default function ClearDashboardModal({ open, onClose, links, onConfirm }: Readonly<Props>) {
@@ -53,7 +53,7 @@ export default function ClearDashboardModal({ open, onClose, links, onConfirm }:
     if (!open) setClearHeaderToo(false);
   }, [open]);
 
-  const widgetTotal = counts.mainItems + counts.sections;
+  const widgetTotal = counts.mainItems + counts.groups;
   const willDeleteHeader = clearHeaderToo ? counts.headerLinks : 0;
   const nothingToClear = widgetTotal === 0 && (!clearHeaderToo || counts.headerLinks === 0);
 
@@ -73,13 +73,13 @@ export default function ClearDashboardModal({ open, onClose, links, onConfirm }:
         <div className="space-y-3 text-sm">
           <div className="rounded-md border border-border bg-gray-100 dark:bg-white/5 p-3 space-y-1.5 text-foreground">
             <div className="flex justify-between">
-              <span>Widgets &amp; sections on the main grid</span>
+              <span>Widgets &amp; groups on the main grid</span>
               <span className="font-medium">{widgetTotal}</span>
             </div>
-            {counts.bookmarksInsideSections > 0 && (
+            {counts.linksInsideGroups > 0 && (
               <div className="flex justify-between text-xs text-muted-foreground pl-3">
-                <span>↳ links inside sections</span>
-                <span>{counts.bookmarksInsideSections}</span>
+                <span>↳ links inside groups</span>
+                <span>{counts.linksInsideGroups}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-border pt-1.5">
@@ -106,7 +106,7 @@ export default function ClearDashboardModal({ open, onClose, links, onConfirm }:
           <div className="flex items-start gap-2 rounded-md bg-destructive/10 p-3 text-destructive text-xs">
             <AlertTriangle size={14} className="mt-0.5 shrink-0" />
             <span>
-              {widgetTotal > 0 && <>About to delete <strong>{widgetTotal}</strong> widget{widgetTotal === 1 ? '' : 's'}/section{widgetTotal === 1 ? '' : 's'}</>}
+              {widgetTotal > 0 && <>About to delete <strong>{widgetTotal}</strong> widget{widgetTotal === 1 ? '' : 's'}/group{widgetTotal === 1 ? '' : 's'}</>}
               {widgetTotal > 0 && willDeleteHeader > 0 && <> and </>}
               {willDeleteHeader > 0 && <><strong>{willDeleteHeader}</strong> header link{willDeleteHeader === 1 ? '' : 's'}</>}
               {(widgetTotal > 0 || willDeleteHeader > 0) && <>. Cancel in edit-mode toolbar restores them.</>}

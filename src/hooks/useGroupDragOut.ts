@@ -11,33 +11,33 @@ type RglDragHandler = (
   element: HTMLElement | null,
 ) => void;
 
-type InnerDragCallback = (link: RegularLink, sectionId: string) => void;
-type InnerDragMoveCallback = (link: RegularLink, sectionId: string, clientX: number, clientY: number) => void;
+type InnerDragCallback = (link: RegularLink, groupId: string) => void;
+type InnerDragMoveCallback = (link: RegularLink, groupId: string, clientX: number, clientY: number) => void;
 
-interface UseSectionDragOutOptions {
+interface UseGroupDragOutOptions {
   containerRef: RefObject<HTMLElement | null>;
-  sectionId: string;
+  groupId: string;
   links: readonly RegularLink[];
   onInnerDragStart?: InnerDragCallback;
   onInnerDrag?: InnerDragMoveCallback;
   onInnerDragStop?: InnerDragMoveCallback;
 }
 
-export interface UseSectionDragOut {
+export interface UseGroupDragOut {
   isMovingOutRef: MutableRefObject<boolean>;
   handleRglDragStart: RglDragHandler;
   handleRglDrag: RglDragHandler;
   handleRglDragStop: RglDragHandler;
 }
 
-export function useSectionDragOut({
+export function useGroupDragOut({
   containerRef,
-  sectionId,
+  groupId,
   links,
   onInnerDragStart,
   onInnerDrag,
   onInnerDragStop,
-}: UseSectionDragOutOptions): UseSectionDragOut {
+}: UseGroupDragOutOptions): UseGroupDragOut {
   const isMovingOutRef = useRef<boolean>(false);
   const lastCursorCoordsRef = useRef<DragCoords | null>(null);
 
@@ -45,9 +45,9 @@ export function useSectionDragOut({
     lastCursorCoordsRef.current = null;
     if (onInnerDragStart && newItem) {
       const subItem = links.find((l) => l.id === newItem.i);
-      if (subItem) onInnerDragStart(subItem, sectionId);
+      if (subItem) onInnerDragStart(subItem, groupId);
     }
-  }, [links, sectionId, onInnerDragStart]);
+  }, [links, groupId, onInnerDragStart]);
 
   const handleRglDrag: RglDragHandler = useCallback((_layout, _oldItem, newItem, _placeholder, e) => {
     if (!onInnerDrag || !e || !newItem) return;
@@ -59,8 +59,8 @@ export function useSectionDragOut({
     const clientY = me.clientY ?? te.touches?.[0]?.clientY ?? te.changedTouches?.[0]?.clientY;
     if (clientX === undefined || clientY === undefined) return;
     lastCursorCoordsRef.current = { x: clientX, y: clientY };
-    onInnerDrag(subItem, sectionId, clientX, clientY);
-  }, [links, sectionId, onInnerDrag]);
+    onInnerDrag(subItem, groupId, clientX, clientY);
+  }, [links, groupId, onInnerDrag]);
 
   const handleRglDragStop: RglDragHandler = useCallback((_layout, _oldItem, newItem, _placeholder, e) => {
     const me = e as MouseEvent | undefined;
@@ -75,7 +75,7 @@ export function useSectionDragOut({
 
     let isOutside = false;
     if (clientX !== undefined && clientY !== undefined && containerRef.current) {
-      const parentWidgetEl = containerRef.current.closest('[data-section-id]');
+      const parentWidgetEl = containerRef.current.closest('[data-group-id]');
       if (parentWidgetEl) {
         const parentRect = parentWidgetEl.getBoundingClientRect();
         isOutside =
@@ -91,12 +91,12 @@ export function useSectionDragOut({
     if (onInnerDragStop && clientX !== undefined && clientY !== undefined && newItem) {
       const subItem = links.find((l) => l.id === newItem.i);
       if (subItem) {
-        onInnerDragStop(subItem, sectionId, clientX, clientY);
+        onInnerDragStop(subItem, groupId, clientX, clientY);
       }
     }
 
     lastCursorCoordsRef.current = null;
-  }, [containerRef, links, sectionId, onInnerDragStop]);
+  }, [containerRef, links, groupId, onInnerDragStop]);
 
   return {
     isMovingOutRef,

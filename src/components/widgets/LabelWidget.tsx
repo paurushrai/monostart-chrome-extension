@@ -52,11 +52,11 @@ const OPACITIES = [
 interface Props {
   item: LabelItem;
   onDelete: (id: string) => void;
-  onUpdateLink: (id: string, updates: Partial<LabelItem>) => void;
+  onUpdateItem: (id: string, updates: Partial<LabelItem>) => void;
   isEditing: boolean;
 }
 
-const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>) => {
+const LabelWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props>) => {
   const {
     text = 'Google',
     align = 'left',
@@ -84,7 +84,7 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
   const handleSaveText = () => {
     setIsEditingText(false);
     const trimmed = inputText.trim();
-    onUpdateLink(item.id, { text: trimmed || 'Text' });
+    onUpdateItem(item.id, { text: trimmed || 'Text' });
   };
 
   const alignClass = align === 'center'
@@ -134,7 +134,7 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
               </DropdownMenuItem>
 
               <DropdownMenuItem 
-                onClick={() => onUpdateLink(item.id, { cardStyle: !cardStyle })}
+                onClick={() => onUpdateItem(item.id, { cardStyle: !cardStyle })}
                 className="flex items-center justify-between py-1 cursor-pointer text-xs"
               >
                 <div className="flex items-center gap-2">
@@ -156,7 +156,7 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                   {FONT_SIZES.map((fs) => (
                     <DropdownMenuItem
                       key={fs.id}
-                      onClick={() => onUpdateLink(item.id, { size: fs.id })}
+                      onClick={() => onUpdateItem(item.id, { size: fs.id })}
                       className="flex items-center justify-between py-1 cursor-pointer text-xs"
                     >
                       <span>{fs.name}</span>
@@ -173,7 +173,7 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="p-1">
                   <DropdownMenuItem
-                    onClick={() => onUpdateLink(item.id, { align: 'left' })}
+                    onClick={() => onUpdateItem(item.id, { align: 'left' })}
                     className="flex items-center justify-between py-1 cursor-pointer text-xs"
                   >
                     <div className="flex items-center gap-2">
@@ -183,7 +183,7 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                     {align === 'left' && <Check size={12} className="text-primary" />}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => onUpdateLink(item.id, { align: 'center' })}
+                    onClick={() => onUpdateItem(item.id, { align: 'center' })}
                     className="flex items-center justify-between py-1 cursor-pointer text-xs"
                   >
                     <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                     {align === 'center' && <Check size={12} className="text-primary" />}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => onUpdateLink(item.id, { align: 'right' })}
+                    onClick={() => onUpdateItem(item.id, { align: 'right' })}
                     className="flex items-center justify-between py-1 cursor-pointer text-xs"
                   >
                     <div className="flex items-center gap-2">
@@ -214,7 +214,7 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                   {FONT_WEIGHTS.map((fw) => (
                     <DropdownMenuItem
                       key={fw.id}
-                      onClick={() => onUpdateLink(item.id, { fontWeight: fw.id })}
+                      onClick={() => onUpdateItem(item.id, { fontWeight: fw.id })}
                       className="flex items-center justify-between py-1 cursor-pointer text-xs"
                     >
                       <span>{fw.name}</span>
@@ -233,7 +233,7 @@ const LabelWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props
                   {OPACITIES.map((op) => (
                     <DropdownMenuItem
                       key={op.id}
-                      onClick={() => onUpdateLink(item.id, { opacity: op.id })}
+                      onClick={() => onUpdateItem(item.id, { opacity: op.id })}
                       className="flex items-center justify-between py-1 cursor-pointer text-xs"
                     >
                       <span>{op.name}</span>
