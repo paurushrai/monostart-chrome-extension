@@ -130,7 +130,7 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
 
           <section aria-labelledby="primary-color-heading" className="space-y-3">
             <h4 id="primary-color-heading" className="text-sm font-medium text-foreground">Primary Color</h4>
-            <div role="radiogroup" aria-label="Primary color presets" className="grid grid-cols-4 gap-3">
+            <div role="radiogroup" aria-label="Primary color presets" className="grid grid-cols-4 gap-3 justify-items-center">
               {CHROME_THEMES.map((theme) => (
                 <ThemeSwatch
                   key={theme.name}
