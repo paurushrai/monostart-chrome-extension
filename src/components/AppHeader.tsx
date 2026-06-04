@@ -62,7 +62,7 @@ export default function AppHeader({
       className={`grid grid-cols-3 items-center px-4 py-2 border-b border-border relative transition-colors ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
     >
       <div className="flex items-center gap-3">
-        <Hexagon size={24} strokeWidth={2.5} className="text-foreground" />
+        <Hexagon size={28} strokeWidth={2.5} className="text-foreground" />
         <div className="flex items-baseline">
           <h1 className="text-xl font-bold text-foreground tracking-tight m-0">
             MonoStart
