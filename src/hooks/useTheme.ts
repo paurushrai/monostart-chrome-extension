@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getSettings, saveSettings } from '../lib/storage';
-import { pickForegroundHsl } from '../lib/color';
+import { normalizeAccentForContrast } from '../lib/color';
 import type { Settings } from '../types';
 
 const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '271 91% 65%' };
@@ -21,9 +21,10 @@ export function useTheme(): UseTheme {
     if (!settings) return;
 
     if (settings.themeColor) {
-      document.documentElement.style.setProperty('--primary', settings.themeColor);
-      document.documentElement.style.setProperty('--ring', settings.themeColor);
-      document.documentElement.style.setProperty('--primary-foreground', pickForegroundHsl(settings.themeColor));
+      const { accent, foreground } = normalizeAccentForContrast(settings.themeColor);
+      document.documentElement.style.setProperty('--primary', accent);
+      document.documentElement.style.setProperty('--ring', accent);
+      document.documentElement.style.setProperty('--primary-foreground', foreground);
 
       const parts = settings.themeColor.split(' ');
       if (parts.length >= 2 && parts[0] && parts[1]) {

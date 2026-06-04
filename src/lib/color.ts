@@ -5,6 +5,7 @@ const HSL_RE = /^\s*(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%\s*$/;
 const WHITE_FG = '0 0% 100%';
 const DARK_FG = '0 0% 10%';
 const SRGB_THRESHOLD = 0.03928;
+const AA_CONTRAST = 4.5;
 
 export function parseHsl(hsl: string): Hsl {
   const m = HSL_RE.exec(hsl);
@@ -54,11 +55,31 @@ export function contrastRatio(l1: number, l2: number): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-export function pickForegroundHsl(accentHsl: string): string {
+function bestForeground(accentHsl: string): { fg: string; ratio: number } {
   const accentLum = relativeLuminance(hslToRgb(parseHsl(accentHsl)));
-  const whiteContrast = contrastRatio(accentLum, relativeLuminance(hslToRgb(parseHsl(WHITE_FG))));
-  const darkContrast = contrastRatio(accentLum, relativeLuminance(hslToRgb(parseHsl(DARK_FG))));
-  return darkContrast > whiteContrast ? DARK_FG : WHITE_FG;
+  const whiteRatio = contrastRatio(accentLum, relativeLuminance(hslToRgb(parseHsl(WHITE_FG))));
+  const darkRatio = contrastRatio(accentLum, relativeLuminance(hslToRgb(parseHsl(DARK_FG))));
+  return darkRatio > whiteRatio ? { fg: DARK_FG, ratio: darkRatio } : { fg: WHITE_FG, ratio: whiteRatio };
+}
+
+/**
+ * Pick an accent that carries legible text. If the seed already meets AA (4.5:1)
+ * with white or dark text it is returned unchanged; otherwise its lightness is
+ * shifted to the nearest value that does (hue and saturation preserved).
+ * Returns the applied accent and the foreground color to pair with it.
+ */
+export function normalizeAccentForContrast(accentHsl: string): { accent: string; foreground: string } {
+  const initial = bestForeground(accentHsl);
+  if (initial.ratio >= AA_CONTRAST) return { accent: accentHsl, foreground: initial.fg };
+  // Deepen the accent (paired with light text) until it clears AA. Darkening
+  // always converges and keeps the conventional vibrant-accent + white-label look.
+  const { h, s, l } = parseHsl(accentHsl);
+  for (let nextL = l - 1; nextL >= 0; nextL -= 1) {
+    const candidate = formatHsl({ h, s, l: nextL });
+    const best = bestForeground(candidate);
+    if (best.ratio >= AA_CONTRAST) return { accent: candidate, foreground: best.fg };
+  }
+  return { accent: formatHsl({ h, s, l: 0 }), foreground: WHITE_FG };
 }
 
 export function shiftLightness(hsl: string, deltaL: number): string {
