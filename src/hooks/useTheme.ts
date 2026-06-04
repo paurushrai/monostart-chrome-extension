@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getSettings, saveSettings } from '../lib/storage';
+import { pickForegroundHsl } from '../lib/color';
 import type { Settings } from '../types';
 
 const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '271 91% 65%' };
@@ -22,6 +23,7 @@ export function useTheme(): UseTheme {
     if (settings.themeColor) {
       document.documentElement.style.setProperty('--primary', settings.themeColor);
       document.documentElement.style.setProperty('--ring', settings.themeColor);
+      document.documentElement.style.setProperty('--primary-foreground', pickForegroundHsl(settings.themeColor));
 
       const parts = settings.themeColor.split(' ');
       if (parts.length >= 2 && parts[0] && parts[1]) {
@@ -38,6 +40,7 @@ export function useTheme(): UseTheme {
     } else {
       document.documentElement.style.removeProperty('--primary');
       document.documentElement.style.removeProperty('--ring');
+      document.documentElement.style.removeProperty('--primary-foreground');
       document.documentElement.style.removeProperty('--theme-hue');
       document.documentElement.style.removeProperty('--theme-sat');
     }
