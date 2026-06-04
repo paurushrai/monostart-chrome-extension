@@ -84,7 +84,7 @@ export default function AppHeader({
         </div>
       </div>
 
-      <nav aria-label="Header links" className="flex justify-center items-center gap-2 overflow-x-auto max-w-full no-scrollbar">
+      <nav aria-label="Header links" className="flex justify-center items-center gap-2 overflow-x-auto max-w-full no-scrollbar py-2.5 -my-2.5">
         {headerLinks.map(link => (
           <HeaderLink
             key={link.id}
