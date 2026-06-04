@@ -48,6 +48,7 @@ interface SpeechRecognitionLike {
   onerror: (() => void) | null;
   onend: (() => void) | null;
   start: () => void;
+  abort: () => void;
 }
 
 declare global {
@@ -120,6 +121,17 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonl
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const containerRef = useRef<HTMLDivElement | null>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const recognizerRef = useRef<SpeechRecognitionLike | null>(null);
+
+  // Release the speech recognizer (and the microphone it holds) if the widget
+  // unmounts mid-listen — otherwise the recognizer keeps the mic active with no
+  // handle to stop it.
+  useEffect(() => {
+    return () => {
+      recognizerRef.current?.abort();
+      recognizerRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -274,7 +286,11 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonl
       window.open('https://www.google.com/?gws_rd=ssl#spf=1', '_self');
       return;
     }
+    // Stop any prior session before starting a new one so repeated clicks
+    // never leave concurrent recognizers holding the mic.
+    recognizerRef.current?.abort();
     const r = new Recognizer();
+    recognizerRef.current = r;
     r.interimResults = true;
     r.lang = 'en-US';
 
@@ -306,6 +322,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonl
     };
 
     r.onend = () => {
+      if (recognizerRef.current === r) recognizerRef.current = null;
       setTimeout(() => setVoiceOpen(false), 500);
     };
 
