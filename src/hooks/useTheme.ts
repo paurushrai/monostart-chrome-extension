@@ -4,7 +4,7 @@ import { normalizeAccentForContrast, foregroundForLuminance, parseHsl } from '..
 import { deriveBackgroundTheme } from '../lib/backgroundTheme';
 import type { Settings } from '../types';
 
-const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '271 91% 65%' };
+const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '220 9% 46%' };
 
 const DARK_TINT_SAT = '30%';
 const LIGHT_TINT_SAT = '40%';

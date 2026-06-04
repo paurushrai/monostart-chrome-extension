@@ -31,7 +31,7 @@ export const CHROME_THEMES: readonly ChromeTheme[] = [
   { name: 'Rose', seed: '345 80% 60%' },
   { name: 'Pink', seed: '330 85% 70%' },
   { name: 'Fuchsia', seed: '300 70% 55%' },
-  { name: 'Violet', seed: '271 91% 65%' }, // brand default accent; selected on first load
+  { name: 'Violet', seed: '271 70% 60%' },
 ] as const;
 
 export interface SwatchTones {
