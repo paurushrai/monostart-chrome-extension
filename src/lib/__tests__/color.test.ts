@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   parseHsl, hslToRgb, relativeLuminance,
-  contrastRatio, pickForegroundHsl, shiftLightness,
+  contrastRatio, normalizeAccentForContrast, shiftLightness,
 } from '../color';
 
 describe('parseHsl', () => {
@@ -38,12 +38,33 @@ describe('contrastRatio', () => {
   });
 });
 
-describe('pickForegroundHsl', () => {
-  it('should pick dark text on a light yellow accent', () => {
-    expect(pickForegroundHsl('45 95% 50%')).toBe('0 0% 10%');
+describe('normalizeAccentForContrast', () => {
+  const meetsAA = (accent: string, fg: string): boolean =>
+    contrastRatio(
+      relativeLuminance(hslToRgb(parseHsl(accent))),
+      relativeLuminance(hslToRgb(parseHsl(fg))),
+    ) >= 4.5;
+
+  it('should keep a light yellow accent and pair it with dark text', () => {
+    const { accent, foreground } = normalizeAccentForContrast('45 95% 50%');
+    expect(accent).toBe('45 95% 50%');
+    expect(foreground).toBe('0 0% 10%');
   });
-  it('should pick white text on a deep blue accent', () => {
-    expect(pickForegroundHsl('214 82% 30%')).toBe('0 0% 100%');
+  it('should keep a deep blue accent and pair it with white text', () => {
+    const { accent, foreground } = normalizeAccentForContrast('214 82% 30%');
+    expect(accent).toBe('214 82% 30%');
+    expect(foreground).toBe('0 0% 100%');
+  });
+  it('should darken a mid purple that fails AA and pair it with white text', () => {
+    const { accent, foreground } = normalizeAccentForContrast('271 91% 65%');
+    expect(parseHsl(accent).l).toBeLessThan(65);
+    expect(foreground).toBe('0 0% 100%');
+    expect(meetsAA(accent, foreground)).toBe(true);
+  });
+  it('should preserve hue and saturation when adjusting', () => {
+    const { accent } = normalizeAccentForContrast('271 91% 65%');
+    expect(parseHsl(accent).h).toBe(271);
+    expect(parseHsl(accent).s).toBe(91);
   });
 });
 
