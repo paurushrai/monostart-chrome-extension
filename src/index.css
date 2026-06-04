@@ -234,3 +234,13 @@
   display: none;
 }
 
+/* Header legibility on wallpapers: lift text and icons with a halo opposite the
+   adaptive text colour. --header-fg / --header-shadow are set by useTheme only
+   when a background is active. */
+.header-on-wallpaper {
+  text-shadow: 0 1px 3px var(--header-shadow, rgba(0, 0, 0, 0.45));
+}
+.header-on-wallpaper :where(svg, img) {
+  filter: drop-shadow(0 1px 2px var(--header-shadow, rgba(0, 0, 0, 0.45)));
+}
+
