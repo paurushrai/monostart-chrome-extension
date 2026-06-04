@@ -6,6 +6,7 @@ const WHITE_FG = '0 0% 100%';
 const DARK_FG = '0 0% 10%';
 const SRGB_THRESHOLD = 0.03928;
 const AA_CONTRAST = 4.5;
+const LIGHT_FG = '0 0% 98%';
 
 export function parseHsl(hsl: string): Hsl {
   const m = HSL_RE.exec(hsl);
@@ -86,4 +87,48 @@ export function shiftLightness(hsl: string, deltaL: number): string {
   const { h, s, l } = parseHsl(hsl);
   const nextL = Math.max(0, Math.min(100, l + deltaL));
   return formatHsl({ h, s, l: nextL });
+}
+
+export function rgbToHsl({ r, g, b }: Rgb): Hsl {
+  const rN = r / 255;
+  const gN = g / 255;
+  const bN = b / 255;
+  const max = Math.max(rN, gN, bN);
+  const min = Math.min(rN, gN, bN);
+  const delta = max - min;
+  let h = 0;
+  if (delta !== 0) {
+    if (max === rN) h = ((gN - bN) / delta) % 6;
+    else if (max === gN) h = (bN - rN) / delta + 2;
+    else h = (rN - gN) / delta + 4;
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
+  }
+  const l = (max + min) / 2;
+  const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+  return { h, s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+const HEX_RE = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i;
+
+export function hexToRgb(hex: string): Rgb {
+  const m = HEX_RE.exec(hex.trim());
+  if (m?.[1] === undefined) throw new Error(`Invalid hex color: "${hex}"`);
+  const body = m[1].length === 3 ? m[1].split('').map((c) => c + c).join('') : m[1];
+  return {
+    r: Number.parseInt(body.slice(0, 2), 16),
+    g: Number.parseInt(body.slice(2, 4), 16),
+    b: Number.parseInt(body.slice(4, 6), 16),
+  };
+}
+
+export function hexToHsl(hex: string): Hsl {
+  return rgbToHsl(hexToRgb(hex));
+}
+
+/** Choose near-white or near-black text, whichever contrasts more with `luminance`. */
+export function foregroundForLuminance(luminance: number): string {
+  const lightRatio = contrastRatio(luminance, relativeLuminance(hslToRgb(parseHsl(LIGHT_FG))));
+  const darkRatio = contrastRatio(luminance, relativeLuminance(hslToRgb(parseHsl(DARK_FG))));
+  return darkRatio > lightRatio ? DARK_FG : LIGHT_FG;
 }

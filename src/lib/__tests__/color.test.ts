@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  parseHsl, hslToRgb, relativeLuminance,
-  contrastRatio, normalizeAccentForContrast, shiftLightness,
+  parseHsl, hslToRgb, relativeLuminance, contrastRatio,
+  normalizeAccentForContrast, shiftLightness, hexToHsl, foregroundForLuminance,
 } from '../color';
 
 describe('parseHsl', () => {
@@ -77,5 +77,26 @@ describe('shiftLightness', () => {
   });
   it('should preserve hue and saturation', () => {
     expect(shiftLightness('271 91% 50%', 10)).toBe('271 91% 60%');
+  });
+});
+
+describe('hexToHsl', () => {
+  it('should convert full hex to HSL', () => {
+    expect(hexToHsl('#ff0000')).toEqual({ h: 0, s: 100, l: 50 });
+  });
+  it('should expand shorthand hex', () => {
+    expect(hexToHsl('#0f0')).toEqual({ h: 120, s: 100, l: 50 });
+  });
+  it('should throw on an invalid hex', () => {
+    expect(() => hexToHsl('nope')).toThrow();
+  });
+});
+
+describe('foregroundForLuminance', () => {
+  it('should pick dark text on a bright background', () => {
+    expect(foregroundForLuminance(0.9)).toBe('0 0% 10%');
+  });
+  it('should pick light text on a dark background', () => {
+    expect(foregroundForLuminance(0.02)).toBe('0 0% 98%');
   });
 });
