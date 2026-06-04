@@ -64,7 +64,7 @@ export default function AppHeader({
       style={{ color: 'var(--header-fg, hsl(var(--foreground)))' }}
       className={`grid grid-cols-3 items-center px-4 py-2 border-b border-border relative transition-colors ${onWallpaper ? 'header-on-wallpaper' : ''} ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
     >
-      <div className="flex items-center gap-3 bg-black text-white rounded-xl px-3 py-1.5 ring-1 ring-white/10 w-fit">
+      <div className="flex items-center gap-3 bg-zinc-800 dark:bg-black text-white rounded-xl px-3 py-1.5 ring-1 ring-white/10 w-fit">
         <Hexagon size={28} strokeWidth={2.5} />
         <div className="flex items-baseline">
           <h1 className="text-xl font-bold tracking-tight m-0">
