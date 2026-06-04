@@ -47,7 +47,7 @@ const presetColors = [
 
 export default function ThemeSettingsModal({ open, onOpenChange, settings, updateSettings }: Readonly<Props>) {
   const currentMode: ThemeMode = settings.themeMode || 'device';
-  const currentColor = settings.themeColor || '239 84% 67%';
+  const currentColor = settings.themeColor || '271 91% 65%';
 
   const setMode = (mode: ThemeMode) => {
     updateSettings({ ...settings, themeMode: mode });

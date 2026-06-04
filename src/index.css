@@ -21,7 +21,7 @@
     --accent: var(--theme-hue) var(--theme-sat) 95%; /* Lighter/darker than popover for hover */
     --accent-foreground: var(--theme-hue) 47% 11%;
     
-    --primary: 239 84% 67%;
+    --primary: 271 91% 65%;
     --primary-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -50,7 +50,7 @@
     --accent: var(--theme-hue) var(--theme-sat) 28%;      /* Lighter than popover for hover */
     --accent-foreground: 0 0% 98%;
     
-    --primary: 239 84% 67%;
+    --primary: 271 91% 65%;
     --primary-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
