@@ -100,7 +100,7 @@ const HeaderLink = ({
     linkContent = (
       <Favicon
         item={item}
-        className="w-5 h-5 object-contain rounded-[3px] pointer-events-none"
+        className="w-5 h-5 object-contain rounded-[3px] pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]"
         fallback={
           <div className="flex items-center justify-center text-muted-foreground w-5 h-5 pointer-events-none">
             <Link2 size={14} />

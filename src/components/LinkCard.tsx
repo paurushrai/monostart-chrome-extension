@@ -264,7 +264,7 @@ const LinkCard = ({
       >
         <Favicon
           item={item}
-          className={`object-contain flex-shrink-0 max-w-none pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]
+          className={`object-contain flex-shrink-0 max-w-none pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]
             ${isIconOnly ? 'w-9 h-9 rounded-sm' : listMode ? 'w-5 h-5 rounded-sm' : 'w-8 h-8 rounded-sm'}`}
           fallback={
             <div className={`flex items-center justify-center rounded-sm bg-secondary text-muted-foreground flex-shrink-0 pointer-events-none

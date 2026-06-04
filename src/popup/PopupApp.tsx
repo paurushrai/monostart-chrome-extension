@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { getSettings, getItems } from '../lib/storage';
 import { saveItem } from '../lib/itemRepository';
 import { disambiguateGroups } from '../lib/disambiguateGroups';
-import { BookmarkPlus, Check, ExternalLink, Bell, X, Repeat, LayoutGrid, Bookmark, Folder, ChevronDown, Hexagon } from 'lucide-react';
+import { BookmarkPlus, Check, ExternalLink, Bell, X, Repeat, LayoutGrid, Bookmark, Folder, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -213,7 +213,6 @@ function PopupApp() {
       )}
 
       <h3 className="m-0 text-sm font-semibold text-ink flex justify-center items-center gap-1.5 border-b pb-4">
-        <Hexagon size={16} strokeWidth={2.5} className="text-white" aria-hidden="true" />
         Save to MonoStart
       </h3>
 
@@ -221,7 +220,7 @@ function PopupApp() {
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="w-9 h-9 rounded-lg bg-bg-hover flex items-center justify-center shrink-0 overflow-hidden">
             {tabInfo.favicon ? (
-              <img src={tabInfo.favicon} alt="" className="w-5 h-5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]" />
+              <img src={tabInfo.favicon} alt="" className="w-5 h-5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]" />
             ) : (
               <Bookmark size={16} className="text-muted-foreground" />
             )}
