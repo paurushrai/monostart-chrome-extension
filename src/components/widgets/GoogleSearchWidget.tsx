@@ -410,7 +410,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonl
             size="icon"
             onClick={handleVoice}
             title="Voice search"
-            className="h-auto p-1 flex-shrink-0 hover:bg-transparent"
+            className="h-auto p-1 flex-shrink-0 hover:bg-transparent dark:hover:bg-transparent"
             tabIndex={-1}
           >
             <GoogleMicIcon size={20} />
@@ -421,7 +421,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonl
             size="icon"
             onClick={() => setLensOpen(true)}
             title="Search any image with Lens"
-            className="h-auto p-1 ml-1 flex-shrink-0 hover:bg-transparent"
+            className="h-auto p-1 ml-1 flex-shrink-0 hover:bg-transparent dark:hover:bg-transparent"
             tabIndex={-1}
           >
             <LensIcon size={18} />
