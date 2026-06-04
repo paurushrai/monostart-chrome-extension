@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sun, Moon, Monitor, Upload } from 'lucide-react';
 import type { Settings, DashboardBackground } from '../types';
+import ThemeSwatch from './ThemeSwatch';
+import { CHROME_THEMES } from '../lib/chromeThemes';
 
 const bgColors = ['#0f172a', '#111827', '#1e293b', '#18181b', '#1e3a8a', '#3730a3', '#0b3b2e', '#7f1d1d'];
 const bgGradients = [
@@ -29,21 +31,6 @@ interface Props {
 }
 
 type ThemeMode = NonNullable<Settings['themeMode']>;
-
-const presetColors = [
-  { name: 'Red', hsl: '346 87% 61%' },
-  { name: 'Pink', hsl: '326 100% 74%' },
-  { name: 'Purple', hsl: '271 91% 65%' },
-  { name: 'Indigo', hsl: '239 84% 67%' },
-  { name: 'Blue', hsl: '200 73% 52%' },
-  { name: 'Cyan', hsl: '189 94% 43%' },
-  { name: 'Teal', hsl: '175 84% 32%' },
-  { name: 'Green', hsl: '142 71% 45%' },
-  { name: 'Yellow', hsl: '45 93% 47%' },
-  { name: 'Orange', hsl: '24 100% 50%' },
-  { name: 'Slate', hsl: '215 16% 47%' },
-  { name: 'Neutral', hsl: '0 0% 50%' },
-];
 
 export default function ThemeSettingsModal({ open, onOpenChange, settings, updateSettings }: Readonly<Props>) {
   const currentMode: ThemeMode = settings.themeMode || 'device';
@@ -143,20 +130,13 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
 
           <section aria-labelledby="primary-color-heading" className="space-y-3">
             <h4 id="primary-color-heading" className="text-sm font-medium text-foreground">Primary Color</h4>
-            <div role="radiogroup" aria-label="Primary color presets" className="grid grid-cols-6 gap-3">
-              {presetColors.map((color) => (
-                <Button
-                  key={color.name}
-                  type="button"
-                  variant="ghost"
-                  role="radio"
-                  aria-checked={currentColor === color.hsl}
-                  onClick={() => setColor(color.hsl)}
-                  className={`w-10 h-10 p-0 rounded-full transition-transform hover:scale-110 ${
-                    currentColor === color.hsl ? 'ring-2 ring-offset-2 ring-offset-background ring-foreground' : 'ring-1 ring-border'
-                  }`}
-                  style={{ backgroundColor: `hsl(${color.hsl})` }}
-                  title={color.name}
+            <div role="radiogroup" aria-label="Primary color presets" className="grid grid-cols-4 gap-3">
+              {CHROME_THEMES.map((theme) => (
+                <ThemeSwatch
+                  key={theme.name}
+                  theme={theme}
+                  selected={currentColor === theme.seed}
+                  onSelect={setColor}
                 />
               ))}
             </div>
@@ -176,7 +156,7 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
                 value={currentColor.split(' ')[0]}
                 onChange={(e) => {
                   const hue = e.target.value;
-                  setColor(`${hue} 80% 55%`);
+                  setColor(`${hue} 70% 50%`);
                 }}
                 className="w-full h-3 rounded-full appearance-none cursor-pointer border border-border/50 shadow-inner"
                 style={{
