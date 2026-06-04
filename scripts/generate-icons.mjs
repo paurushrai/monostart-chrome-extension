@@ -1,10 +1,10 @@
-// Regenerates the extension icon set from the MonoStart logo on a brand-violet
+// Regenerates the extension icon set from the MonoStart logo on a brand-black
 // tile. The logo is a white stroke, so it needs an opaque background to stay
 // visible on light surfaces (browser toolbar, Chrome Web Store form).
 //
 // Outputs (this script is the single source of truth for the brand mark):
-//   public/icons/icon-{16,32,48,128}.png  — rounded violet tile (manifest/action)
-//   public/favicon.svg                      — rounded violet tile (browser tab)
+//   public/icons/icon-{16,32,48,128}.png  — rounded black tile (manifest/action)
+//   public/favicon.svg                      — rounded black tile (browser tab)
 //   <store dir>/store-icon-128.png          — full square, NO alpha (store listing)
 //
 // Run: node scripts/generate-icons.mjs
@@ -17,7 +17,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ICON_DIR = resolve(ROOT, 'public/icons');
 const STORE_DIR = '/Users/paurushrai/Downloads/chrome-professional';
 
-const BRAND_VIOLET = '#aa3bff';
+const BRAND_BLACK = '#000000';
 const LOGO_WHITE = '#ffffff';
 // MonoStart logo: the hexagon outline (Lucide "hexagon"), 24-unit space.
 // The in-app header renders this same glyph via lucide-react's <Hexagon />.
@@ -31,7 +31,7 @@ const CORNER_RADIUS = 28;
 const RENDER_DENSITY = 288; // render SVG at ~512px then downscale → crisp small icons
 
 const tileSvg = (cornerRadius) => `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="${cornerRadius}" fill="${BRAND_VIOLET}"/>
+  <rect width="128" height="128" rx="${cornerRadius}" fill="${BRAND_BLACK}"/>
   <g transform="translate(${LOGO_OFFSET} ${LOGO_OFFSET}) scale(${LOGO_SCALE})" fill="none" stroke="${LOGO_WHITE}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
     <path d="${LOGO_PATH}"/>
   </g>
@@ -57,10 +57,10 @@ async function main() {
   writeFileSync(faviconOut, `${roundedSvg}\n`);
   console.log(`wrote ${faviconOut}`);
 
-  // Store-listing icon: full square, flattened onto violet → guaranteed no alpha.
+  // Store-listing icon: full square, flattened onto black → guaranteed no alpha.
   const squareSvg = tileSvg(0);
   const storeOut = resolve(STORE_DIR, 'store-icon-128.png');
-  await render(squareSvg).resize(128, 128).flatten({ background: BRAND_VIOLET }).png().toFile(storeOut);
+  await render(squareSvg).resize(128, 128).flatten({ background: BRAND_BLACK }).png().toFile(storeOut);
   console.log(`wrote ${storeOut} (128x128, no alpha)`);
 }
 
