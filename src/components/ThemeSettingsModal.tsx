@@ -44,6 +44,14 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
     updateSettings({ ...settings, themeColor: colorHsl });
   };
 
+  const [showCustomHue, setShowCustomHue] = useState(false);
+  const isCustomColor = !CHROME_THEMES.some((theme) => theme.seed === currentColor);
+
+  const selectPreset = (seed: string) => {
+    setShowCustomHue(false);
+    setColor(seed);
+  };
+
   const bg: DashboardBackground = settings.background ?? { type: 'none' };
   const setBg = (next: Partial<DashboardBackground>) => {
     updateSettings({ ...settings, background: { ...bg, ...next } });
@@ -136,11 +144,26 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
                   key={theme.name}
                   theme={theme}
                   selected={currentColor === theme.seed}
-                  onSelect={setColor}
+                  onSelect={selectPreset}
                 />
               ))}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={isCustomColor}
+                aria-label="Custom color"
+                title="Custom color"
+                onClick={() => setShowCustomHue(true)}
+                className={`w-10 h-10 p-0 rounded-full transition-transform hover:scale-110 ${
+                  isCustomColor
+                    ? 'ring-2 ring-offset-2 ring-offset-background ring-foreground'
+                    : 'ring-1 ring-border'
+                }`}
+                style={{ background: 'conic-gradient(from 90deg, #ff0000, #ffea00, #00ff2f, #00e5ff, #2f00ff, #ff00d4, #ff0000)' }}
+              />
             </div>
             
+            {(isCustomColor || showCustomHue) && (
             <div className="pt-2">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-foreground">Custom Hue</span>
@@ -184,6 +207,7 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
                 }
               `}</style>
             </div>
+            )}
           </section>
 
           <section aria-labelledby="background-heading" className="space-y-3">
