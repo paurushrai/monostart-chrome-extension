@@ -34,7 +34,7 @@ type ThemeMode = NonNullable<Settings['themeMode']>;
 
 export default function ThemeSettingsModal({ open, onOpenChange, settings, updateSettings }: Readonly<Props>) {
   const currentMode: ThemeMode = settings.themeMode || 'device';
-  const currentColor = settings.themeColor || '271 91% 65%';
+  const currentColor = settings.themeColor || '220 9% 46%';
 
   const setMode = (mode: ThemeMode) => {
     updateSettings({ ...settings, themeMode: mode });
