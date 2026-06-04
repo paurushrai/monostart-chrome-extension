@@ -132,7 +132,11 @@ export default function AppHeader({
           </div>
         )}
 
-        <DropdownMenu>
+        {/* Non-modal: a modal menu marks #root aria-hidden while the focused
+            trigger is still inside it, which Chrome blocks ("descendant
+            retained focus"). Non-modal skips the aria-hidden entirely and
+            still closes on outside-click/Escape. */}
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
