@@ -6,6 +6,12 @@
   command = "echo 'Static site — no build step'"
   publish = "site"
 
+# Root redirects to the canonical policy URL.
+[[redirects]]
+  from = "/"
+  to = "/privacy-policy/"
+  status = 302
+
 # Security headers for the hosted policy page.
 [[headers]]
   for = "/*"
