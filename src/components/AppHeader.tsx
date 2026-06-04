@@ -56,24 +56,28 @@ export default function AppHeader({
     .filter((l): l is GroupItem => l.type === 'group')
     .map(s => ({ id: s.id, title: s.title }));
 
+  const onWallpaper = (settings.background?.type ?? 'none') !== 'none';
+
   return (
     <header
       data-header-drop-target="true"
-      className={`grid grid-cols-3 items-center px-4 py-2 border-b border-border relative transition-colors ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
+      style={{ color: 'var(--header-fg, hsl(var(--foreground)))' }}
+      className={`grid grid-cols-3 items-center px-4 py-2 border-b border-border relative transition-colors ${onWallpaper ? 'header-on-wallpaper' : ''} ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
     >
       <div className="flex items-center gap-3">
-        <Hexagon size={28} strokeWidth={2.5} className="text-foreground" />
+        <Hexagon size={28} strokeWidth={2.5} />
         <div className="flex items-baseline">
-          <h1 className="text-xl font-bold text-foreground tracking-tight m-0">
+          <h1 className="text-xl font-bold tracking-tight m-0">
             MonoStart
           </h1>
-          <span className="text-xs text-muted-foreground font-medium opacity-60 ml-3">
+          <span className="text-xs font-medium opacity-60 ml-3">
             by{' '}
             <a
               href="https://www.paurushrai.in"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline hover:opacity-100 transition-all"
+              style={{ color: 'var(--header-fg, hsl(var(--primary)))' }}
+              className="hover:underline hover:opacity-100 transition-all"
             >
               Paurush Rai
             </a>
@@ -135,7 +139,6 @@ export default function AppHeader({
               variant="ghost"
               size="icon"
               title="Settings"
-              className="text-foreground"
             >
               <Settings size={20} />
             </Button>
