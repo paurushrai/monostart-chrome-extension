@@ -1,43 +1,33 @@
 import { describe, it, expect } from 'vitest';
-import { pickSwapTarget, resolveSwap, type Rect } from '../swapPlanner';
+import { findSwapTargetAtCell, resolveSwap, type Rect } from '../swapPlanner';
 
 const r = (x: number, y: number, w: number, h: number): Rect => ({ x, y, w, h });
 
-describe('pickSwapTarget', () => {
-  it('returns null when nothing overlaps', () => {
-    expect(pickSwapTarget(r(0, 0, 2, 2), [
-      { id: 'a', rect: r(5, 5, 1, 1) },
-      { id: 'b', rect: r(8, 0, 1, 1) },
+describe('findSwapTargetAtCell', () => {
+  it('returns the target whose rect contains the cursor cell', () => {
+    expect(findSwapTargetAtCell({ x: 7, y: 1 }, [
+      { id: 'group', rect: r(6, 0, 6, 4) },
+      { id: 'miss', rect: r(0, 0, 1, 1) },
+    ])).toBe('group');
+  });
+
+  it('returns null when the cursor is on an empty cell adjacent to a widget', () => {
+    // Regression: dropping a 6-wide widget next to a group must NOT swap,
+    // even though the dragged footprint would overlap the group's columns.
+    expect(findSwapTargetAtCell({ x: 3, y: 0 }, [
+      { id: 'group', rect: r(6, 0, 6, 4) },
     ])).toBeNull();
   });
 
-  it('returns the only overlapping target', () => {
-    expect(pickSwapTarget(r(0, 0, 2, 2), [
-      { id: 'hit', rect: r(1, 1, 2, 2) },
-      { id: 'miss', rect: r(5, 5, 1, 1) },
-    ])).toBe('hit');
+  it('treats right and bottom rect edges as exclusive', () => {
+    const others = [{ id: 'a', rect: r(0, 0, 2, 2) }];
+    expect(findSwapTargetAtCell({ x: 2, y: 0 }, others)).toBeNull();
+    expect(findSwapTargetAtCell({ x: 0, y: 2 }, others)).toBeNull();
+    expect(findSwapTargetAtCell({ x: 1, y: 1 }, others)).toBe('a');
   });
 
-  it('picks the candidate with the largest overlap area', () => {
-    // dropped covers (0,0)-(4,4) — 16 cells
-    // a overlaps 1 cell at (3,3)
-    // b overlaps 4 cells at (2,2)-(4,4)
-    expect(pickSwapTarget(r(0, 0, 4, 4), [
-      { id: 'a', rect: r(3, 3, 1, 1) },
-      { id: 'b', rect: r(2, 2, 2, 2) },
-    ])).toBe('b');
-  });
-
-  it('on tied overlap area, picks the top-left target', () => {
-    expect(pickSwapTarget(r(0, 0, 4, 4), [
-      { id: 'bottomRight', rect: r(2, 2, 2, 2) },
-      { id: 'topLeft', rect: r(0, 0, 2, 2) },
-    ])).toBe('topLeft');
-  });
-
-  it('ignores the dragged item itself when not passed in others', () => {
-    // (others should already exclude the dragged item; verify empty case)
-    expect(pickSwapTarget(r(0, 0, 2, 2), [])).toBeNull();
+  it('returns null when there are no candidates', () => {
+    expect(findSwapTargetAtCell({ x: 0, y: 0 }, [])).toBeNull();
   });
 });
 

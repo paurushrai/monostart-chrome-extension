@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, type RefObject, type MutableRefObject } 
 import type { Layout, LayoutItem } from 'react-grid-layout/legacy';
 import { MAIN_COLS, GROUP_DEFAULT_COLS } from '../lib/grid';
 import { WidgetType } from '../lib/widgetCatalog';
-import { pickSwapTarget } from '../lib/swapPlanner';
+import { findSwapTargetAtCell } from '../lib/swapPlanner';
 import type { WidgetItem, LinkItem, GroupItem, DragCoords, GridSlot } from '../types';
 
 const ROW_MARGIN_PX = 16;
@@ -99,6 +99,15 @@ export function useDashboardDrag({
 
   const [activeDragOutItem, setActiveDragOutItem] = useState<WidgetItem | null>(null);
   const [dragOutCoords, setDragOutCoords] = useState<GridSlot | null>(null);
+
+  const collectSwapCandidates = useCallback((excludeId: string) =>
+    links
+      .filter((l) => l.id !== excludeId && !l.isHeaderLink && l.x !== undefined && l.y !== undefined)
+      .map((l) => ({
+        id: l.id,
+        rect: { x: l.x as number, y: l.y as number, w: l.w ?? 1, h: l.h ?? 1 },
+      })),
+  [links]);
 
   const checkCollision = useCallback((x: number, y: number, w: number, h: number): boolean => {
     return links.some((item) => {
@@ -321,16 +330,9 @@ export function useDashboardDrag({
       setActiveSwapTargetId((prev) => (prev ? null : prev));
       return;
     }
-    const hit = links.find((l) =>
-      l.id !== newItem.i &&
-      !l.isHeaderLink &&
-      l.x !== undefined && l.y !== undefined &&
-      cursorCell.x >= l.x && cursorCell.x < l.x + (l.w ?? 1) &&
-      cursorCell.y >= l.y && cursorCell.y < l.y + (l.h ?? 1),
-    );
-    const next = hit?.id ?? null;
+    const next = findSwapTargetAtCell(cursorCell, collectSwapCandidates(newItem.i));
     setActiveSwapTargetId((prev) => (prev === next ? prev : next));
-  }, [draggedItemType, links, computeCursorCell, onHeaderTargetChange]);
+  }, [draggedItemType, collectSwapCandidates, computeCursorCell, onHeaderTargetChange]);
 
   const handleDragStop: RglDragHandler = useCallback((_layout, oldItem, newItem, _placeholder, e) => {
     setActiveDragGroupId(null);
@@ -378,39 +380,20 @@ export function useDashboardDrag({
     if (!draggedItem || draggedItem.isHeaderLink) return;
     if (!oldItem) return;
 
-    const others = links
-      .filter((l) => l.id !== draggedItem.id && !l.isHeaderLink && l.x !== undefined && l.y !== undefined)
-      .map((l) => ({
-        id: l.id,
-        rect: { x: l.x as number, y: l.y as number, w: l.w ?? 1, h: l.h ?? 1 },
-      }));
-
-    let swapTargetId: string | null = null;
+    // Swap only when the cursor is directly over the target — the same rule
+    // that drives the drag-time highlight, so a swap never happens without
+    // the "Swap" badge having been shown.
     const cursorCell = computeCursorCell(clientX, clientY);
-    if (cursorCell) {
-      const hit = others.find((o) =>
-        cursorCell.x >= o.rect.x &&
-        cursorCell.x < o.rect.x + o.rect.w &&
-        cursorCell.y >= o.rect.y &&
-        cursorCell.y < o.rect.y + o.rect.h,
-      );
-      if (hit) swapTargetId = hit.id;
-    }
-
-    if (!swapTargetId) {
-      const slot = computeMainGridDropSlot(draggedItem, clientX, clientY);
-      if (slot) {
-        const intendedRect = { x: slot.gridX, y: slot.gridY, w: slot.w, h: slot.h };
-        swapTargetId = pickSwapTarget(intendedRect, others);
-      }
-    }
+    const swapTargetId = cursorCell
+      ? findSwapTargetAtCell(cursorCell, collectSwapCandidates(draggedItem.id))
+      : null;
 
     if (swapTargetId) {
       onSwap(draggedItem.id, swapTargetId, {
         x: oldItem.x, y: oldItem.y, w: oldItem.w, h: oldItem.h,
       });
     }
-  }, [links, dragCursorCoords, computeMainGridDropSlot, computeCursorCell, computeGroupDropCoords, onMoveItem, onSwap, onHeaderTargetChange]);
+  }, [links, dragCursorCoords, collectSwapCandidates, computeCursorCell, computeGroupDropCoords, onMoveItem, onSwap, onHeaderTargetChange]);
 
   const handleExternalDrop = useCallback((linkId: string, clientX: number, clientY: number): boolean => {
     const externalPlaceholder = { viewMode: 'icon' as const, w: 1, h: 1 } as LinkItem;
