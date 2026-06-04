@@ -22,37 +22,24 @@ export interface SwapOutput {
   targetRect: Rect;
 }
 
-const overlapArea = (a: Rect, b: Rect): number => {
-  const dx = Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x));
-  const dy = Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
-  return dx * dy;
-};
+export interface Cell {
+  x: number;
+  y: number;
+}
 
-export const pickSwapTarget = (
-  dropped: Rect,
+// A swap is intentional only when the cursor itself is over the target —
+// the same rule the drag-time highlight uses. Footprint overlap of the
+// dragged item must NOT trigger swaps: dropping a wide widget adjacent to
+// another would otherwise swap them without any visual cue.
+export const findSwapTargetAtCell = (
+  cell: Cell,
   others: ReadonlyArray<{ id: string; rect: Rect }>,
 ): string | null => {
-  let bestId: string | null = null;
-  let bestArea = 0;
-  let bestY = Infinity;
-  let bestX = Infinity;
-
-  for (const other of others) {
-    const area = overlapArea(dropped, other.rect);
-    if (area <= 0) continue;
-    if (
-      area > bestArea ||
-      (area === bestArea && (other.rect.y < bestY ||
-        (other.rect.y === bestY && other.rect.x < bestX)))
-    ) {
-      bestId = other.id;
-      bestArea = area;
-      bestY = other.rect.y;
-      bestX = other.rect.x;
-    }
-  }
-
-  return bestId;
+  const hit = others.find((o) =>
+    cell.x >= o.rect.x && cell.x < o.rect.x + o.rect.w &&
+    cell.y >= o.rect.y && cell.y < o.rect.y + o.rect.h,
+  );
+  return hit?.id ?? null;
 };
 
 const clamp = (value: number, min: number, max: number): number =>
