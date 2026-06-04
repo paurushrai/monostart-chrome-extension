@@ -20,7 +20,6 @@ const UrlContent = React.memo(function UrlContent({ url, title }: { url?: string
       title={title}
       loading="lazy"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-      allowFullScreen
       referrerPolicy="strict-origin-when-cross-origin"
       className="w-full h-full border-0"
     />
