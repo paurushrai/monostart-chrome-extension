@@ -22,6 +22,9 @@ dist-ssr
 coverage/
 *.tsbuildinfo
 
+# Packaged extension artifacts — published via GitHub Releases, not git
+*.zip
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
