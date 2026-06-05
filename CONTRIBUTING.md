@@ -36,8 +36,9 @@ and include:
 - Your **Chrome version** and **OS**.
 - Screenshots or console output if relevant (`chrome://extensions` → _Inspect views_).
 
-> For **security vulnerabilities**, do **not** open a public issue — email
-> **paurushrai96@gmail.com** privately instead.
+> For **security vulnerabilities**, do **not** open a public issue — report it
+> privately via [GitHub Security Advisories](https://github.com/paurushrai/monostart-chrome-extension/security/advisories/new)
+> or email **paurushrai96@gmail.com**.
 
 ## Development setup
 
@@ -99,6 +100,9 @@ docs(readme): clarify unpacked install steps
 Common types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `style`.
 
 ## Pull requests
+
+The `main` branch is **protected** — direct pushes, force pushes, and branch deletion
+are blocked. All changes land through a pull request from a fork.
 
 1. **Fork** the repo and create a branch: `feat/short-description` or `fix/short-description`.
 2. Make your change; keep the PR **focused** on a single concern.
