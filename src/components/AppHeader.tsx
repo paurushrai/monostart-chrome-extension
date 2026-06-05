@@ -7,7 +7,8 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid, Trash2 } from 'lucide-react';
+import { Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid, Trash2 } from 'lucide-react';
+import MonoStartLogo from './MonoStartLogo';
 import type { WidgetItem, LinkItem, GroupItem, Settings as AppSettings, GridSlot } from '../types';
 import type { UseHeaderDrag } from '../hooks/useHeaderDrag';
 
@@ -64,13 +65,13 @@ export default function AppHeader({
       style={{ color: 'var(--header-fg, hsl(var(--foreground)))' }}
       className={`grid grid-cols-3 items-center px-4 py-2 border-b border-border relative transition-colors ${onWallpaper ? 'header-on-wallpaper' : ''} ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
     >
-      <div className="flex items-center gap-3 bg-zinc-800 dark:bg-black text-white rounded-xl px-3 py-1.5 ring-1 ring-white/10 w-fit">
-        <Hexagon size={28} strokeWidth={2.5} />
-        <div className="flex items-baseline">
-          <h1 className="text-xl font-bold tracking-tight m-0">
+      <div className="flex items-center gap-3 w-fit">
+        <MonoStartLogo size={36} />
+        <div className="flex flex-col">
+          <h1 className="text-lg font-bold tracking-tight leading-none m-0">
             MonoStart
           </h1>
-          <span className="text-xs font-medium opacity-60 ml-3">
+          <span className="text-[10px] font-medium opacity-60 mt-0.5">
             by{' '}
             <a
               href="https://www.paurushrai.in"
