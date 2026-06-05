@@ -178,7 +178,12 @@ function App() {
         isDropTarget={isHeaderTargeted}
       />
 
-      <main className="flex-1">
+      {/* min-h-0 is load-bearing: without it this flex item's min-height:auto
+          floors it at the grid's explicit pixel height, so on viewport shrink
+          (e.g. moving the window to a smaller screen) the ResizeObserver in
+          DashboardGrid re-measures the stale content height and the layout
+          never reflows until refresh. */}
+      <main className="flex-1 min-h-0">
         <DashboardGrid
           links={links.filter((l) => !l.isHeaderLink)}
           onLayoutChange={handleLayoutChange}
