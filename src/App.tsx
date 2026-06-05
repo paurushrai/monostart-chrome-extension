@@ -6,6 +6,7 @@ import ThemeSettingsModal from './components/ThemeSettingsModal';
 import AddLinkModal from './components/AddLinkModal';
 import AppHeader from './components/AppHeader';
 import ClearDashboardModal from './components/ClearDashboardModal';
+import FooterGuide from './components/FooterGuide';
 import Toast from './components/Toast';
 import { useDashboard } from './hooks/useDashboard';
 import { getImageWidgetSize } from './hooks/useGridDimensions';
@@ -229,6 +230,8 @@ function App() {
         links={links}
         onConfirm={handleClearDashboard}
       />
+
+      <FooterGuide />
 
       <Toast message={toast} onDismiss={dismissToast} />
     </div>
