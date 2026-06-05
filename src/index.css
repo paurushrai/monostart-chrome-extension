@@ -75,6 +75,12 @@
   * {
     @apply border-border;
   }
+  /* html carries the theme background too, so nothing stale shows through
+     around scrollbars, overscroll, or cross-display repaints. CSS owns this —
+     a JS-copied snapshot goes stale the moment the theme changes. */
+  html {
+    @apply bg-background;
+  }
   body {
     @apply bg-background text-foreground m-0 p-0 font-sans;
   }

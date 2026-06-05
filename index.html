@@ -12,8 +12,20 @@
     <meta property="og:type" content="website" />
     <title>MonoStart</title>
     <style>
-      html { background-color: hsl(220, 14%, 94%); }
-      html.dark { background-color: hsl(240, 5%, 10%); }
+      /* First-frame paint only: theme-init.js sets the theme vars before
+         first paint, so this matches the user's theme exactly; fallbacks
+         mirror the Default seed. The shift term mirrors --surface-shift in
+         index.css. :where() keeps specificity at zero so the bundled
+         `html { bg-background }` rule wins once the stylesheet loads —
+         hardcoded colors here go stale and show through as a second shade. */
+      :where(html) {
+        background-color: hsl(var(--theme-hue, 0) var(--theme-sat, 0%)
+          calc(94% + clamp(-4%, (var(--theme-lum, 30%) - 50%) / 6, 4%) * (1 - var(--theme-sat-factor, 0))));
+      }
+      :where(html.dark) {
+        background-color: hsl(var(--theme-hue, 0) var(--theme-sat, 0%)
+          calc(10% + clamp(-4%, (var(--theme-lum, 30%) - 50%) / 6, 4%) * (1 - var(--theme-sat-factor, 0))));
+      }
     </style>
     <script src="/theme-init.js"></script>
   </head>

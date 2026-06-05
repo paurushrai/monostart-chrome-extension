@@ -6,9 +6,10 @@
         const isDark = mode === 'dark' || (mode === 'device' && window.matchMedia('(prefers-color-scheme: dark)').matches);
         if (isDark) document.documentElement.classList.add('dark');
 
-        // Match the html element's bg to the theme so it doesn't show through
-        // body around scrollbars or rendering edges. Mirrors the values
-        // useTheme.ts uses when it later applies the custom theme to the body.
+        // html's background itself comes from the `html { bg-background }`
+        // rule in the stylesheet — setting the vars below is enough. Never
+        // write an inline backgroundColor here: inline beats the stylesheet
+        // and goes stale the moment the user switches theme color.
         const themeColor = settings.themeColor; // "<hue> <sat>% <light>%" or undefined
         let hue = 0;
         let sat = '0%';
@@ -22,11 +23,6 @@
                 lum = parseInt(parts[2], 10);
             }
         }
-        // Achromatic seeds shift surface lightness with the seed, bounded to
-        // ±4% — mirrors --surface-shift in index.css.
-        const shift = sat === '0%' ? Math.max(-4, Math.min(4, (lum - 50) / 6)) : 0;
-        const light = (isDark ? 10 : 94) + shift + '%';
-        document.documentElement.style.backgroundColor = 'hsl(' + hue + ', ' + sat + ', ' + light + ')';
 
         // Apply the theme CSS variables synchronously so React's first
         // render already paints with the user's theme. Without this the
