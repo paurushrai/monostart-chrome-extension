@@ -17,8 +17,8 @@ export interface ChromeTheme {
  * captured 2026-06-04. Names follow Chrome's color labels.
  */
 export const CHROME_THEMES: readonly ChromeTheme[] = [
-  { name: 'Default', seed: '220 9% 46%' },
-  { name: 'Grey', seed: '220 6% 60%' },
+  { name: 'Default', seed: '0 0% 30%' },
+  { name: 'Grey', seed: '0 0% 75%' },
   { name: 'Blue', seed: '214 82% 51%' },
   { name: 'Aqua', seed: '187 90% 42%' },
   { name: 'Viridian', seed: '168 76% 36%' },
@@ -33,6 +33,21 @@ export const CHROME_THEMES: readonly ChromeTheme[] = [
   { name: 'Fuchsia', seed: '300 70% 55%' },
   { name: 'Violet', seed: '271 70% 60%' },
 ] as const;
+
+/**
+ * Pre-1.1.1 Default/Grey seeds carried a hue-220 blue cast and rendered as
+ * near-identical blue-greys. Map stored legacy values onto the current pure
+ * greys so the matching preset still shows as selected.
+ */
+const LEGACY_SEED_MIGRATIONS: Readonly<Record<string, string>> = {
+  '220 9% 46%': '0 0% 30%',
+  '220 6% 60%': '0 0% 75%',
+};
+
+export function migrateLegacySeed(seed: string | undefined): string | undefined {
+  if (seed === undefined) return undefined;
+  return LEGACY_SEED_MIGRATIONS[seed] ?? seed;
+}
 
 export interface SwatchTones {
   top: string;

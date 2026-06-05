@@ -5,58 +5,68 @@
 @layer base {
   :root {
     /* Light Mode */
-    --theme-hue: 220;
-    --theme-sat: 14%;
-    
-    --background: var(--theme-hue) var(--theme-sat) 94%; /* Level 0: Deepest background */
-    --foreground: var(--theme-hue) 47% 11%;
-    --muted: var(--theme-hue) var(--theme-sat) 95%;      /* Level 0.5: Inset areas, tracks */
-    --muted-foreground: var(--theme-hue) 16% 47%;
-    --card: var(--theme-hue) var(--theme-sat) 97%;       /* Level 1: Standard cards */
-    --card-foreground: var(--theme-hue) 47% 11%;
+    --theme-hue: 0;
+    --theme-sat: 0%;
+    /* Seed lightness + achromatic flag, set by theme-init.js/useTheme.
+       Surfaces use a fixed lightness ladder, so two seeds differing only in
+       lightness (the grey presets) would otherwise paint identical canvases.
+       For achromatic seeds (sat-factor 0) every surface shifts darker or
+       lighter with the seed, bounded to ±4%; chromatic seeds keep the
+       classic ladder untouched. sat-factor also collapses the fixed
+       foreground/border saturations so hue-0 greys don't tint text red. */
+    --theme-lum: 30%;
+    --theme-sat-factor: 0;
+    --surface-shift: calc(clamp(-4%, (var(--theme-lum) - 50%) / 6, 4%) * (1 - var(--theme-sat-factor)));
+
+    --background: var(--theme-hue) var(--theme-sat) calc(94% + var(--surface-shift)); /* Level 0: Deepest background */
+    --foreground: var(--theme-hue) calc(47% * var(--theme-sat-factor)) 11%;
+    --muted: var(--theme-hue) var(--theme-sat) calc(95% + var(--surface-shift));      /* Level 0.5: Inset areas, tracks */
+    --muted-foreground: var(--theme-hue) calc(16% * var(--theme-sat-factor)) 47%;
+    --card: var(--theme-hue) var(--theme-sat) calc(97% + var(--surface-shift));       /* Level 1: Standard cards */
+    --card-foreground: var(--theme-hue) calc(47% * var(--theme-sat-factor)) 11%;
     --secondary: 0 0% 100%;    /* Level 2: Raised items on cards */
-    --secondary-foreground: var(--theme-hue) 47% 11%;
+    --secondary-foreground: var(--theme-hue) calc(47% * var(--theme-sat-factor)) 11%;
     --popover: 0 0% 100%;      /* Level 2: Floating popovers */
-    --popover-foreground: var(--theme-hue) 47% 11%;
-    --accent: var(--theme-hue) var(--theme-sat) 95%; /* Lighter/darker than popover for hover */
-    --accent-foreground: var(--theme-hue) 47% 11%;
-    
-    --primary: 220 9% 46%;
+    --popover-foreground: var(--theme-hue) calc(47% * var(--theme-sat-factor)) 11%;
+    --accent: var(--theme-hue) var(--theme-sat) calc(95% + var(--surface-shift)); /* Lighter/darker than popover for hover */
+    --accent-foreground: var(--theme-hue) calc(47% * var(--theme-sat-factor)) 11%;
+
+    --primary: 0 0% 30%;
     --primary-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    
-    --border: var(--theme-hue) 32% 88%;
-    --input: var(--theme-hue) 32% 88%;
+
+    --border: var(--theme-hue) calc(32% * var(--theme-sat-factor)) calc(88% + var(--surface-shift));
+    --input: var(--theme-hue) calc(32% * var(--theme-sat-factor)) calc(88% + var(--surface-shift));
     --ring: var(--primary);
     --radius: 0.75rem;
   }
 
   .dark {
     /* Dark Mode (Dark Greyish) */
-    --theme-hue: 240;
-    --theme-sat: 5%;
-    
-    --background: var(--theme-hue) var(--theme-sat) 10%;  /* Level 0: Deepest background */
+    --theme-hue: 0;
+    --theme-sat: 0%;
+
+    --background: var(--theme-hue) var(--theme-sat) calc(10% + var(--surface-shift));  /* Level 0: Deepest background */
     --foreground: 0 0% 98%;
-    --muted: var(--theme-hue) var(--theme-sat) 12%;       /* Level 0.5: Inset areas, tracks */
+    --muted: var(--theme-hue) var(--theme-sat) calc(12% + var(--surface-shift));       /* Level 0.5: Inset areas, tracks */
     --muted-foreground: var(--theme-hue) var(--theme-sat) 65%;
-    --card: var(--theme-hue) var(--theme-sat) 16%;        /* Level 1: Standard cards */
+    --card: var(--theme-hue) var(--theme-sat) calc(16% + var(--surface-shift));        /* Level 1: Standard cards */
     --card-foreground: 0 0% 98%;
-    --secondary: var(--theme-hue) var(--theme-sat) 22%;   /* Level 2: Raised items on cards */
+    --secondary: var(--theme-hue) var(--theme-sat) calc(22% + var(--surface-shift));   /* Level 2: Raised items on cards */
     --secondary-foreground: 0 0% 98%;
-    --popover: var(--theme-hue) var(--theme-sat) 22%;     /* Level 2: Floating popovers */
+    --popover: var(--theme-hue) var(--theme-sat) calc(22% + var(--surface-shift));     /* Level 2: Floating popovers */
     --popover-foreground: 0 0% 98%;
-    --accent: var(--theme-hue) var(--theme-sat) 28%;      /* Lighter than popover for hover */
+    --accent: var(--theme-hue) var(--theme-sat) calc(28% + var(--surface-shift));      /* Lighter than popover for hover */
     --accent-foreground: 0 0% 98%;
-    
-    --primary: 220 9% 46%;
+
+    --primary: 0 0% 30%;
     --primary-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    
-    --border: var(--theme-hue) var(--theme-sat) 28%;
-    --input: var(--theme-hue) var(--theme-sat) 28%;
+
+    --border: var(--theme-hue) var(--theme-sat) calc(28% + var(--surface-shift));
+    --input: var(--theme-hue) var(--theme-sat) calc(28% + var(--surface-shift));
     --ring: var(--primary);
   }
 }
