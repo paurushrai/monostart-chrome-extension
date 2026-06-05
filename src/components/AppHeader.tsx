@@ -71,7 +71,7 @@ export default function AppHeader({
           <h1 className="text-lg font-bold tracking-tight leading-none m-0">
             MonoStart
           </h1>
-          <span className="text-[10px] font-medium opacity-60 mt-0.5">
+          <span className="text-[11px] font-medium opacity-60 mt-0.5">
             by{' '}
             <a
               href="https://www.paurushrai.in"
