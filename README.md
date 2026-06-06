@@ -111,7 +111,31 @@ npm install
 npm run build
 ```
 
-Then load it into Chrome:
+### From source with Docker (no Node.js required)
+
+The `Dockerfile` is a reproducible build pipeline — it runs the full quality gate
+(typecheck + lint + tests) and exports the loadable extension. The extension itself
+runs in Chrome, not in a container.
+
+```bash
+# 1. Clone
+git clone https://github.com/paurushrai/monostart-chrome-extension.git
+cd monostart-chrome-extension
+
+# 2. Build the extension → outputs to dist/
+docker build --target export --output type=local,dest=dist .
+```
+
+Re-run the same `docker build` command after pulling changes, then reload the
+extension in `chrome://extensions`. To run only the quality gate (no output):
+
+```bash
+docker build --target builder .
+```
+
+### Load into Chrome
+
+Whichever way you built `dist/`:
 
 1. Open `chrome://extensions`
 2. Enable **Developer mode** (top-right)
