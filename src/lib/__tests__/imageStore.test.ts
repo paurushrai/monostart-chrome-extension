@@ -15,9 +15,14 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => {
+afterEach(async () => {
   vi.unstubAllGlobals();
-  indexedDB.deleteDatabase('monostart-images');
+  await new Promise<void>((resolve, reject) => {
+    const req = indexedDB.deleteDatabase('monostart-images');
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error ?? new Error('deleteDatabase failed'));
+    req.onblocked = () => resolve();
+  });
 });
 
 const blob = () => new Blob(['hello'], { type: 'image/webp' });

@@ -25,14 +25,17 @@ const runTx = async <T>(
   return new Promise<T>((resolve, reject) => {
     const tx = db.transaction(STORE, mode);
     const request = fn(tx.objectStore(STORE));
-    request.onsuccess = () => {
+    const fail = (error: DOMException | null, fallback: string): void => {
+      db.close();
+      reject(error ?? new Error(fallback));
+    };
+    tx.oncomplete = () => {
       db.close();
       resolve(request.result);
     };
-    request.onerror = () => {
-      db.close();
-      reject(request.error ?? new Error('IndexedDB request failed'));
-    };
+    tx.onerror = () => fail(tx.error, 'IndexedDB transaction failed');
+    tx.onabort = () => fail(tx.error, 'IndexedDB transaction aborted');
+    request.onerror = () => fail(request.error, 'IndexedDB request failed');
   });
 };
 
