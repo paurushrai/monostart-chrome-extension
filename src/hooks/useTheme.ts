@@ -8,15 +8,14 @@ import {
 } from '../lib/color';
 import { deriveBackgroundTheme } from '../lib/backgroundTheme';
 import { migrateLegacySeed } from '../lib/chromeThemes';
+import { computeSnappedSurfaces, SNAPPED_SURFACE_VARS } from '../lib/surfaceColors';
 import type { Settings } from '../types';
 
 const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '0 0% 30%' };
 
 const DARK_TINT_SAT = '30%';
 const LIGHT_TINT_SAT = '40%';
-/* Mirrors the --background lightness ladder + --surface-shift in index.css. */
-const BG_LIGHTNESS_DARK = 10;
-const BG_LIGHTNESS_LIGHT = 94;
+/* Mirrors --surface-shift in index.css. */
 const SHIFT_DIVISOR = 6;
 const SHIFT_CLAMP = 4;
 const LIGHT_HEADER_FG = '0 0% 98%';
@@ -40,8 +39,8 @@ const applyAccent = (accentHsl: string, isDark: boolean): void => {
   let themeSat = LIGHT_TINT_SAT;
   if (s === 0) themeSat = '0%';
   else if (isDark) themeSat = DARK_TINT_SAT;
-  style.setProperty('--primary', accent);
-  style.setProperty('--ring', accent);
+  style.setProperty('--primary', snapHslToIntegerRgb(accent));
+  style.setProperty('--ring', snapHslToIntegerRgb(accent));
   style.setProperty('--primary-foreground', foreground);
   style.setProperty('--theme-hue', String(h));
   style.setProperty('--theme-sat', themeSat);
@@ -50,16 +49,28 @@ const applyAccent = (accentHsl: string, isDark: boolean): void => {
   style.setProperty('--theme-lum', `${l}%`);
   style.setProperty('--theme-sat-factor', s === 0 ? '0' : '1');
 
-  // The dashboard background must land on exact integer sRGB channels:
+  // Every painted surface must land on exact integer sRGB channels:
   // fractional values (e.g. hsl(214 30% 10%) → rgb 17.85, 23.46, 33.15)
   // quantize differently between rasterization passes when Chrome converts
-  // to wide-gamut display profiles, splitting large surfaces into two
-  // near-identical shades. Compute the same color the CSS calc would and
-  // snap it (see snapHslToIntegerRgb).
+  // to wide-gamut display profiles, splitting surfaces into two
+  // near-identical shades. Override the CSS calc ladder with snapped values.
+  const satFactor = s === 0 ? 0 : 1;
   const shift = s === 0 ? Math.max(-SHIFT_CLAMP, Math.min(SHIFT_CLAMP, (l - 50) / SHIFT_DIVISOR)) : 0;
-  const bgLightness = (isDark ? BG_LIGHTNESS_DARK : BG_LIGHTNESS_LIGHT) + shift;
-  const bgSat = parseFloat(themeSat);
-  style.setProperty('--background', snapHslToIntegerRgb(`${h} ${bgSat}% ${bgLightness}%`));
+  const surfaces = computeSnappedSurfaces({
+    h,
+    themeSat: parseFloat(themeSat),
+    satFactor,
+    shift,
+    isDark,
+  });
+  for (const [varName, value] of Object.entries(surfaces)) {
+    style.setProperty(varName, value);
+  }
+  // Light mode has no snapped --secondary/--popover (pure white, CSS-owned):
+  // clear any leftovers from a previous dark-mode application.
+  for (const varName of SNAPPED_SURFACE_VARS) {
+    if (!(varName in surfaces)) style.removeProperty(varName);
+  }
 };
 
 const clearAccent = (): void => {
@@ -72,7 +83,7 @@ const clearAccent = (): void => {
     '--theme-sat',
     '--theme-lum',
     '--theme-sat-factor',
-    '--background',
+    ...SNAPPED_SURFACE_VARS,
   ]) {
     style.removeProperty(prop);
   }
