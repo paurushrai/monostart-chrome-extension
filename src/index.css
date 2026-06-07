@@ -5,58 +5,68 @@
 @layer base {
   :root {
     /* Light Mode */
-    --theme-hue: 220;
-    --theme-sat: 14%;
-    
-    --background: var(--theme-hue) var(--theme-sat) 94%; /* Level 0: Deepest background */
-    --foreground: var(--theme-hue) 47% 11%;
-    --muted: var(--theme-hue) var(--theme-sat) 95%;      /* Level 0.5: Inset areas, tracks */
-    --muted-foreground: var(--theme-hue) 16% 47%;
-    --card: var(--theme-hue) var(--theme-sat) 97%;       /* Level 1: Standard cards */
-    --card-foreground: var(--theme-hue) 47% 11%;
+    --theme-hue: 0;
+    --theme-sat: 0%;
+    /* Seed lightness + achromatic flag, set by theme-init.js/useTheme.
+       Surfaces use a fixed lightness ladder, so two seeds differing only in
+       lightness (the grey presets) would otherwise paint identical canvases.
+       For achromatic seeds (sat-factor 0) every surface shifts darker or
+       lighter with the seed, bounded to ±4%; chromatic seeds keep the
+       classic ladder untouched. sat-factor also collapses the fixed
+       foreground/border saturations so hue-0 greys don't tint text red. */
+    --theme-lum: 30%;
+    --theme-sat-factor: 0;
+    --surface-shift: calc(clamp(-4%, (var(--theme-lum) - 50%) / 6, 4%) * (1 - var(--theme-sat-factor)));
+
+    --background: var(--theme-hue) var(--theme-sat) calc(94% + var(--surface-shift)); /* Level 0: Deepest background */
+    --foreground: var(--theme-hue) calc(47% * var(--theme-sat-factor)) 11%;
+    --muted: var(--theme-hue) var(--theme-sat) calc(95% + var(--surface-shift));      /* Level 0.5: Inset areas, tracks */
+    --muted-foreground: var(--theme-hue) calc(16% * var(--theme-sat-factor)) 47%;
+    --card: var(--theme-hue) var(--theme-sat) calc(97% + var(--surface-shift));       /* Level 1: Standard cards */
+    --card-foreground: var(--theme-hue) calc(47% * var(--theme-sat-factor)) 11%;
     --secondary: 0 0% 100%;    /* Level 2: Raised items on cards */
-    --secondary-foreground: var(--theme-hue) 47% 11%;
+    --secondary-foreground: var(--theme-hue) calc(47% * var(--theme-sat-factor)) 11%;
     --popover: 0 0% 100%;      /* Level 2: Floating popovers */
-    --popover-foreground: var(--theme-hue) 47% 11%;
-    --accent: var(--theme-hue) var(--theme-sat) 95%; /* Lighter/darker than popover for hover */
-    --accent-foreground: var(--theme-hue) 47% 11%;
-    
-    --primary: 239 84% 67%;
+    --popover-foreground: var(--theme-hue) calc(47% * var(--theme-sat-factor)) 11%;
+    --accent: var(--theme-hue) var(--theme-sat) calc(95% + var(--surface-shift)); /* Lighter/darker than popover for hover */
+    --accent-foreground: var(--theme-hue) calc(47% * var(--theme-sat-factor)) 11%;
+
+    --primary: 0 0% 30%;
     --primary-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    
-    --border: var(--theme-hue) 32% 88%;
-    --input: var(--theme-hue) 32% 88%;
+
+    --border: var(--theme-hue) calc(32% * var(--theme-sat-factor)) calc(88% + var(--surface-shift));
+    --input: var(--theme-hue) calc(32% * var(--theme-sat-factor)) calc(88% + var(--surface-shift));
     --ring: var(--primary);
     --radius: 0.75rem;
   }
 
   .dark {
     /* Dark Mode (Dark Greyish) */
-    --theme-hue: 240;
-    --theme-sat: 5%;
-    
-    --background: var(--theme-hue) var(--theme-sat) 10%;  /* Level 0: Deepest background */
+    --theme-hue: 0;
+    --theme-sat: 0%;
+
+    --background: var(--theme-hue) var(--theme-sat) calc(10% + var(--surface-shift));  /* Level 0: Deepest background */
     --foreground: 0 0% 98%;
-    --muted: var(--theme-hue) var(--theme-sat) 12%;       /* Level 0.5: Inset areas, tracks */
+    --muted: var(--theme-hue) var(--theme-sat) calc(12% + var(--surface-shift));       /* Level 0.5: Inset areas, tracks */
     --muted-foreground: var(--theme-hue) var(--theme-sat) 65%;
-    --card: var(--theme-hue) var(--theme-sat) 16%;        /* Level 1: Standard cards */
+    --card: var(--theme-hue) var(--theme-sat) calc(16% + var(--surface-shift));        /* Level 1: Standard cards */
     --card-foreground: 0 0% 98%;
-    --secondary: var(--theme-hue) var(--theme-sat) 22%;   /* Level 2: Raised items on cards */
+    --secondary: var(--theme-hue) var(--theme-sat) calc(22% + var(--surface-shift));   /* Level 2: Raised items on cards */
     --secondary-foreground: 0 0% 98%;
-    --popover: var(--theme-hue) var(--theme-sat) 22%;     /* Level 2: Floating popovers */
+    --popover: var(--theme-hue) var(--theme-sat) calc(22% + var(--surface-shift));     /* Level 2: Floating popovers */
     --popover-foreground: 0 0% 98%;
-    --accent: var(--theme-hue) var(--theme-sat) 28%;      /* Lighter than popover for hover */
+    --accent: var(--theme-hue) var(--theme-sat) calc(28% + var(--surface-shift));      /* Lighter than popover for hover */
     --accent-foreground: 0 0% 98%;
-    
-    --primary: 239 84% 67%;
+
+    --primary: 0 0% 30%;
     --primary-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    
-    --border: var(--theme-hue) var(--theme-sat) 28%;
-    --input: var(--theme-hue) var(--theme-sat) 28%;
+
+    --border: var(--theme-hue) var(--theme-sat) calc(28% + var(--surface-shift));
+    --input: var(--theme-hue) var(--theme-sat) calc(28% + var(--surface-shift));
     --ring: var(--primary);
   }
 }
@@ -64,6 +74,12 @@
 @layer base {
   * {
     @apply border-border;
+  }
+  /* html carries the theme background too, so nothing stale shows through
+     around scrollbars, overscroll, or cross-display repaints. CSS owns this —
+     a JS-copied snapshot goes stale the moment the theme changes. */
+  html {
+    @apply bg-background;
   }
   body {
     @apply bg-background text-foreground m-0 p-0 font-sans;
@@ -181,9 +197,39 @@
   filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.6)) !important;
 }
 
-/* Disable transition animations for all grid items to prevent right-to-left layout slides on mount/reload */
+/* Disable all transitions on grid items and their contents so the layout
+   (and widgets inside it) never animate/glide on move, resize, or reload */
+.react-grid-item,
+.react-grid-item * {
+  transition: transform 200ms ease-in-out, opacity 200ms ease-in-out !important;
+  transform-origin: center !important;
+}
+
+/* Items should appear from their own center, not slide in from a corner.
+   RGL positions items with `transform: translate()`, so transitioning the
+   item's transform animates that translation (the left-to-right slide) and
+   transform-origin can't fix it. Instead: don't transition the item's own
+   position, and scale/fade the item's content in from center on mount. */
 .react-grid-item {
   transition: none !important;
+}
+@keyframes gridItemAppear {
+  from { transform: scale(0.96); }
+  to   { transform: scale(1); }
+}
+.react-grid-item > * {
+  animation: gridItemAppear 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: center center;
+}
+
+/* Footer-guide pointer: Tailwind's animate-bounce translates up, which would
+   overlap the card above the arrow — nudge downward (toward the footer) instead. */
+@keyframes footerGuideNudgeDown {
+  0%, 100% { transform: translateY(0); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+  50% { transform: translateY(25%); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+}
+.footer-guide-nudge-down {
+  animation: footerGuideNudgeDown 1s infinite;
 }
 
 /* Make pasted embed snippets (iframe / blockquote) fill the widget regardless of their hardcoded dimensions */
@@ -212,5 +258,15 @@
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Header legibility on wallpapers: lift text and icons with a halo opposite the
+   adaptive text colour. --header-fg / --header-shadow are set by useTheme only
+   when a background is active. */
+.header-on-wallpaper {
+  text-shadow: 0 1px 3px var(--header-shadow, rgba(0, 0, 0, 0.45));
+}
+.header-on-wallpaper :where(svg, img) {
+  filter: drop-shadow(0 1px 2px var(--header-shadow, rgba(0, 0, 0, 0.45)));
 }
 

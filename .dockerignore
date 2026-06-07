@@ -1,0 +1,23 @@
+node_modules
+dist
+.git
+.vite
+coverage
+*.tsbuildinfo
+*.log
+*.zip
+.env
+.env.*
+.DS_Store
+.vscode
+.idea
+.claude
+graphify-out
+
+# Not part of the extension build
+site
+docs
+store-assets
+netlify.toml
+*.md
+LICENSE

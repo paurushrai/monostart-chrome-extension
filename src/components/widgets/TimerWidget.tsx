@@ -3,7 +3,7 @@ import { Clock, Plus, Trash2, X, Play, Pause, RotateCcw } from 'lucide-react';
 import { useWidgetStorage } from '../../hooks/useWidgetStorage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { TimerWidget as TimerWidgetItem, TimerEntry } from '../../types';
+import type { TimerItem, TimerEntry } from '../../types';
 
 const formatTime = (ms: number): string => {
   if (ms <= 0) return "00:00";
@@ -78,7 +78,7 @@ const TimerItem = ({ timer, onUpdate, onDelete }: Readonly<TimerItemProps>) => {
           variant="ghost"
           size="icon"
           onClick={() => onDelete(timer.id)}
-          title="Delete timer"
+          title="Delete Timer"
           className="h-5 w-5 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 hover:bg-transparent transition-opacity"
         >
           <X size={12} />
@@ -102,7 +102,7 @@ const TimerItem = ({ timer, onUpdate, onDelete }: Readonly<TimerItemProps>) => {
 };
 
 interface Props {
-  item: TimerWidgetItem;
+  item: TimerItem;
   onDelete: (id: string) => void;
   isEditing: boolean;
 }
@@ -140,7 +140,7 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
   };
 
   return (
-    <article className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
+    <article className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-card/65 backdrop-blur-md">
       <header className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'py-1 drag-handle cursor-grab active:cursor-grabbing' : 'py-0.5'}`}>
         <div className="flex items-center gap-1.5">
           <Clock size={isEditing ? 12 : 10} className="text-primary" aria-hidden="true" />
@@ -177,7 +177,7 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
         ))}
       </ul>
 
-      <form onSubmit={handleAdd} className="p-1.5 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl">
+      <form onSubmit={handleAdd} className="p-1.5 border-t border-border shrink-0 bg-gray-50/50 dark:bg-black/10 rounded-b-xl">
         <div className="flex gap-1.5">
           <Input
             type="number"
@@ -193,7 +193,7 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             type="text"
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
-            placeholder="Label (opt)"
+            placeholder="Label (optional)"
             aria-label="Timer label (optional)"
             className="h-7 flex-1 min-w-0 bg-gray-100 dark:bg-white/5 border-none rounded-sm px-2 text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
           />
@@ -201,7 +201,7 @@ const TimerWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             type="submit"
             size="icon"
             disabled={!newMinutes}
-            title="Add timer"
+            title="Add Timer"
             className="h-7 w-7 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 disabled:opacity-50 rounded-sm"
           >
             <Plus size={14} />

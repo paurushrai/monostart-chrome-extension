@@ -12,22 +12,23 @@ import {
 } from './ui/dropdown-menu';
 import { Button } from './ui/button';
 import { MoreHorizontal, Trash2, FolderInput, Home, Folder, Edit2, Link2, Eye, Image as ImageIcon, Type, Check } from 'lucide-react';
-import { resolveFavicon, buildFaviconUrl } from '../lib/favicon';
-import type { RegularLink, GridSlot } from '../types';
+import { siteFaviconUrl } from '../lib/favicon';
+import Favicon from './Favicon';
+import type { LinkItem, GridSlot } from '../types';
 
-interface SectionRef {
+interface GroupRef {
   id: string;
   title: string;
 }
 
 interface Props {
-  item: RegularLink;
+  item: LinkItem;
   isEditing: boolean;
   openInNewTab?: boolean;
-  sections?: SectionRef[];
-  onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  groups?: GroupRef[];
+  onMoveItem?: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
   onDelete: (id: string) => void;
-  onUpdateLink: (id: string, updates: Partial<RegularLink>) => void;
+  onUpdateItem: (id: string, updates: Partial<LinkItem>) => void;
   draggedHeaderLinkId: string | null;
   dragOverHeaderLinkId: string | null;
   onDragStart: (id: string, e: DragEvent) => void;
@@ -40,10 +41,10 @@ const HeaderLink = ({
   item,
   isEditing,
   openInNewTab,
-  sections = [],
-  onMoveLink,
+  groups = [],
+  onMoveItem,
   onDelete,
-  onUpdateLink,
+  onUpdateItem,
   draggedHeaderLinkId,
   dragOverHeaderLinkId,
   onDragStart,
@@ -56,7 +57,6 @@ const HeaderLink = ({
   const siteName = item.customName || item.title || 'Link';
   const url = item.url;
 
-  const favicon = resolveFavicon(item);
   const showAsText = item.viewMode === 'text';
 
   const handleRename = (e: MouseEvent) => {
@@ -65,7 +65,7 @@ const HeaderLink = ({
     if (newName !== null) {
       const trimmed = newName.trim();
       if (trimmed) {
-        onUpdateLink(item.id, { customName: trimmed });
+        onUpdateItem(item.id, { customName: trimmed });
       }
     }
     setIsMenuOpen(false);
@@ -80,12 +80,7 @@ const HeaderLink = ({
         if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
           trimmed = 'https://' + trimmed;
         }
-        const newFavicon = buildFaviconUrl(trimmed);
-        if (newFavicon) {
-          onUpdateLink(item.id, { url: trimmed, favicon: newFavicon });
-        } else {
-          onUpdateLink(item.id, { url: trimmed });
-        }
+        onUpdateItem(item.id, { url: trimmed, favicon: siteFaviconUrl(trimmed) });
       }
     }
     setIsMenuOpen(false);
@@ -101,20 +96,17 @@ const HeaderLink = ({
         {siteName}
       </span>
     );
-  } else if (favicon) {
-    linkContent = (
-      <img
-        src={favicon}
-        alt=""
-        draggable={false}
-        className="w-5 h-5 object-contain rounded-[3px] pointer-events-none"
-      />
-    );
   } else {
     linkContent = (
-      <div className="flex items-center justify-center text-muted-foreground w-5 h-5 pointer-events-none">
-        <Link2 size={14} />
-      </div>
+      <Favicon
+        item={item}
+        className="w-5 h-5 object-contain rounded-[3px] pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]"
+        fallback={
+          <div className="flex items-center justify-center text-muted-foreground w-5 h-5 pointer-events-none">
+            <Link2 size={14} />
+          </div>
+        }
+      />
     );
   }
 
@@ -189,7 +181,7 @@ const HeaderLink = ({
                   <DropdownMenuSubContent className="w-36" onMouseDown={(e) => e.stopPropagation()}>
                     <DropdownMenuItem
                       onClick={() => {
-                        onUpdateLink(item.id, { viewMode: 'icon' });
+                        onUpdateItem(item.id, { viewMode: 'icon' });
                         setIsMenuOpen(false);
                       }}
                       className="flex items-center justify-between cursor-pointer"
@@ -202,7 +194,7 @@ const HeaderLink = ({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
-                        onUpdateLink(item.id, { viewMode: 'text' });
+                        onUpdateItem(item.id, { viewMode: 'text' });
                         setIsMenuOpen(false);
                       }}
                       className="flex items-center justify-between cursor-pointer"
@@ -217,7 +209,7 @@ const HeaderLink = ({
                 </DropdownMenuPortal>
               </DropdownMenuSub>
 
-              {onMoveLink && (
+              {onMoveItem && (
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="flex items-center gap-2">
                     <FolderInput size={13} className="text-muted-foreground" />
@@ -227,7 +219,7 @@ const HeaderLink = ({
                     <DropdownMenuSubContent className="w-44" onMouseDown={(e) => e.stopPropagation()}>
                       <DropdownMenuItem 
                         onClick={() => {
-                          onMoveLink(item.id, null);
+                          onMoveItem(item.id, null);
                           setIsMenuOpen(false);
                         }}
                         className="flex items-center gap-2"
@@ -235,11 +227,11 @@ const HeaderLink = ({
                         <Home size={13} className="text-muted-foreground" />
                         <span>Main Dashboard</span>
                       </DropdownMenuItem>
-                      {sections.map(s => (
+                      {groups.map(s => (
                         <DropdownMenuItem 
                           key={s.id} 
                           onClick={() => {
-                            onMoveLink(item.id, s.id);
+                            onMoveItem(item.id, s.id);
                             setIsMenuOpen(false);
                           }}
                           className="flex items-center gap-2"

@@ -1,25 +1,27 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import DashboardGrid from './components/DashboardGrid';
+import DashboardBackground from './components/DashboardBackground';
 import AddWidgetModal from './components/AddWidgetModal';
 import ThemeSettingsModal from './components/ThemeSettingsModal';
 import AddLinkModal from './components/AddLinkModal';
 import AppHeader from './components/AppHeader';
 import ImportBookmarksModal from './components/ImportBookmarksModal';
 import ClearDashboardModal from './components/ClearDashboardModal';
+import FooterGuide from './components/FooterGuide';
 import Toast from './components/Toast';
-import { useLinks } from './hooks/useLinks';
-import { getPhotoWidgetSize } from './hooks/useGridDimensions';
+import { useDashboard } from './hooks/useDashboard';
+import { getImageWidgetSize } from './hooks/useGridDimensions';
 import { useTheme } from './hooks/useTheme';
 import { useHeaderDrag } from './hooks/useHeaderDrag';
 import { useToast } from './hooks/useToast';
-import { disambiguateSections } from './lib/disambiguateSections';
-import { getLinksSync } from './lib/storage';
+import { disambiguateGroups } from './lib/disambiguateGroups';
+import { getItemsSync } from './lib/storage';
 import { buildImport, readBookmarkTree } from './lib/bookmarkImport';
-import type { LinkItem, Section } from './types';
+import type { WidgetItem, GroupItem } from './types';
 
 interface AddWidgetInput {
-  type: LinkItem['type'];
-  defaults?: Partial<LinkItem>;
+  type: WidgetItem['type'];
+  defaults?: Partial<WidgetItem>;
 }
 
 const EDIT_MODE_KEY = 'dashboardEditMode';
@@ -39,7 +41,7 @@ function App() {
     handleHeaderLinkReorder,
     handleSwap,
     addWidget,
-  } = useLinks({ onSwapFailed: showToast });
+  } = useDashboard({ onSwapFailed: showToast });
 
   const { settings, updateSettings } = useTheme();
   const headerDrag = useHeaderDrag(handleHeaderLinkReorder);
@@ -47,10 +49,10 @@ function App() {
   const [isEditing, setIsEditing] = useState<boolean>(() => {
     try { return localStorage.getItem(EDIT_MODE_KEY) === 'true'; } catch { return false; }
   });
-  const [originalLinks, setOriginalLinks] = useState<LinkItem[]>(() => {
+  const [originalLinks, setOriginalLinks] = useState<WidgetItem[]>(() => {
     try {
       const raw = localStorage.getItem(ORIGINAL_LINKS_KEY);
-      return raw ? (JSON.parse(raw) as LinkItem[]) : [];
+      return raw ? (JSON.parse(raw) as WidgetItem[]) : [];
     } catch { return []; }
   });
   const [modalOpen, setModalOpen] = useState(false);
@@ -60,9 +62,9 @@ function App() {
   const [clearModalOpen, setClearModalOpen] = useState(false);
   const [isHeaderTargeted, setIsHeaderTargeted] = useState(false);
 
-  const preAddSnapshotRef = useRef<LinkItem[] | null>(null);
+  const preAddSnapshotRef = useRef<WidgetItem[] | null>(null);
 
-  const enterEditModeWithSnapshot = useCallback((snapshot: LinkItem[]) => {
+  const enterEditModeWithSnapshot = useCallback((snapshot: WidgetItem[]) => {
     setOriginalLinks(snapshot);
     setIsEditing(true);
     try {
@@ -72,7 +74,7 @@ function App() {
   }, []);
 
   const enterEditMode = useCallback(() => {
-    enterEditModeWithSnapshot(getLinksSync());
+    enterEditModeWithSnapshot(getItemsSync());
   }, [enterEditModeWithSnapshot]);
 
   const enterEditModeAfterAdd = useCallback(() => {
@@ -80,13 +82,13 @@ function App() {
       preAddSnapshotRef.current = null;
       return;
     }
-    const snapshot = preAddSnapshotRef.current ?? getLinksSync();
+    const snapshot = preAddSnapshotRef.current ?? getItemsSync();
     preAddSnapshotRef.current = null;
     enterEditModeWithSnapshot(snapshot);
   }, [isEditing, enterEditModeWithSnapshot]);
 
   const saveEditMode = useCallback(() => {
-    const isEmptyImage = (l: LinkItem) => l.type === 'image' && !(l.url ?? '').trim();
+    const isEmptyImage = (l: WidgetItem) => l.type === 'image' && !(l.url ?? '').trim();
     const emptyImageCount = links.filter(isEmptyImage).length;
     if (emptyImageCount > 0) {
       replaceLinks(links.filter((l) => !isEmptyImage(l)));
@@ -126,7 +128,7 @@ function App() {
 
   const runBookmarkImport = useCallback(async () => {
     try {
-      const snapshot = getLinksSync();
+      const snapshot = getItemsSync();
       const namedRoots = await readBookmarkTree();
       const result = buildImport(snapshot, namedRoots);
       if (result.bookmarksImported === 0) {
@@ -134,16 +136,16 @@ function App() {
         return;
       }
       enterEditModeWithSnapshot(snapshot);
-      replaceLinks(result.links);
+      replaceLinks(result.items);
       const parts: string[] = [];
       parts.push(`Imported ${result.bookmarksImported} bookmark${result.bookmarksImported === 1 ? '' : 's'}`);
-      if (result.sectionsCreated > 0) parts.push(`${result.sectionsCreated} new section${result.sectionsCreated === 1 ? '' : 's'}`);
-      if (result.sectionsMerged > 0) parts.push(`${result.sectionsMerged} merged`);
+      if (result.groupsCreated > 0) parts.push(`${result.groupsCreated} new group${result.groupsCreated === 1 ? '' : 's'}`);
+      if (result.groupsMerged > 0) parts.push(`${result.groupsMerged} merged`);
       showToast(`${parts.join(' · ')}. Review and Save, or Cancel to undo.`);
-      if (result.firstNewSectionId) {
+      if (result.firstNewGroupId) {
         setTimeout(() => {
           document
-            .querySelector(`[data-item-id="${result.firstNewSectionId}"]`)
+            .querySelector(`[data-item-id="${result.firstNewGroupId}"]`)
             ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 250);
       }
@@ -157,9 +159,9 @@ function App() {
       showToast('Only one Google search widget is allowed.');
       return;
     }
-    if (!isEditing) preAddSnapshotRef.current = getLinksSync();
+    if (!isEditing) preAddSnapshotRef.current = getItemsSync();
     const sized = widget.type === 'image'
-      ? { ...widget, defaults: { ...widget.defaults, ...getPhotoWidgetSize() } }
+      ? { ...widget, defaults: { ...widget.defaults, ...getImageWidgetSize() } }
       : widget;
     const saved = await addWidget(sized);
     if (!saved) {
@@ -170,27 +172,39 @@ function App() {
     enterEditModeAfterAdd();
   }, [addWidget, showToast, links, isEditing, enterEditModeAfterAdd]);
 
-  const sections = disambiguateSections(
-    links.filter((l): l is Section => l.type === 'section'),
+  const groups = disambiguateGroups(
+    links.filter((l): l is GroupItem => l.type === 'group'),
   );
 
+  const hasBackground = !!(settings.background && settings.background.type !== 'none' && settings.background.value);
+
+  // theme-init.js injects a one-time <style> (pre-React anti-flash background).
+  // Remove it once React mounts so DashboardBackground fully owns the background;
+  // otherwise removing/changing the background at runtime wouldn't take effect
+  // until a refresh (the injected pseudo-element background would persist).
+  useEffect(() => {
+    document.getElementById('monostart-bg-init')?.remove();
+  }, []);
+
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-background transition-colors duration-200">
+    <div className={`flex flex-col h-screen w-screen overflow-hidden transition-colors duration-200 ${hasBackground ? 'bg-transparent' : 'bg-background'}`}>
+      <DashboardBackground background={settings.background} />
+      <div className="relative z-10 flex flex-col flex-1 min-h-0">
       <AppHeader
         links={links}
         isEditing={isEditing}
         settings={settings}
         onUpdateSettings={updateSettings}
-        onMoveLink={handleMoveLink}
+        onMoveItem={handleMoveLink}
         onDelete={handleDelete}
-        onUpdateLink={handleUpdateLink}
+        onUpdateItem={handleUpdateLink}
         headerDrag={headerDrag}
         onEnterEdit={enterEditMode}
         onSaveEdit={saveEditMode}
         onCancelEdit={cancelEditMode}
         onClearDashboard={() => setClearModalOpen(true)}
         onOpenAddLink={() => {
-          if (!isEditing) preAddSnapshotRef.current = getLinksSync();
+          if (!isEditing) preAddSnapshotRef.current = getItemsSync();
           setAddLinkModalOpen(true);
         }}
         onOpenAddWidget={() => setModalOpen(true)}
@@ -200,21 +214,27 @@ function App() {
         isDropTarget={isHeaderTargeted}
       />
 
-      <main className="flex-1">
+      {/* min-h-0 is load-bearing: without it this flex item's min-height:auto
+          floors it at the grid's explicit pixel height, so on viewport shrink
+          (e.g. moving the window to a smaller screen) the ResizeObserver in
+          DashboardGrid re-measures the stale content height and the layout
+          never reflows until refresh. */}
+      <main className="flex-1 min-h-0">
         <DashboardGrid
           links={links.filter((l) => !l.isHeaderLink)}
           onLayoutChange={handleLayoutChange}
           onDelete={handleDelete}
           onViewModeChange={handleViewModeChange}
-          onUpdateLink={handleUpdateLink}
+          onUpdateItem={handleUpdateLink}
           isEditing={isEditing}
           openInNewTab={settings.openInNewTab}
-          sections={sections}
-          onMoveLink={handleMoveLink}
+          groups={groups}
+          onMoveItem={handleMoveLink}
           onSwap={handleSwap}
           onHeaderTargetChange={setIsHeaderTargeted}
         />
       </main>
+      </div>
 
       <AddWidgetModal
         open={modalOpen}
@@ -236,7 +256,7 @@ function App() {
           setAddLinkModalOpen(false);
         }}
         onAfterAdd={enterEditModeAfterAdd}
-        sections={sections}
+        groups={groups}
       />
 
       <ImportBookmarksModal
@@ -251,6 +271,8 @@ function App() {
         links={links}
         onConfirm={handleClearDashboard}
       />
+
+      <FooterGuide />
 
       <Toast message={toast} onDismiss={dismissToast} />
     </div>

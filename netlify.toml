@@ -1,0 +1,15 @@
+# Netlify config for the MonoStart privacy-policy site.
+# This publishes ONLY the static `site/` folder — it does NOT build the
+# Chrome extension. The no-op command stops Netlify from auto-detecting Vite
+# and running `npm run build` against the extension.
+[build]
+  command = "echo 'Static site — no build step'"
+  publish = "site"
+
+# Security headers for the hosted policy page.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"

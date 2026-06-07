@@ -3,12 +3,13 @@ import type { Layout } from 'react-grid-layout/legacy';
 import { X, Check } from 'lucide-react';
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import SectionHeader from './section/SectionHeader';
-import SectionInnerGrid from './section/SectionInnerGrid';
-import { useSectionDragOut } from '../../hooks/useSectionDragOut';
+import GroupHeader from './group/GroupHeader';
+import GroupInnerGrid from './group/GroupInnerGrid';
+import { useGroupDragOut } from '../../hooks/useGroupDragOut';
 import { HEADER_LINK_DRAG_TYPE } from '../../hooks/useHeaderDrag';
 import { findFirstFreeSlot } from '../../lib/grid';
-import type { Section, RegularLink, LinkItem, DragCoords, GridSlot } from '../../types';
+import { siteFaviconUrl } from '../../lib/favicon';
+import type { GroupItem, LinkItem, WidgetItem, DragCoords, GridSlot } from '../../types';
 
 const PRESET_COLORS = [
   { name: 'Red', hsl: '346 87% 61%' },
@@ -25,35 +26,35 @@ const PRESET_COLORS = [
   { name: 'Neutral', hsl: '0 0% 50%' },
 ];
 
-interface SectionRef {
+interface GroupRef {
   id: string;
   title: string;
 }
 
 interface Props {
-  item: Section;
+  item: GroupItem;
   onDelete: (id: string) => void;
-  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
+  onUpdateItem: (id: string, updates: Partial<WidgetItem>) => void;
   isEditing: boolean;
   openInNewTab?: boolean;
-  sections?: SectionRef[];
-  onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  groups?: GroupRef[];
+  onMoveItem?: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
   isDraggedOver: boolean;
   dragCursorCoords: DragCoords | null;
-  onInnerDragStart: (link: RegularLink, sectionId: string) => void;
-  onInnerDrag: (link: RegularLink, sectionId: string, x: number, y: number) => void;
-  onInnerDragStop: (link: RegularLink, sectionId: string, x: number, y: number) => void;
-  draggedItem: LinkItem | null;
+  onInnerDragStart: (link: LinkItem, groupId: string) => void;
+  onInnerDrag: (link: LinkItem, groupId: string, x: number, y: number) => void;
+  onInnerDragStop: (link: LinkItem, groupId: string, x: number, y: number) => void;
+  draggedItem: WidgetItem | null;
 }
 
-const SectionWidget = ({
+const GroupWidget = ({
   item,
   onDelete,
-  onUpdateLink,
+  onUpdateItem,
   isEditing,
   openInNewTab,
-  sections = [],
-  onMoveLink,
+  groups = [],
+  onMoveItem,
   isDraggedOver,
   dragCursorCoords,
   onInnerDragStart,
@@ -91,13 +92,13 @@ const SectionWidget = ({
     e.preventDefault();
     e.stopPropagation();
     const linkId = e.dataTransfer.getData(HEADER_LINK_DRAG_TYPE);
-    if (!linkId || !onMoveLink) return;
-    onMoveLink(linkId, item.id);
+    if (!linkId || !onMoveItem) return;
+    onMoveItem(linkId, item.id);
   };
 
-  const dragOut = useSectionDragOut({
+  const dragOut = useGroupDragOut({
     containerRef,
-    sectionId: item.id,
+    groupId: item.id,
     links,
     onInnerDragStart,
     onInnerDrag,
@@ -113,7 +114,7 @@ const SectionWidget = ({
   const handleTitleBlur = (e: FocusEvent<HTMLSpanElement>) => {
     const newTitle = e.target.innerText.trim();
     if (newTitle && newTitle !== title) {
-      onUpdateLink(item.id, { title: newTitle });
+      onUpdateItem(item.id, { title: newTitle });
     }
   };
 
@@ -138,13 +139,13 @@ const SectionWidget = ({
     try {
       const urlObj = new URL(url);
       linkTitle = urlObj.hostname.replace('www.', '');
-      favicon = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(url)}&size=128`;
+      favicon = siteFaviconUrl(url);
     } catch {
       linkTitle = url;
     }
 
     const currentCols = cols;
-    const newLinkItem: RegularLink = {
+    const newLinkItem: LinkItem = {
       id: `link-${Date.now()}`,
       type: 'link',
       url,
@@ -167,7 +168,7 @@ const SectionWidget = ({
       newLinkItem.y = slot.y;
     }
 
-    onUpdateLink(item.id, { links: [...links, newLinkItem] });
+    onUpdateItem(item.id, { links: [...links, newLinkItem] });
     setNewUrl('');
     setIsAddingLink(false);
   };
@@ -183,7 +184,7 @@ const SectionWidget = ({
         (a, b) => (yById.get(a.id) ?? 0) - (yById.get(b.id) ?? 0),
       );
       const changed = reordered.some((l, i) => l.id !== links[i]?.id);
-      if (changed) onUpdateLink(item.id, { links: reordered });
+      if (changed) onUpdateItem(item.id, { links: reordered });
       return;
     }
     const updatedLinks = links.map((l) => {
@@ -191,15 +192,15 @@ const SectionWidget = ({
       if (!layoutItem) return l;
       return { ...l, x: layoutItem.x, y: layoutItem.y, w: layoutItem.w, h: layoutItem.h };
     });
-    onUpdateLink(item.id, { links: updatedLinks });
+    onUpdateItem(item.id, { links: updatedLinks });
   };
 
   const handleUpdateLayout = (next: 'grid' | 'list') => {
-    onUpdateLink(item.id, { layout: next });
+    onUpdateItem(item.id, { layout: next });
   };
 
   const handleInnerDelete = (linkId: string) => {
-    onUpdateLink(item.id, { links: links.filter((l) => l.id !== linkId) });
+    onUpdateItem(item.id, { links: links.filter((l) => l.id !== linkId) });
   };
 
   const handleInnerViewModeChange = (linkId: string, newMode: 'icon' | 'icon+text') => {
@@ -215,12 +216,12 @@ const SectionWidget = ({
       }
       return l;
     });
-    onUpdateLink(item.id, { links: updatedLinks });
+    onUpdateItem(item.id, { links: updatedLinks });
   };
 
-  const handleInnerUpdateLink = (linkId: string, updates: Partial<RegularLink>) => {
+  const handleInnerUpdateLink = (linkId: string, updates: Partial<LinkItem>) => {
     const updatedLinks = links.map((l) => (l.id === linkId ? { ...l, ...updates } : l));
-    onUpdateLink(item.id, { links: updatedLinks });
+    onUpdateItem(item.id, { links: updatedLinks });
   };
 
   const handleUpdateCols = (newCols: number) => {
@@ -230,7 +231,7 @@ const SectionWidget = ({
       const x = Math.min(l.x ?? 0, newCols - w);
       return { ...l, w, x };
     });
-    onUpdateLink(item.id, { cols: newCols, links: updatedLinks });
+    onUpdateItem(item.id, { cols: newCols, links: updatedLinks });
   };
 
   const isHsl = borderColor.split(' ').length >= 2;
@@ -240,7 +241,7 @@ const SectionWidget = ({
 
   return (
     <div
-      data-section-id={item.id}
+      data-group-id={item.id}
       className={`relative flex flex-col w-full h-full bg-card/65 backdrop-blur-md rounded-xl border-2 border-dashed transition-all duration-300 ${isEditing ? 'drag-handle cursor-grab active:cursor-grabbing' : ''} ${isHeaderDragOver ? 'ring-2 ring-primary/60 ring-offset-2 ring-offset-background' : ''}`}
       style={{
         borderColor: borderMutedCssColor,
@@ -250,7 +251,7 @@ const SectionWidget = ({
       onDragLeave={handleHeaderDragLeave}
       onDrop={handleHeaderDrop}
     >
-      <SectionHeader
+      <GroupHeader
         title={title}
         count={links.length}
         cols={cols}
@@ -271,7 +272,7 @@ const SectionWidget = ({
       {showColorPicker && isEditing && (
         <div
           role="radiogroup"
-          aria-label="Section border color"
+          aria-label="Group border color"
           className="mt-4 mx-3 px-3 py-2 bg-secondary/40 border border-border/40 rounded-lg flex flex-wrap gap-1.5 justify-center items-center select-none"
           onMouseDown={(e) => e.stopPropagation()}
         >
@@ -283,7 +284,7 @@ const SectionWidget = ({
               role="radio"
               aria-checked={borderColor === color.hsl}
               onClick={() => {
-                onUpdateLink(item.id, { borderColor: color.hsl });
+                onUpdateItem(item.id, { borderColor: color.hsl });
                 setShowColorPicker(false);
               }}
               className={`w-5 h-5 p-0 rounded-full transition-transform hover:scale-110 ring-offset-background ${
@@ -338,18 +339,18 @@ const SectionWidget = ({
         </form>
       )}
 
-      <SectionInnerGrid
-        sectionId={item.id}
+      <GroupInnerGrid
+        groupId={item.id}
         cols={cols}
-        sectionLayout={layout}
+        groupLayout={layout}
         isEditing={isEditing}
         links={links}
         isDraggedOver={isDraggedOver}
         draggedItem={draggedItem}
         dragCursorCoords={dragCursorCoords}
         openInNewTab={openInNewTab}
-        sections={sections}
-        onMoveLink={onMoveLink}
+        groups={groups}
+        onMoveItem={onMoveItem}
         borderCssColor={borderCssColor}
         textCssColor={textCssColor}
         containerRef={containerRef}
@@ -366,4 +367,4 @@ const SectionWidget = ({
   );
 };
 
-export default SectionWidget;
+export default GroupWidget;

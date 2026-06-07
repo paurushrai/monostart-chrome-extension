@@ -4,8 +4,8 @@ import LensSearchModal from './LensSearchModal';
 import VoiceSearchOverlay from './VoiceSearchOverlay';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { buildFaviconUrl } from '../../lib/favicon';
-import type { GoogleSearch, LinkItem } from '../../types';
+import Favicon from '../Favicon';
+import type { GoogleSearchItem, WidgetItem } from '../../types';
 
 const GoogleLogo = ({ className = '', mono = false }: { className?: string; mono?: boolean }) => (
   <span
@@ -48,6 +48,7 @@ interface SpeechRecognitionLike {
   onerror: (() => void) | null;
   onend: (() => void) | null;
   start: () => void;
+  abort: () => void;
 }
 
 declare global {
@@ -95,21 +96,21 @@ const GoogleMicIcon = ({ size = 20 }: { size?: number }) => (
 const isLikelyUrl = (text: string) => /^(https?:\/\/|[\w-]+\.[\w-]+)/.test(text.trim());
 
 interface Props {
-  item: GoogleSearch;
+  item: GoogleSearchItem;
   onDelete: (id: string) => void;
-  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
+  onUpdateItem: (id: string, updates: Partial<WidgetItem>) => void;
   isEditing: boolean;
 }
 
-const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonly<Props>) => {
+const GoogleSearchWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props>) => {
   const variant: 'bar' | 'logo' = item.variant ?? 'bar';
   const logoStyle: 'color' | 'mono' = item.logoStyle ?? 'color';
   const toggleVariant = () => {
     const nextVariant = variant === 'logo' ? 'bar' : 'logo';
-    onUpdateLink(item.id, { variant: nextVariant, h: nextVariant === 'logo' ? 4 : 1 } as Partial<LinkItem>);
+    onUpdateItem(item.id, { variant: nextVariant, h: nextVariant === 'logo' ? 4 : 1 } as Partial<WidgetItem>);
   };
   const toggleLogoStyle = () => {
-    onUpdateLink(item.id, { logoStyle: logoStyle === 'color' ? 'mono' : 'color' } as Partial<LinkItem>);
+    onUpdateItem(item.id, { logoStyle: logoStyle === 'color' ? 'mono' : 'color' } as Partial<WidgetItem>);
   };
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -120,6 +121,17 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const containerRef = useRef<HTMLDivElement | null>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const recognizerRef = useRef<SpeechRecognitionLike | null>(null);
+
+  // Release the speech recognizer (and the microphone it holds) if the widget
+  // unmounts mid-listen — otherwise the recognizer keeps the mic active with no
+  // handle to stop it.
+  useEffect(() => {
+    return () => {
+      recognizerRef.current?.abort();
+      recognizerRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -274,7 +286,11 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
       window.open('https://www.google.com/?gws_rd=ssl#spf=1', '_self');
       return;
     }
+    // Stop any prior session before starting a new one so repeated clicks
+    // never leave concurrent recognizers holding the mic.
+    recognizerRef.current?.abort();
     const r = new Recognizer();
+    recognizerRef.current = r;
     r.interimResults = true;
     r.lang = 'en-US';
 
@@ -306,6 +322,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
     };
 
     r.onend = () => {
+      if (recognizerRef.current === r) recognizerRef.current = null;
       setTimeout(() => setVoiceOpen(false), 500);
     };
 
@@ -393,7 +410,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
             size="icon"
             onClick={handleVoice}
             title="Voice search"
-            className="h-auto p-1 flex-shrink-0 hover:bg-transparent"
+            className="h-auto p-1 flex-shrink-0 hover:bg-transparent dark:hover:bg-transparent"
             tabIndex={-1}
           >
             <GoogleMicIcon size={20} />
@@ -404,7 +421,7 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
             size="icon"
             onClick={() => setLensOpen(true)}
             title="Search any image with Lens"
-            className="h-auto p-1 ml-1 flex-shrink-0 hover:bg-transparent"
+            className="h-auto p-1 ml-1 flex-shrink-0 hover:bg-transparent dark:hover:bg-transparent"
             tabIndex={-1}
           >
             <LensIcon size={18} />
@@ -422,7 +439,6 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
               if (isVisitedLink && suggestion.url) {
                 try { host = new URL(suggestion.url).hostname.replace(/^www\./, ''); } catch { /* ignore */ }
               }
-              const favicon = isVisitedLink && suggestion.url ? buildFaviconUrl(suggestion.url) : null;
               return (
                 <div
                   key={idx}
@@ -431,8 +447,12 @@ const GoogleSearchWidget = ({ item, onDelete, onUpdateLink, isEditing }: Readonl
                   className={`flex items-center px-5 py-1.5 cursor-pointer ${idx === activeIndex ? 'bg-gray-100' : 'hover:bg-gray-100'}`}
                   onClick={() => navigateToSuggestion(suggestion)}
                 >
-                  {isVisitedLink && favicon ? (
-                    <img src={favicon} alt="" className="w-4 h-4 mr-4 flex-shrink-0 rounded-sm" />
+                  {isVisitedLink && suggestion.url ? (
+                    <Favicon
+                      item={{ url: suggestion.url }}
+                      className="w-4 h-4 mr-4 flex-shrink-0 rounded-sm"
+                      fallback={<History size={16} className="text-gray-400 mr-4 flex-shrink-0" />}
+                    />
                   ) : suggestion.type === 'history' ? (
                     <History size={16} className="text-gray-400 mr-4 flex-shrink-0" />
                   ) : (

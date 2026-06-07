@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getSettings, getLinks } from '../lib/storage';
-import { saveLink } from '../lib/linkRepository';
-import { disambiguateSections } from '../lib/disambiguateSections';
-import { BookmarkPlus, Check, ExternalLink, Bell, X, Repeat, LayoutGrid, Bookmark, Folder, ChevronDown, Hexagon } from 'lucide-react';
+import { getSettings, getItems } from '../lib/storage';
+import { saveItem } from '../lib/itemRepository';
+import { disambiguateGroups } from '../lib/disambiguateGroups';
+import { BookmarkPlus, Check, ExternalLink, Bell, X, Repeat, LayoutGrid, Bookmark, Folder, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import type { Settings, Section } from '../types';
+import type { Settings, GroupItem } from '../types';
 
 interface PendingReminder {
   firedId: string;
@@ -29,19 +29,19 @@ interface TabInfo {
   favicon: string;
 }
 
-type Destination = 'main' | 'header' | string;
+type Destination = 'main' | 'header' | (string & {});
 
 function PopupApp() {
   const [saved, setSaved] = useState(false);
   const [tabInfo, setTabInfo] = useState<TabInfo | null>(null);
   const [canSave, setCanSave] = useState(false);
   const [pending, setPending] = useState<PendingReminder[]>([]);
-  const [sections, setSections] = useState<Section[]>([]);
+  const [groups, setGroups] = useState<GroupItem[]>([]);
   const [destination, setDestination] = useState<Destination>('main');
 
   useEffect(() => {
-    getLinks().then((links) => {
-      setSections(links.filter((l): l is Section => l.type === 'section'));
+    getItems().then((links) => {
+      setGroups(links.filter((l): l is GroupItem => l.type === 'group'));
     });
 
     if (typeof chrome !== 'undefined' && chrome.storage) {
@@ -59,7 +59,9 @@ function PopupApp() {
         }
       });
     } else {
-      setTabInfo({ url: 'https://www.google.com', title: 'Example Site', favicon: '' });
+      Promise.resolve().then(() => {
+        setTabInfo({ url: 'https://www.google.com', title: 'Example Site', favicon: '' });
+      });
     }
 
     getSettings().then((settings: Settings) => {
@@ -67,22 +69,22 @@ function PopupApp() {
       if (settings.themeColor) {
         document.documentElement.style.setProperty('--primary', settings.themeColor);
         document.documentElement.style.setProperty('--ring', settings.themeColor);
-        
+
         const parts = settings.themeColor.split(' ');
         if (parts.length >= 2 && parts[0] && parts[1]) {
           document.documentElement.style.setProperty('--theme-hue', parts[0]);
-          const baseSat = parseInt(parts[1], 10);
+          const baseSat = Number.parseInt(parts[1], 10);
           if (baseSat === 0) {
             document.documentElement.style.setProperty('--theme-sat', '0%');
           } else {
             const mode = settings.themeMode || 'device';
-            const isDark = mode === 'dark' || (mode === 'device' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            const isDark = mode === 'dark' || (mode === 'device' && globalThis.matchMedia('(prefers-color-scheme: dark)').matches);
             document.documentElement.style.setProperty('--theme-sat', isDark ? '30%' : '40%');
           }
         }
       }
       const applyMode = (mode: Settings['themeMode']) => {
-        const isDark = mode === 'dark' || (mode === 'device' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const isDark = mode === 'dark' || (mode === 'device' && globalThis.matchMedia('(prefers-color-scheme: dark)').matches);
         if (isDark) {
           document.documentElement.classList.add('dark');
         } else {
@@ -100,11 +102,11 @@ function PopupApp() {
     if (!tabInfo || !canSave) return;
     const base = { type: 'link' as const, url: tabInfo.url, title: tabInfo.title, favicon: tabInfo.favicon };
     if (destination === 'header') {
-      await saveLink({ ...base, isHeaderLink: true });
+      await saveItem({ ...base, isHeaderLink: true });
     } else if (destination === 'main') {
-      await saveLink({ ...base, viewMode: 'icon', w: 1, h: 1 });
+      await saveItem({ ...base, viewMode: 'icon', w: 1, h: 1 });
     } else {
-      await saveLink({ ...base, viewMode: 'icon', w: 1, h: 1 }, destination);
+      await saveItem({ ...base, viewMode: 'icon', w: 1, h: 1 }, destination);
     }
     setSaved(true);
     setTimeout(() => window.close(), 1500);
@@ -120,15 +122,19 @@ function PopupApp() {
     }
   }, [tabUrl]);
 
-  const displaySections = useMemo(() => disambiguateSections(sections), [sections]);
-  const destinationLabel =
-    destination === 'main' ? 'Main dashboard' :
-    destination === 'header' ? 'Header bar' :
-    displaySections.find((s) => s.id === destination)?.title ?? 'Main dashboard';
-  const DestinationIcon =
-    destination === 'main' ? LayoutGrid :
-    destination === 'header' ? Bookmark :
-    Folder;
+  const displayGroups = useMemo(() => disambiguateGroups(groups), [groups]);
+  const destinationLabel = (() => {
+    if (destination === 'main') return 'Main dashboard';
+    if (destination === 'header') return 'Header bar';
+    const found = displayGroups.find((s) => s.id === destination)?.title;
+    return found ?? 'Main dashboard';
+  })();
+
+  const DestinationIcon = useMemo(() => {
+    if (destination === 'main') return LayoutGrid;
+    if (destination === 'header') return Bookmark;
+    return Folder;
+  }, [destination]);
 
   const handleOpenDashboard = () => {
     if (typeof chrome !== 'undefined' && chrome.tabs) {
@@ -178,16 +184,16 @@ function PopupApp() {
                 key={p.firedId}
                 className="group flex items-start gap-2 px-2 py-1.5 rounded-lg bg-white/60 dark:bg-black/20"
               >
-                {p.recurrence !== 'none' ? (
-                  <Repeat size={11} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
-                ) : (
+                {p.recurrence === 'none' ? (
                   <span className="w-[11px]" aria-hidden="true" />
+                ) : (
+                  <Repeat size={11} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-ink break-words">{p.text}</p>
                   <p className="text-2xs text-muted-foreground mt-0.5">
                     {p.timeLabel}
-                    {p.recurrence !== 'none' && <span> · {p.recurrence}</span>}
+                    {p.recurrence === 'none' ? null : <span> · {p.recurrence}</span>}
                   </p>
                 </div>
                 <Button
@@ -207,7 +213,6 @@ function PopupApp() {
       )}
 
       <h3 className="m-0 text-sm font-semibold text-ink flex justify-center items-center gap-1.5 border-b pb-4">
-        <Hexagon size={16} strokeWidth={2.5} className="text-white" aria-hidden="true" />
         Save to MonoStart
       </h3>
 
@@ -215,7 +220,7 @@ function PopupApp() {
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="w-9 h-9 rounded-lg bg-bg-hover flex items-center justify-center shrink-0 overflow-hidden">
             {tabInfo.favicon ? (
-              <img src={tabInfo.favicon} alt="" className="w-5 h-5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]" />
+              <img src={tabInfo.favicon} alt="" className="w-5 h-5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]" />
             ) : (
               <Bookmark size={16} className="text-muted-foreground" />
             )}
@@ -255,8 +260,8 @@ function PopupApp() {
           <DropdownMenuItem onClick={() => setDestination('header')} className="text-xs">
             <Bookmark size={13} className="mr-2" aria-hidden="true" /> Header bar
           </DropdownMenuItem>
-          {displaySections.length > 0 && <DropdownMenuSeparator />}
-          {displaySections.map((s) => (
+          {displayGroups.length > 0 && <DropdownMenuSeparator />}
+          {displayGroups.map((s) => (
             <DropdownMenuItem key={s.id} onClick={() => setDestination(s.id)} className="text-xs">
               <Folder size={13} className="mr-2" aria-hidden="true" /> {s.title}
             </DropdownMenuItem>

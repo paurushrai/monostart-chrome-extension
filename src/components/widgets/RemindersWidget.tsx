@@ -17,7 +17,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
-import type { Reminders as RemindersItem, ReminderEntry } from '../../types';
+import type { RemindersItem, ReminderEntry } from '../../types';
 
 interface Props {
   item: RemindersItem;
@@ -145,7 +145,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
   };
 
   return (
-    <article className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-white dark:bg-card">
+    <article className="card-base w-full h-full relative group overflow-hidden flex flex-col bg-card/65 backdrop-blur-md">
       <header className={`flex items-center justify-between px-2 border-b border-border bg-gray-50/50 dark:bg-black/10 shrink-0 rounded-t-xl ${isEditing ? 'py-1 drag-handle cursor-grab active:cursor-grabbing' : 'py-0.5'}`}>
         <div className="flex items-center gap-1.5">
           <Bell size={isEditing ? 12 : 10} className="text-primary" aria-hidden="true" />
@@ -205,7 +205,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
                 size="icon"
                 onClick={() => removeOne(r.id)}
                 className="h-5 w-5 opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-red-500 hover:bg-transparent transition-opacity shrink-0 mt-0.5"
-                title="Delete reminder"
+                title="Delete Reminder"
               >
                 <X size={14} />
               </Button>
@@ -214,7 +214,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
         })}
       </ul>
 
-      <form onSubmit={handleAdd} className="p-1.5 border-t border-border shrink-0 bg-white dark:bg-card rounded-b-xl space-y-1">
+      <form onSubmit={handleAdd} className="p-1.5 border-t border-border shrink-0 bg-gray-50/50 dark:bg-black/10 rounded-b-xl space-y-1">
         <Input
           type="text"
           value={text}
@@ -322,7 +322,7 @@ const RemindersWidget = ({ item, onDelete, isEditing }: Readonly<Props>) => {
             size="icon"
             disabled={!text.trim()}
             className="h-7 w-7 rounded-sm bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 dark:active:bg-primary/80 disabled:opacity-40 shrink-0"
-            title="Add reminder"
+            title="Add Reminder"
           >
             <Plus size={14} strokeWidth={3} />
           </Button>

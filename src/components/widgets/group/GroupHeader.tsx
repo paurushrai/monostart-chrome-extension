@@ -33,7 +33,7 @@ interface Props {
   onDelete: () => void;
 }
 
-export default function SectionHeader({
+export default function GroupHeader({
   title,
   count,
   cols,
@@ -76,7 +76,7 @@ export default function SectionHeader({
       {isEditing && (
         <div
           role="toolbar"
-          aria-label="Section actions"
+          aria-label="Group actions"
           className="flex items-center gap-0.5 shrink-0"
           onMouseDown={(e) => e.stopPropagation()}
         >
@@ -180,7 +180,7 @@ export default function SectionHeader({
                 className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"
               >
                 <Trash2 className="mr-2 h-3.5 w-3.5" />
-                Delete Section
+                Delete Group
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

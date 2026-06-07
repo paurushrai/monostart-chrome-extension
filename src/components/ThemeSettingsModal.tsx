@@ -1,7 +1,27 @@
+import { useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Monitor } from 'lucide-react';
-import type { Settings } from '../types';
+import { Input } from "@/components/ui/input";
+import { Sun, Moon, Monitor, Upload } from 'lucide-react';
+import type { Settings, DashboardBackground } from '../types';
+import ThemeSwatch from './ThemeSwatch';
+import { CHROME_THEMES } from '../lib/chromeThemes';
+
+const bgColors = ['#0f172a', '#111827', '#1e293b', '#18181b', '#1e3a8a', '#3730a3', '#0b3b2e', '#7f1d1d'];
+const bgGradients = [
+  { name: 'Dusk', value: 'linear-gradient(135deg,#1e3a8a,#6d28d9)' },
+  { name: 'Sunset', value: 'linear-gradient(135deg,#f97316,#db2777)' },
+  { name: 'Ocean', value: 'linear-gradient(135deg,#0ea5e9,#14b8a6)' },
+  { name: 'Forest', value: 'linear-gradient(160deg,#065f46,#022c22)' },
+  { name: 'Slate', value: 'linear-gradient(160deg,#334155,#0f172a)' },
+  { name: 'Aurora', value: 'linear-gradient(135deg,#7c3aed,#2563eb,#06b6d4)' },
+];
+const bgTypes: ReadonlyArray<{ id: DashboardBackground['type']; label: string }> = [
+  { id: 'none', label: 'None' },
+  { id: 'color', label: 'Color' },
+  { id: 'gradient', label: 'Gradient' },
+  { id: 'image', label: 'Image' },
+];
 
 interface Props {
   open: boolean;
@@ -12,24 +32,9 @@ interface Props {
 
 type ThemeMode = NonNullable<Settings['themeMode']>;
 
-const presetColors = [
-  { name: 'Red', hsl: '346 87% 61%' },
-  { name: 'Pink', hsl: '326 100% 74%' },
-  { name: 'Purple', hsl: '271 91% 65%' },
-  { name: 'Indigo', hsl: '239 84% 67%' },
-  { name: 'Blue', hsl: '200 73% 52%' },
-  { name: 'Cyan', hsl: '189 94% 43%' },
-  { name: 'Teal', hsl: '175 84% 32%' },
-  { name: 'Green', hsl: '142 71% 45%' },
-  { name: 'Yellow', hsl: '45 93% 47%' },
-  { name: 'Orange', hsl: '24 100% 50%' },
-  { name: 'Slate', hsl: '215 16% 47%' },
-  { name: 'Neutral', hsl: '0 0% 50%' },
-];
-
 export default function ThemeSettingsModal({ open, onOpenChange, settings, updateSettings }: Readonly<Props>) {
   const currentMode: ThemeMode = settings.themeMode || 'device';
-  const currentColor = settings.themeColor || '239 84% 67%';
+  const currentColor = settings.themeColor || '0 0% 30%';
 
   const setMode = (mode: ThemeMode) => {
     updateSettings({ ...settings, themeMode: mode });
@@ -39,10 +44,49 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
     updateSettings({ ...settings, themeColor: colorHsl });
   };
 
+  const [showCustomHue, setShowCustomHue] = useState(false);
+  const isCustomColor = !CHROME_THEMES.some((theme) => theme.seed === currentColor);
+
+  const selectPreset = (seed: string) => {
+    setShowCustomHue(false);
+    setColor(seed);
+  };
+
+  const bg: DashboardBackground = settings.background ?? { type: 'none' };
+  const setBg = (next: Partial<DashboardBackground>) => {
+    updateSettings({ ...settings, background: { ...bg, ...next } });
+  };
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [bgError, setBgError] = useState('');
+
+  const chooseType = (t: DashboardBackground['type']) => {
+    setBgError('');
+    if (t === 'color') setBg({ type: 'color', value: bg.type === 'color' && bg.value ? bg.value : bgColors[0] });
+    else if (t === 'gradient') setBg({ type: 'gradient', value: bg.type === 'gradient' && bg.value ? bg.value : bgGradients[0]!.value });
+    else if (t === 'image') setBg({ type: 'image', value: bg.type === 'image' ? bg.value : '' });
+    else setBg({ type: 'none' });
+  };
+
+  const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 1.5 * 1024 * 1024) {
+      setBgError('Image must be under 1.5 MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result;
+      if (typeof result === 'string') { setBg({ type: 'image', value: result }); setBgError(''); }
+    };
+    reader.onerror = () => setBgError('Failed to read file.');
+    reader.readAsDataURL(file);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-md bg-card border-border text-foreground"
+        className="sm:max-w-md max-h-[85vh] overflow-y-auto bg-card border-border text-foreground"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
@@ -94,24 +138,32 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
 
           <section aria-labelledby="primary-color-heading" className="space-y-3">
             <h4 id="primary-color-heading" className="text-sm font-medium text-foreground">Primary Color</h4>
-            <div role="radiogroup" aria-label="Primary color presets" className="grid grid-cols-6 gap-3">
-              {presetColors.map((color) => (
-                <Button
-                  key={color.name}
-                  type="button"
-                  variant="ghost"
-                  role="radio"
-                  aria-checked={currentColor === color.hsl}
-                  onClick={() => setColor(color.hsl)}
-                  className={`w-10 h-10 p-0 rounded-full transition-transform hover:scale-110 ${
-                    currentColor === color.hsl ? 'ring-2 ring-offset-2 ring-offset-background ring-foreground' : 'ring-1 ring-border'
-                  }`}
-                  style={{ backgroundColor: `hsl(${color.hsl})` }}
-                  title={color.name}
+            <div role="radiogroup" aria-label="Primary color presets" className="grid grid-cols-4 gap-3 justify-items-center">
+              {CHROME_THEMES.map((theme) => (
+                <ThemeSwatch
+                  key={theme.name}
+                  theme={theme}
+                  selected={currentColor === theme.seed}
+                  onSelect={selectPreset}
                 />
               ))}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={isCustomColor}
+                aria-label="Custom color"
+                title="Custom color"
+                onClick={() => setShowCustomHue(true)}
+                className={`w-10 h-10 p-0 rounded-full transition-transform hover:scale-110 ${
+                  isCustomColor
+                    ? 'ring-2 ring-offset-2 ring-offset-background ring-foreground'
+                    : 'ring-1 ring-border'
+                }`}
+                style={{ background: 'conic-gradient(from 90deg, #ff0000, #ffea00, #00ff2f, #00e5ff, #2f00ff, #ff00d4, #ff0000)' }}
+              />
             </div>
             
+            {(isCustomColor || showCustomHue) && (
             <div className="pt-2">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-foreground">Custom Hue</span>
@@ -127,7 +179,7 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
                 value={currentColor.split(' ')[0]}
                 onChange={(e) => {
                   const hue = e.target.value;
-                  setColor(`${hue} 80% 55%`);
+                  setColor(`${hue} 70% 50%`);
                 }}
                 className="w-full h-3 rounded-full appearance-none cursor-pointer border border-border/50 shadow-inner"
                 style={{
@@ -155,6 +207,124 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
                 }
               `}</style>
             </div>
+            )}
+          </section>
+
+          <section aria-labelledby="background-heading" className="space-y-3">
+            <h4 id="background-heading" className="text-sm font-medium text-foreground">Background</h4>
+
+            <div role="radiogroup" aria-label="Background type" className="flex bg-muted p-1 rounded-lg border border-border">
+              {bgTypes.map((t) => (
+                <Button
+                  key={t.id}
+                  type="button"
+                  variant="ghost"
+                  role="radio"
+                  aria-checked={bg.type === t.id}
+                  onClick={() => chooseType(t.id)}
+                  className={`flex-1 h-auto py-1.5 rounded-md text-xs font-medium transition-all ${
+                    bg.type === t.id ? 'bg-card shadow-sm text-foreground hover:bg-card' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {t.label}
+                </Button>
+              ))}
+            </div>
+
+            {bg.type === 'color' && (
+              <div role="radiogroup" aria-label="Background color" className="grid grid-cols-8 gap-2">
+                {bgColors.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    role="radio"
+                    aria-checked={bg.value === c}
+                    onClick={() => setBg({ value: c })}
+                    className={`w-full aspect-square rounded-md transition-transform hover:scale-110 ${
+                      bg.value === c ? 'ring-2 ring-offset-2 ring-offset-background ring-foreground' : 'ring-1 ring-border'
+                    }`}
+                    style={{ backgroundColor: c }}
+                    title={c}
+                  />
+                ))}
+              </div>
+            )}
+
+            {bg.type === 'gradient' && (
+              <div role="radiogroup" aria-label="Background gradient" className="grid grid-cols-3 gap-2">
+                {bgGradients.map((g) => (
+                  <button
+                    key={g.name}
+                    type="button"
+                    role="radio"
+                    aria-checked={bg.value === g.value}
+                    onClick={() => setBg({ value: g.value })}
+                    className={`h-12 rounded-md transition-transform hover:scale-[1.03] ${
+                      bg.value === g.value ? 'ring-2 ring-offset-2 ring-offset-background ring-foreground' : 'ring-1 ring-border'
+                    }`}
+                    style={{ backgroundImage: g.value }}
+                    title={g.name}
+                  />
+                ))}
+              </div>
+            )}
+
+            {bg.type === 'image' && (
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  placeholder="Paste image URL..."
+                  value={bg.value && !bg.value.startsWith('data:') ? bg.value : ''}
+                  onChange={(e) => setBg({ value: e.target.value })}
+                />
+                <input type="file" accept="image/*" ref={fileRef} onChange={handleBgUpload} className="hidden" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileRef.current?.click()}
+                  className="w-full h-8 gap-1.5 border-dashed"
+                >
+                  <Upload size={12} /> Upload Image
+                </Button>
+                {bg.value?.startsWith('data:') && (
+                  <p className="text-2xs text-muted-foreground text-center">Custom image uploaded.</p>
+                )}
+                {bgError && <p className="text-2xs text-red-500 text-center">{bgError}</p>}
+              </div>
+            )}
+
+            {bg.type !== 'none' && (
+              <div className="space-y-3 pt-1">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium text-foreground">Blur</span>
+                    <span className="text-2xs text-muted-foreground">{bg.blur ?? 0}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={20}
+                    value={bg.blur ?? 0}
+                    onChange={(e) => setBg({ blur: Number(e.target.value) })}
+                    className="w-full h-2 rounded-full appearance-none cursor-pointer bg-muted border border-border/50"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium text-foreground">Dim</span>
+                    <span className="text-2xs text-muted-foreground">{Math.round((bg.dim ?? 0) * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={70}
+                    value={Math.round((bg.dim ?? 0) * 100)}
+                    onChange={(e) => setBg({ dim: Number(e.target.value) / 100 })}
+                    className="w-full h-2 rounded-full appearance-none cursor-pointer bg-muted border border-border/50"
+                  />
+                </div>
+              </div>
+            )}
           </section>
         </div>
       </DialogContent>

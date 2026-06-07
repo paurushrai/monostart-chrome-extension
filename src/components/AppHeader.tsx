@@ -7,18 +7,19 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Hexagon, Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid, BookmarkPlus, Trash2 } from 'lucide-react';
-import type { LinkItem, RegularLink, Section, Settings as AppSettings, GridSlot } from '../types';
+import { Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid, BookmarkPlus, Trash2 } from 'lucide-react';
+import MonoStartLogo from './MonoStartLogo';
+import type { WidgetItem, LinkItem, GroupItem, Settings as AppSettings, GridSlot } from '../types';
 import type { UseHeaderDrag } from '../hooks/useHeaderDrag';
 
 interface Props {
-  links: LinkItem[];
+  links: WidgetItem[];
   isEditing: boolean;
   settings: AppSettings;
   onUpdateSettings: (next: AppSettings) => void;
-  onMoveLink: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  onMoveItem: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
   onDelete: (id: string) => void;
-  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
+  onUpdateItem: (id: string, updates: Partial<WidgetItem>) => void;
   headerDrag: UseHeaderDrag;
   onEnterEdit: () => void;
   onSaveEdit: () => void;
@@ -37,9 +38,9 @@ export default function AppHeader({
   isEditing,
   settings,
   onUpdateSettings,
-  onMoveLink,
+  onMoveItem,
   onDelete,
-  onUpdateLink,
+  onUpdateItem,
   headerDrag,
   onEnterEdit,
   onSaveEdit,
@@ -53,31 +54,34 @@ export default function AppHeader({
   isDropTarget = false,
 }: Readonly<Props>) {
   const headerLinks = links
-    .filter((l): l is RegularLink => l.isHeaderLink === true && l.type === 'link')
+    .filter((l): l is LinkItem => l.isHeaderLink === true && l.type === 'link')
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-  const sections = links
-    .filter((l): l is Section => l.type === 'section')
+  const groups = links
+    .filter((l): l is GroupItem => l.type === 'group')
     .map(s => ({ id: s.id, title: s.title }));
+
+  const onWallpaper = (settings.background?.type ?? 'none') !== 'none';
 
   return (
     <header
       data-header-drop-target="true"
-      className={`grid grid-cols-3 items-center px-4 py-2 border-b border-border relative transition-colors ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
+      style={{ color: 'var(--header-fg, hsl(var(--foreground)))' }}
+      className={`grid grid-cols-3 items-center px-4 py-2 border-b border-border relative transition-colors ${onWallpaper ? 'header-on-wallpaper' : ''} ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
     >
-      <div className="flex items-center gap-3">
-        <Hexagon size={24} strokeWidth={2.5} className="text-foreground" />
-        <div className="flex items-baseline">
-          <h1 className="text-xl font-bold text-foreground tracking-tight m-0">
+      <div className="flex items-center gap-3 w-fit">
+        <MonoStartLogo size={36} />
+        <div className="flex flex-col">
+          <h1 className="text-lg font-bold tracking-tight leading-none m-0">
             MonoStart
           </h1>
-          <span className="text-xs text-muted-foreground font-medium opacity-60 ml-3">
+          <span className="text-[11px] font-medium opacity-60 mt-0.5">
             by{' '}
             <a
               href="https://www.paurushrai.in"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline hover:opacity-100 transition-all"
+              className="hover:underline hover:opacity-100 transition-all"
             >
               Paurush Rai
             </a>
@@ -85,17 +89,17 @@ export default function AppHeader({
         </div>
       </div>
 
-      <nav aria-label="Header links" className="flex justify-center items-center gap-2 overflow-x-auto max-w-full no-scrollbar">
+      <nav aria-label="Header links" className="flex justify-center items-center gap-2 overflow-x-auto max-w-full no-scrollbar py-2.5 -my-2.5">
         {headerLinks.map(link => (
           <HeaderLink
             key={link.id}
             item={link}
             isEditing={isEditing}
             openInNewTab={settings.openInNewTab}
-            sections={sections}
-            onMoveLink={onMoveLink}
+            groups={groups}
+            onMoveItem={onMoveItem}
             onDelete={onDelete}
-            onUpdateLink={onUpdateLink}
+            onUpdateItem={onUpdateItem}
             draggedHeaderLinkId={headerDrag.draggedHeaderLinkId}
             dragOverHeaderLinkId={headerDrag.dragOverHeaderLinkId}
             onDragStart={headerDrag.onDragStart}
@@ -113,7 +117,7 @@ export default function AppHeader({
               variant="ghost"
               size="sm"
               onClick={onClearDashboard}
-              title="Clear dashboard"
+              title="Clear Dashboard"
               className="text-red-500 hover:text-red-500 hover:bg-red-500/10 dark:hover:bg-red-500/15"
             >
               <Trash2 size={14} className="mr-1.5" />
@@ -133,13 +137,16 @@ export default function AppHeader({
           </div>
         )}
 
-        <DropdownMenu>
+        {/* Non-modal: a modal menu marks #root aria-hidden while the focused
+            trigger is still inside it, which Chrome blocks ("descendant
+            retained focus"). Non-modal skips the aria-hidden entirely and
+            still closes on outside-click/Escape. */}
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
               title="Settings"
-              className="text-foreground"
             >
               <Settings size={20} />
             </Button>

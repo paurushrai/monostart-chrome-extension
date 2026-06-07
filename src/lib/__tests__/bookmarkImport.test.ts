@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildImport, collectFolders, extractNamedRoots, type BookmarkTreeNodeLike } from '../bookmarkImport';
-import type { LinkItem, Section, RegularLink } from '../../types';
+import type { WidgetItem, LinkItem, GroupItem } from '../../types';
 
 const bookmark = (id: string, title: string, url: string): BookmarkTreeNodeLike => ({ id, title, url });
 const folder = (id: string, title: string, children: BookmarkTreeNodeLike[]): BookmarkTreeNodeLike => ({ id, title, children });
@@ -102,26 +102,26 @@ describe('extractNamedRoots', () => {
 
 describe('buildImport', () => {
   it('creates sections for each folder + Other section for direct bookmarks', () => {
-    const existing: LinkItem[] = [];
+    const existing: WidgetItem[] = [];
     const t = tree(
       folder('f1', 'Work', [bookmark('b1', 'A', 'https://a.com')]),
       bookmark('b2', 'Direct', 'https://direct.com'),
     );
     const result = buildImport(existing, t);
-    expect(result.sectionsCreated).toBe(2);
-    expect(result.sectionsMerged).toBe(0);
+    expect(result.groupsCreated).toBe(2);
+    expect(result.groupsMerged).toBe(0);
     expect(result.bookmarksImported).toBe(2);
 
-    const sections = result.links.filter((l): l is Section => l.type === 'section');
+    const sections = result.items.filter((l): l is GroupItem => l.type === 'group');
     expect(sections.map((s) => s.title)).toEqual(['Work', 'Other']);
     expect(sections[0]!.links).toHaveLength(1);
     expect(sections[1]!.links).toHaveLength(1);
   });
 
   it('merges into existing section when title matches', () => {
-    const existingSection: Section = {
+    const existingSection: GroupItem = {
       id: 'sec-1',
-      type: 'section',
+      type: 'group',
       title: 'Work',
       borderColor: '200 73% 52%',
       cols: 3,
@@ -134,16 +134,16 @@ describe('buildImport', () => {
     const t = tree(folder('f1', 'Work', [bookmark('b1', 'A', 'https://a.com')]));
     const result = buildImport([existingSection], t);
 
-    expect(result.sectionsCreated).toBe(0);
-    expect(result.sectionsMerged).toBe(1);
-    const updated = result.links.find((l) => l.id === 'sec-1') as Section;
+    expect(result.groupsCreated).toBe(0);
+    expect(result.groupsMerged).toBe(1);
+    const updated = result.items.find((l) => l.id === 'sec-1') as GroupItem;
     expect(updated.links.map((l) => l.url)).toEqual(['https://existing.com', 'https://a.com']);
   });
 
   it('skips merging bookmarks that already exist by URL in the matching section', () => {
-    const existingSection: Section = {
+    const existingSection: GroupItem = {
       id: 'sec-1',
-      type: 'section',
+      type: 'group',
       title: 'Work',
       borderColor: '200 73% 52%',
       cols: 3,
@@ -158,23 +158,23 @@ describe('buildImport', () => {
       bookmark('b2', 'New', 'https://new.com'),
     ]));
     const result = buildImport([existingSection], t);
-    expect(result.sectionsMerged).toBe(1);
+    expect(result.groupsMerged).toBe(1);
     expect(result.bookmarksImported).toBe(1);
-    const updated = result.links.find((l) => l.id === 'sec-1') as Section;
+    const updated = result.items.find((l) => l.id === 'sec-1') as GroupItem;
     expect(updated.links).toHaveLength(2);
   });
 
   it('imports zero when bookmark tree has no folders and no direct bookmarks', () => {
     const result = buildImport([], tree());
-    expect(result.sectionsCreated).toBe(0);
+    expect(result.groupsCreated).toBe(0);
     expect(result.bookmarksImported).toBe(0);
-    expect(result.links).toEqual([]);
+    expect(result.items).toEqual([]);
   });
 
   it('skips Other section creation when no direct bookmarks exist', () => {
     const t = tree(folder('f1', 'Work', [bookmark('b1', 'A', 'https://a.com')]));
     const result = buildImport([], t);
-    const titles = result.links.filter((l): l is Section => l.type === 'section').map((s) => s.title);
+    const titles = result.items.filter((l): l is GroupItem => l.type === 'group').map((s) => s.title);
     expect(titles).toEqual(['Work']);
   });
 
@@ -185,20 +185,20 @@ describe('buildImport', () => {
       folder('f3', 'C', [bookmark('b3', '3', 'https://3.com')]),
     );
     const result = buildImport([], t);
-    const sections = result.links.filter((l): l is Section => l.type === 'section');
+    const sections = result.items.filter((l): l is GroupItem => l.type === 'group');
     const positions = sections.map((s) => `${s.x},${s.y}`);
     expect(new Set(positions).size).toBe(positions.length);
   });
 
   it('extends grid downward and never stacks when existing layout fills MAIN_ROWS', () => {
     // Saturate rows 0..11 with 4-wide × 4-tall sections (MAIN_COLS=18 → 4 per row)
-    const filler: Section[] = [];
+    const filler: GroupItem[] = [];
     let id = 0;
     for (let y = 0; y < 12; y += 4) {
       for (let x = 0; x + 4 <= 18; x += 4) {
         filler.push({
           id: `pre-${id++}`,
-          type: 'section',
+          type: 'group',
           title: `Pre ${id}`,
           borderColor: '0 0% 50%',
           cols: 3,
@@ -213,8 +213,8 @@ describe('buildImport', () => {
       folder('f3', 'C', [bookmark('b3', '3', 'https://3.com')]),
     );
     const result = buildImport(filler, t);
-    const newSections = result.links
-      .filter((l): l is Section => l.type === 'section' && !l.id.startsWith('pre-'));
+    const newSections = result.items
+      .filter((l): l is GroupItem => l.type === 'group' && !l.id.startsWith('pre-'));
     expect(newSections).toHaveLength(3);
 
     const positions = newSections.map((s) => `${s.x},${s.y}`);
@@ -226,7 +226,7 @@ describe('buildImport', () => {
     }
 
     // First new section id is surfaced for scroll-to behavior
-    expect(result.firstNewSectionId).toBe(newSections[0]!.id);
+    expect(result.firstNewGroupId).toBe(newSections[0]!.id);
   });
 
   it('assigns intra-section x/y so links flow left-to-right in rows of 3', () => {
@@ -237,8 +237,8 @@ describe('buildImport', () => {
       bookmark('b4', '4', 'https://4.com'),
     ]));
     const result = buildImport([], t);
-    const section = result.links.find((l): l is Section => l.type === 'section')!;
-    expect(section.links.map((l): RegularLink => l).map((l) => ({ x: l.x, y: l.y }))).toEqual([
+    const section = result.items.find((l): l is GroupItem => l.type === 'group')!;
+    expect(section.links.map((l): LinkItem => l).map((l) => ({ x: l.x, y: l.y }))).toEqual([
       { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }, { x: 0, y: 1 },
     ]);
   });

@@ -1,10 +1,10 @@
 import { Search, Globe, CheckSquare, Clock, Folder, FileText, Image, Type, Bell } from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
-import type { LinkItem } from '../types';
+import type { WidgetItem } from '../types';
 
 export const WidgetType = {
   LINK: 'link',
-  SECTION: 'section',
+  GROUP: 'group',
   GOOGLE_SEARCH: 'google-search',
   IFRAME: 'iframe',
   TODO: 'todo',
@@ -34,7 +34,7 @@ export interface WidgetMeta {
   name?: string;
   description?: string;
   icon?: LucideIcon;
-  defaults?: Partial<LinkItem>;
+  defaults?: Partial<WidgetItem>;
   layout: WidgetLayoutMeta;
 }
 
@@ -54,12 +54,12 @@ const WIDGETS = [
     layout: { minW: 6, maxW: 8, minH: 1, maxH: 4, resizable: true },
   },
   {
-    type: WidgetType.SECTION,
+    type: WidgetType.GROUP,
     addable: true,
-    name: 'Link Section',
-    description: 'Create an elegant, custom-colored folder container for organizing links.',
+    name: 'Group',
+    description: 'A custom-colored group for organizing your links.',
     icon: Folder,
-    defaults: { w: 6, h: 4, title: 'New Section', borderColor: '200 73% 52%', links: [] },
+    defaults: { w: 6, h: 4, title: 'New Group', borderColor: '200 73% 52%', links: [] },
     layout: { minW: 3, minH: 4, resizable: true },
   },
   {
@@ -77,7 +77,7 @@ const WIDGETS = [
     name: 'Todo List',
     description: 'Keep track of your tasks.',
     icon: CheckSquare,
-    defaults: { w: 3, h: 3, title: 'Todos' },
+    defaults: { w: 3, h: 3, title: 'Todo List' },
     layout: { minW: 3, minH: 3, resizable: true },
   },
   {
@@ -101,10 +101,10 @@ const WIDGETS = [
   {
     type: WidgetType.IMAGE,
     addable: true,
-    name: 'Photo / Image',
+    name: 'Image',
     description: 'Add an image from a URL or upload a local file.',
     icon: Image,
-    defaults: { w: 4, h: 4, title: 'Photo Frame', url: '', fit: 'cover' },
+    defaults: { w: 4, h: 4, title: 'Image', url: '', fit: 'cover' },
     layout: { minW: 4, minH: 4, resizable: true },
   },
   {
@@ -113,7 +113,7 @@ const WIDGETS = [
     name: 'Text Label',
     description: 'Add a clean floating text header or title to style your grid.',
     icon: Type,
-    defaults: { w: 4, h: 1, text: 'Google', align: 'left', size: 'text-3xl', fontWeight: 'font-bold', opacity: 'opacity-100' },
+    defaults: { w: 4, h: 1, text: 'Heading', align: 'left', size: 'text-3xl', fontWeight: 'font-bold', opacity: 'opacity-100' },
     layout: { minW: 2, minH: 1, resizable: true },
   },
   {
@@ -122,7 +122,7 @@ const WIDGETS = [
     name: 'Embedded Page',
     description: 'Embed any website as a live widget.',
     icon: Globe,
-    defaults: { w: 4, h: 4, title: 'Embed', url: 'https://www.google.com' },
+    defaults: { w: 4, h: 4, title: 'Embedded Page', url: 'https://www.google.com' },
     layout: { minW: 3, minH: 3, resizable: true },
   },
 ] as const satisfies readonly WidgetMeta[];

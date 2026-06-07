@@ -1,8 +1,8 @@
-import type { Section } from '../types';
+import type { GroupItem } from '../types';
 
-export function disambiguateSections(sections: readonly Section[]): Array<{ id: string; title: string }> {
+export function disambiguateGroups(groups: readonly GroupItem[]): Array<{ id: string; title: string }> {
   const seenIds = new Set<string>();
-  const unique = sections.filter((s) => {
+  const unique = groups.filter((s) => {
     if (seenIds.has(s.id)) return false;
     seenIds.add(s.id);
     return true;

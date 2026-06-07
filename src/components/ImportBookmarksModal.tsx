@@ -61,7 +61,7 @@ export default function ImportBookmarksModal({ open, onClose, onConfirm }: Reado
     return () => { cancelled = true; };
   }, [open]);
 
-  const totalSections = preview ? preview.folderCount + (preview.otherCount > 0 ? 1 : 0) : 0;
+  const totalGroups = preview ? preview.folderCount + (preview.otherCount > 0 ? 1 : 0) : 0;
   const canImport = !!preview && preview.bookmarkCount > 0 && !error;
 
   return (
@@ -73,7 +73,7 @@ export default function ImportBookmarksModal({ open, onClose, onConfirm }: Reado
             Import bookmarks
           </DialogTitle>
           <DialogDescription>
-            We&apos;ll read your browser&apos;s bookmarks and lay them out as Sections on the dashboard.
+            We&apos;ll read your browser&apos;s bookmarks and lay them out as Groups on the dashboard.
           </DialogDescription>
         </DialogHeader>
 
@@ -93,7 +93,7 @@ export default function ImportBookmarksModal({ open, onClose, onConfirm }: Reado
             <>
               <div className="rounded-md border border-border bg-gray-100 dark:bg-white/5 p-3 space-y-2">
                 <div className="flex items-center justify-between text-foreground">
-                  <span className="flex items-center gap-2"><Folder size={14} /> Folders → Sections</span>
+                  <span className="flex items-center gap-2"><Folder size={14} /> Folders → Groups</span>
                   <span className="font-medium">{preview.folderCount}</span>
                 </div>
                 <div className="flex items-center justify-between text-foreground">
@@ -109,10 +109,10 @@ export default function ImportBookmarksModal({ open, onClose, onConfirm }: Reado
               <div className="text-muted-foreground space-y-1.5">
                 <p className="font-medium text-foreground">What happens next:</p>
                 <ul className="list-disc list-inside space-y-1 marker:text-muted-foreground/60">
-                  <li>Each top-level folder becomes one Section.</li>
+                  <li>Each top-level folder becomes one Group.</li>
                   <li>Nested folders are flattened into their top-level parent.</li>
-                  <li>Bookmarks not in any folder land in a single &quot;Other&quot; section.</li>
-                  <li>If a Section with the same name already exists, bookmarks are appended (no duplicates).</li>
+                  <li>Bookmarks not in any folder land in a single &quot;Other&quot; group.</li>
+                  <li>If a Group with the same name already exists, bookmarks are appended (no duplicates).</li>
                   <li className="flex items-center gap-1.5">
                     <Pencil size={12} className="text-primary" />
                     The dashboard enters edit mode so you can review and Save, or Cancel to undo.
@@ -138,7 +138,7 @@ export default function ImportBookmarksModal({ open, onClose, onConfirm }: Reado
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {canImport
-              ? `Import ${preview!.bookmarkCount} bookmark${preview!.bookmarkCount === 1 ? '' : 's'} → ${totalSections} section${totalSections === 1 ? '' : 's'}`
+              ? `Import ${preview!.bookmarkCount} bookmark${preview!.bookmarkCount === 1 ? '' : 's'} → ${totalGroups} group${totalGroups === 1 ? '' : 's'}`
               : 'Import bookmarks'}
           </Button>
         </DialogFooter>

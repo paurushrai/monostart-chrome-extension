@@ -1,38 +1,44 @@
 import { useEffect, useLayoutEffect, useState, type DragEvent as ReactDragEvent } from 'react';
-import GridLayout, { WidthProvider } from 'react-grid-layout/legacy';
+import GridLayout from 'react-grid-layout/legacy';
 import type { Layout } from 'react-grid-layout/legacy';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { ExternalLink } from 'lucide-react';
 import WidgetRenderer from './WidgetRenderer';
-import { resolveFavicon } from '../lib/favicon';
-import { useGridDimensions, photoConfigFitsAt3Rows } from '../hooks/useGridDimensions';
+import Favicon from './Favicon';
+import { useGridDimensions, imageConfigFitsAt3Rows } from '../hooks/useGridDimensions';
 import { useDashboardDrag } from '../hooks/useDashboardDrag';
 import { HEADER_LINK_DRAG_TYPE } from '../hooks/useHeaderDrag';
 import { MAIN_COLS, MAIN_ROWS } from '../lib/grid';
 import { getWidgetMeta, WidgetType } from '../lib/widgetCatalog';
 import type { WidgetMeta } from '../lib/widgetCatalog';
-import type { LinkItem, RegularLink, DisplayItem, DragPlaceholder, GridSlot, GoogleSearch, ImageWidget } from '../types';
+import type { WidgetItem, LinkItem, DisplayItem, DragPlaceholder, GridSlot, GoogleSearchItem, ImageItem } from '../types';
 
-const ReactGridLayout = WidthProvider(GridLayout);
+// Use GridLayout directly instead of WidthProvider. WidthProvider initializes
+// width to a hardcoded 1280 and only corrects to the real container width one
+// frame AFTER mount (via a post-paint ResizeObserver), which makes every item
+// render at the wrong size/position on first paint and then visibly jump.
+// Instead we measure the container width synchronously in useLayoutEffect
+// (pre-paint) and feed it in, so items render correctly on the very first paint.
+const ReactGridLayout = GridLayout;
 
 const PLACEHOLDER_ID = 'drag-out-placeholder';
 
-interface SectionRef {
+interface GroupRef {
   id: string;
   title: string;
 }
 
 interface Props {
-  links: LinkItem[];
+  links: WidgetItem[];
   onLayoutChange: (layout: Layout) => void;
   onDelete: (id: string) => void;
   onViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
-  onUpdateLink: (id: string, updates: Partial<LinkItem>) => void;
+  onUpdateItem: (id: string, updates: Partial<WidgetItem>) => void;
   isEditing: boolean;
   openInNewTab?: boolean;
-  sections?: SectionRef[];
-  onMoveLink: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  groups?: GroupRef[];
+  onMoveItem: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
   onSwap: (draggedId: string, targetId: string, draggedSourceRect?: { x: number; y: number; w: number; h: number }) => void;
   onHeaderTargetChange?: (isOver: boolean) => void;
 }
@@ -61,7 +67,7 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
     let h = initial.h;
 
     if (link.type === WidgetType.GOOGLE_SEARCH) {
-      const v = (link as GoogleSearch).variant ?? 'bar';
+      const v = (link as GoogleSearchItem).variant ?? 'bar';
       if (v === 'logo') { minH = 4; maxH = 4; }
       else { minH = 1; maxH = 1; }
       if (h < minH) h = minH;
@@ -69,8 +75,8 @@ const buildLayout = (displayLinks: DisplayItem[]): Layout =>
     }
 
     if (link.type === WidgetType.IMAGE) {
-      const hasImage = !!((link as ImageWidget).url ?? '').trim();
-      const emptyMin = photoConfigFitsAt3Rows() ? 3 : 4;
+      const hasImage = !!((link as ImageItem).url ?? '').trim();
+      const emptyMin = imageConfigFitsAt3Rows() ? 3 : 4;
       minW = hasImage ? 3 : emptyMin;
       minH = hasImage ? 3 : emptyMin;
     }
@@ -94,22 +100,23 @@ const DashboardGrid = ({
   onLayoutChange,
   onDelete,
   onViewModeChange,
-  onUpdateLink,
+  onUpdateItem,
   isEditing,
   openInNewTab,
-  sections = [],
-  onMoveLink,
+  groups = [],
+  onMoveItem,
   onSwap,
   onHeaderTargetChange,
 }: Readonly<Props>) => {
   const { rowHeight: fallbackRowHeight } = useGridDimensions();
   const [rowHeight, setRowHeight] = useState(fallbackRowHeight);
-  const drag = useDashboardDrag({ links, rowHeight, onMoveLink, onSwap, onHeaderTargetChange });
+  const [gridWidth, setGridWidth] = useState(0);
+  const drag = useDashboardDrag({ links, rowHeight, onMoveItem, onSwap, onHeaderTargetChange });
 
   useLayoutEffect(() => {
     const el = drag.gridRef.current;
     const host = el?.parentElement;
-    if (!host) return;
+    if (!el || !host) return;
     const GRID_MARGIN = 16;
     const measure = () => {
       const cs = getComputedStyle(host);
@@ -120,14 +127,15 @@ const DashboardGrid = ({
         (available - 2 * GRID_MARGIN - (MAIN_ROWS - 1) * GRID_MARGIN) / MAIN_ROWS,
       );
       if (Number.isFinite(next)) setRowHeight((prev) => (prev === next ? prev : next));
+      const w = el.clientWidth;
+      if (w > 0) setGridWidth((prev) => (prev === w ? prev : w));
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(host);
     return () => ro.disconnect();
   }, [drag.gridRef]);
-  const dragOutLink = drag.activeDragOutItem?.type === 'link' ? (drag.activeDragOutItem as RegularLink) : null;
-  const ghostFavicon = dragOutLink ? resolveFavicon(dragOutLink) : null;
+  const dragOutLink = drag.activeDragOutItem?.type === 'link' ? (drag.activeDragOutItem as LinkItem) : null;
   const showGhost = !!dragOutLink && !!drag.dragCursorCoords;
   const [isDashboardDragOver, setIsDashboardDragOver] = useState(false);
 
@@ -144,8 +152,8 @@ const DashboardGrid = ({
     if (!isHeaderLinkDrag(e)) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    const overSection = !!(e.target as HTMLElement).closest('[data-section-id]');
-    setIsDashboardDragOver(!overSection);
+    const overGroup = !!(e.target as HTMLElement).closest('[data-group-id]');
+    setIsDashboardDragOver(!overGroup);
   };
 
   const handleHeaderDragLeave = (e: ReactDragEvent<HTMLDivElement>) => {
@@ -189,8 +197,10 @@ const DashboardGrid = ({
       onDragLeave={handleHeaderDragLeave}
       onDrop={handleHeaderDrop}
     >
+      {gridWidth > 0 && (
       <ReactGridLayout
         className="layout"
+        width={gridWidth}
         layout={layout}
         cols={MAIN_COLS}
         maxRows={MAIN_ROWS}
@@ -201,7 +211,6 @@ const DashboardGrid = ({
         isDraggable={isEditing}
         isResizable={isEditing}
         draggableHandle=".drag-handle"
-        measureBeforeMount={true}
         onDragStart={drag.handleDragStart}
         onDrag={drag.handleDrag}
         onDragStop={drag.handleDragStop}
@@ -214,12 +223,12 @@ const DashboardGrid = ({
                 item={item}
                 isEditing={isEditing}
                 openInNewTab={openInNewTab}
-                sections={sections}
+                groups={groups}
                 onDelete={onDelete}
                 onViewModeChange={onViewModeChange}
-                onUpdateLink={onUpdateLink}
-                onMoveLink={onMoveLink}
-                activeDragSectionId={drag.activeDragSectionId}
+                onUpdateItem={onUpdateItem}
+                onMoveItem={onMoveItem}
+                activeDragGroupId={drag.activeDragGroupId}
                 dragCursorCoords={drag.dragCursorCoords}
                 draggedItem={drag.draggedItem}
                 onInnerDragStart={drag.handleInnerDragStart}
@@ -230,6 +239,7 @@ const DashboardGrid = ({
           </div>
         ))}
       </ReactGridLayout>
+      )}
       {showGhost && drag.dragCursorCoords && (
         <div
           className="fixed pointer-events-none z-[9999] rounded-md bg-card border border-border shadow-lg flex items-center justify-center"
@@ -241,10 +251,12 @@ const DashboardGrid = ({
             opacity: 0.85,
           }}
         >
-          {ghostFavicon ? (
-            <img src={ghostFavicon} alt="" className="w-7 h-7 object-contain rounded-sm" draggable={false} />
-          ) : (
-            <ExternalLink size={18} className="text-muted-foreground" />
+          {dragOutLink && (
+            <Favicon
+              item={dragOutLink}
+              className="w-7 h-7 object-contain rounded-sm"
+              fallback={<ExternalLink size={18} className="text-muted-foreground" />}
+            />
           )}
         </div>
       )}

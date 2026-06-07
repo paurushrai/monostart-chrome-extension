@@ -191,7 +191,31 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
 });
 
-chrome.runtime.onInstalled.addListener(() => {
+// First-install default layout. Seeded ONLY on a genuine fresh install
+// (onInstalled reason === 'install'), never on extension updates, and only
+// when no dashboard data exists yet — so existing users and anyone who
+// deliberately cleared their dashboard are never overwritten or re-seeded.
+// Captured verbatim from a reference setup; favicons are recomputed at render
+// time (browser _favicon store), so the stored favicon values are only
+// fallbacks and don't need to be fresh.
+const DEFAULT_DASHBOARD = {
+  links: JSON.parse('[{"h":1,"i":"google-search-1780419508526","id":"google-search-1780419508526","logoStyle":"mono","title":"Google Search","type":"google-search","variant":"logo","w":6,"x":6,"y":3},{"favicon":"https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https%3A%2F%2Fmail.google.com%2Fmail%2Fu%2F1%2F%23inbox&size=128","h":1,"i":"link-1780419544471","id":"link-1780419544471","isHeaderLink":true,"order":2,"theme":"default","title":"mail.google.com","type":"link","url":"https://mail.google.com/mail/u/1/#inbox","viewMode":"icon","w":1},{"favicon":"https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https%3A%2F%2Fmyaccount.google.com%2F&size=128","h":1,"i":"link-1780420031738","id":"link-1780420031738","isHeaderLink":true,"order":0,"theme":"default","title":"myaccount.google.com","type":"link","url":"https://myaccount.google.com/","viewMode":"icon","w":1},{"favicon":"https://www.gstatic.com/images/branding/productlogos/drive_2026/v1/web-32dp/logo_drive_2026_color_1x_web_32dp.png","h":2,"i":"link-1780420063700","id":"link-1780420063700","isHeaderLink":true,"order":6,"title":"Home - Google Drive","type":"link","url":"https://drive.google.com/drive/u/1/home","w":2},{"favicon":"https://www.youtube.com/favicon.ico","h":2,"i":"link-1780420076803","id":"link-1780420076803","isHeaderLink":true,"order":4,"title":"YouTube","type":"link","url":"https://www.youtube.com/?authuser=1","w":2},{"favicon":"https://www.google.com/images/branding/product/ico/web_maps_icon_32dp.ico","h":2,"i":"link-1780420131532","id":"link-1780420131532","isHeaderLink":true,"order":5,"title":"Google Maps","type":"link","url":"https://www.google.com/maps/@25.5804961,83.5603103,5548m/data=!3m1!1e3?authuser=1&entry=ttu&g_ep=EgoyMDI2MDUyNy4wIKXMDSoASAFQAw%3D%3D","w":2},{"favicon":"https://gstatic.com/images/branding/productlogos/meet_2026/v2/web-32dp/logo_meet_2026_color_1x_web_32dp.png","h":2,"i":"link-1780420199762","id":"link-1780420199762","isHeaderLink":true,"order":7,"title":"Google Meet","type":"link","url":"https://meet.google.com/landing?hs=197&authuser=1","w":2},{"favicon":"https://ssl.gstatic.com/social/photosui/images/logo/favicon_alldp.ico","h":2,"i":"link-1780420232726","id":"link-1780420232726","isHeaderLink":true,"order":3,"title":"Photos - Google Photos","type":"link","url":"https://photos.google.com/u/1/","w":2},{"favicon":"https://www.gstatic.com/images/branding/productlogos/calendar_2026_02/v2/ico/calendar_2026_02_32dp.ico","h":2,"i":"link-1780422139545","id":"link-1780422139545","isHeaderLink":true,"order":1,"title":"Google Calendar - Week of May 31, 2026","type":"link","url":"https://calendar.google.com/calendar/u/1/r","w":2},{"favicon":"https://www.gstatic.com/images/branding/productlogos/keep_2026/v2/web/192px.svg","h":2,"i":"link-1780422164463","id":"link-1780422164463","isHeaderLink":true,"order":8,"title":"Google Keep","type":"link","url":"https://keep.google.com/u/1/","w":2}]'),
+  settings: { openInNewTab: false, themeMode: 'device', themeColor: '0 0% 30%' },
+};
+
+const seedDefaultLayout = (reason) => {
+  if (reason !== 'install') return;
+  chrome.storage.local.get(['dashboardLinks'], (result) => {
+    if (result.dashboardLinks !== undefined) return;
+    chrome.storage.local.set({
+      dashboardLinks: DEFAULT_DASHBOARD.links,
+      dashboardSettings: DEFAULT_DASHBOARD.settings,
+    });
+  });
+};
+
+chrome.runtime.onInstalled.addListener((details) => {
+  seedDefaultLayout(details.reason);
   ensureSafetyAlarm();
   refreshBadge();
   runReminderTick().then(rescheduleNextTick).catch((err) => console.error('[reminders] boot failed', err));

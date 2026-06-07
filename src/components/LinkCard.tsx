@@ -25,23 +25,23 @@ import {
   DropdownMenuSubContent,
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
-import { resolveFavicon } from '../lib/favicon';
-import type { RegularLink, GridSlot } from '../types';
+import Favicon from './Favicon';
+import type { LinkItem, GridSlot } from '../types';
 
-interface SectionRef {
+interface GroupRef {
   id: string;
   title: string;
 }
 
 interface Props {
-  item: RegularLink;
+  item: LinkItem;
   onDelete: (id: string) => void;
   onViewModeChange: (id: string, newMode: 'icon' | 'icon+text') => void;
-  onUpdateLink: (id: string, updates: Partial<RegularLink>) => void;
+  onUpdateItem: (id: string, updates: Partial<LinkItem>) => void;
   isEditing: boolean;
   openInNewTab?: boolean;
-  sections?: SectionRef[];
-  onMoveLink?: (linkId: string, targetSectionId: string | null, targetCoords?: GridSlot) => void;
+  groups?: GroupRef[];
+  onMoveItem?: (linkId: string, targetGroupId: string | null, targetCoords?: GridSlot) => void;
   parentId?: string;
   displayMode?: 'list';
 }
@@ -50,18 +50,16 @@ const LinkCard = ({
   item,
   onDelete,
   onViewModeChange,
-  onUpdateLink,
+  onUpdateItem,
   isEditing,
   openInNewTab,
-  sections = [],
-  onMoveLink,
+  groups = [],
+  onMoveItem,
   parentId,
   displayMode,
 }: Readonly<Props>) => {
   const { url, title, customName } = item;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const crispFavicon = resolveFavicon(item);
 
   const getSiteName = (urlString: string | undefined) => {
     if (!urlString) return title ? title.split(' - ')[0] : 'Link';
@@ -86,7 +84,7 @@ const LinkCard = ({
   const handleNameBlur = (e: FocusEvent<HTMLHeadingElement>) => {
     const newName = e.target.innerText.trim();
     if (newName && newName !== siteName) {
-      onUpdateLink(item.id, { customName: newName });
+      onUpdateItem(item.id, { customName: newName });
     }
   };
 
@@ -94,7 +92,7 @@ const LinkCard = ({
     const next = window.prompt('Rename link:', siteName);
     if (next !== null) {
       const trimmed = next.trim();
-      if (trimmed) onUpdateLink(item.id, { customName: trimmed });
+      if (trimmed) onUpdateItem(item.id, { customName: trimmed });
     }
     setIsMenuOpen(false);
   };
@@ -102,7 +100,7 @@ const LinkCard = ({
   const handleDescBlur = (e: FocusEvent<HTMLSpanElement>) => {
     const newDesc = e.target.innerText.trim();
     if (newDesc !== title) {
-      onUpdateLink(item.id, { title: newDesc });
+      onUpdateItem(item.id, { title: newDesc });
     }
   };
 
@@ -181,7 +179,7 @@ const LinkCard = ({
                 </DropdownMenuPortal>
               </DropdownMenuSub>
               
-              {onMoveLink && (
+              {onMoveItem && (
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="flex items-center gap-2">
                     <FolderInput size={13} className="text-muted-foreground" />
@@ -192,7 +190,7 @@ const LinkCard = ({
                       {(parentId || item.isHeaderLink) && (
                         <DropdownMenuItem 
                           onClick={() => {
-                            onMoveLink(item.id, null);
+                            onMoveItem(item.id, null);
                             setIsMenuOpen(false);
                           }}
                           className="flex items-center gap-2"
@@ -204,7 +202,7 @@ const LinkCard = ({
                       {!item.isHeaderLink && (
                         <DropdownMenuItem 
                           onClick={() => {
-                            onMoveLink(item.id, 'header');
+                            onMoveItem(item.id, 'header');
                             setIsMenuOpen(false);
                           }}
                           className="flex items-center gap-2"
@@ -213,13 +211,13 @@ const LinkCard = ({
                           <span>Header</span>
                         </DropdownMenuItem>
                       )}
-                      {sections
+                      {groups
                         .filter(s => s.id !== parentId)
                         .map(s => (
                           <DropdownMenuItem 
                             key={s.id} 
                             onClick={() => {
-                              onMoveLink(item.id, s.id);
+                              onMoveItem(item.id, s.id);
                               setIsMenuOpen(false);
                             }}
                             className="flex items-center gap-2"
@@ -260,24 +258,21 @@ const LinkCard = ({
           ${isIconOnly
             ? 'items-center justify-center p-0'
             : listMode
-              ? 'flex-row items-center justify-start gap-2 pl-3 pr-3 py-0.5'
+              ? 'flex-row items-center justify-start gap-2 pl-3 pr-3 py-1'
               : `flex-row items-center justify-start gap-3 pl-4 py-2 ${isEditing ? 'pr-9' : 'pr-4'}`
           }`}
       >
-        {crispFavicon ? (
-          <img
-            src={crispFavicon}
-            alt=""
-            draggable={false}
-            className={`object-contain flex-shrink-0 max-w-none pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]
-              ${isIconOnly ? 'w-9 h-9 rounded-sm' : listMode ? 'w-5 h-5 rounded-sm' : 'w-8 h-8 rounded-sm'}`}
-          />
-        ) : (
-          <div className={`flex items-center justify-center rounded-sm bg-secondary text-muted-foreground flex-shrink-0 pointer-events-none
-            ${isIconOnly ? 'w-9 h-9' : listMode ? 'w-5 h-5' : 'w-8 h-8'}`}>
-            <ExternalLink size={isIconOnly ? 20 : listMode ? 13 : 18} />
-          </div>
-        )}
+        <Favicon
+          item={item}
+          className={`object-contain flex-shrink-0 max-w-none pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] dark:drop-shadow-[0_1px_3px_rgba(255,255,255,0.2)]
+            ${isIconOnly ? 'w-9 h-9 rounded-sm' : listMode ? 'w-[18px] h-[18px] rounded-sm' : 'w-8 h-8 rounded-sm'}`}
+          fallback={
+            <div className={`flex items-center justify-center rounded-sm bg-secondary text-muted-foreground flex-shrink-0 pointer-events-none
+              ${isIconOnly ? 'w-9 h-9' : listMode ? 'w-[18px] h-[18px]' : 'w-8 h-8'}`}>
+              <ExternalLink size={isIconOnly ? 20 : listMode ? 12 : 18} />
+            </div>
+          }
+        />
 
         {!isIconOnly && (
           <div className="text-left flex flex-col justify-center flex-1 min-w-0 overflow-hidden">

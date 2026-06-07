@@ -2,7 +2,7 @@ import React, { useMemo, useCallback, type MouseEvent, type PointerEvent, type T
 import { X, ExternalLink } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { sanitizeEmbed, extractEmbedSrc } from '@/lib/embedSanitizer';
-import type { Iframe } from '../types';
+import type { IframeItem } from '../types';
 
 const EmbedContent = React.memo(function EmbedContent({ html }: { html: string }) {
   return (
@@ -20,7 +20,6 @@ const UrlContent = React.memo(function UrlContent({ url, title }: { url?: string
       title={title}
       loading="lazy"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-      allowFullScreen
       referrerPolicy="strict-origin-when-cross-origin"
       className="w-full h-full border-0"
     />
@@ -28,7 +27,7 @@ const UrlContent = React.memo(function UrlContent({ url, title }: { url?: string
 });
 
 interface Props {
-  item: Iframe;
+  item: IframeItem;
   onDelete: (id: string) => void;
   isEditing: boolean;
 }

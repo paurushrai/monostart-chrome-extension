@@ -1,5 +1,5 @@
-import { findFirstFreeSlot, MAIN_COLS, SECTION_DEFAULT_COLS } from './grid';
-import type { LinkItem, RegularLink, Section } from '../types';
+import { findFirstFreeSlot, MAIN_COLS, GROUP_DEFAULT_COLS } from './grid';
+import type { WidgetItem, LinkItem, GroupItem } from '../types';
 
 export interface BookmarkTreeNodeLike {
   id: string;
@@ -9,18 +9,18 @@ export interface BookmarkTreeNodeLike {
 }
 
 export interface ImportResult {
-  sectionsCreated: number;
-  sectionsMerged: number;
+  groupsCreated: number;
+  groupsMerged: number;
   bookmarksImported: number;
   emptyFoldersSkipped: number;
-  firstNewSectionId: string | null;
-  links: LinkItem[];
+  firstNewGroupId: string | null;
+  items: WidgetItem[];
 }
 
-const OTHER_SECTION_TITLE = 'Other';
-const DEFAULT_SECTION_BORDER = '200 73% 52%';
-const SECTION_W = 4;
-const SECTION_H = 4;
+const OTHER_GROUP_TITLE = 'Other';
+const DEFAULT_GROUP_BORDER = '200 73% 52%';
+const GROUP_W = 4;
+const GROUP_H = 4;
 
 const safeTitle = (raw: string, fallback: string): string => {
   const trimmed = (raw || '').trim();
@@ -61,7 +61,7 @@ const dedupeByUrl = (items: { title: string; url: string }[]): { title: string; 
   return out;
 };
 
-const makeLink = (b: { title: string; url: string }, sectionId: string, index: number): RegularLink => ({
+const makeLink = (b: { title: string; url: string }, groupId: string, index: number): LinkItem => ({
   id: `bm-${crypto.randomUUID()}`,
   type: 'link',
   url: b.url,
@@ -69,9 +69,9 @@ const makeLink = (b: { title: string; url: string }, sectionId: string, index: n
   viewMode: 'icon',
   w: 1,
   h: 1,
-  x: index % SECTION_DEFAULT_COLS,
-  y: Math.floor(index / SECTION_DEFAULT_COLS),
-  parentId: sectionId,
+  x: index % GROUP_DEFAULT_COLS,
+  y: Math.floor(index / GROUP_DEFAULT_COLS),
+  parentId: groupId,
 });
 
 interface FolderBucket {
@@ -100,87 +100,87 @@ export const collectFolders = (
   return { folders, otherBookmarks: dedupeByUrl(otherBookmarks) };
 };
 
-const occupancyOf = (items: readonly LinkItem[]) =>
+const occupancyOf = (items: readonly WidgetItem[]) =>
   items
     .filter((l) => !l.isHeaderLink && l.x !== undefined && l.y !== undefined)
     .map((l) => ({ x: l.x as number, y: l.y as number, w: l.w ?? 1, h: l.h ?? 1 }));
 
 export const buildImport = (
-  existingLinks: readonly LinkItem[],
+  existingItems: readonly WidgetItem[],
   rootNodes: readonly BookmarkTreeNodeLike[],
 ): ImportResult => {
   const { folders, otherBookmarks } = collectFolders(rootNodes);
 
-  const sectionByTitle = new Map<string, Section>();
-  for (const item of existingLinks) {
-    if (item.type === 'section') sectionByTitle.set(item.title, item as Section);
+  const groupByTitle = new Map<string, GroupItem>();
+  for (const item of existingItems) {
+    if (item.type === 'group') groupByTitle.set(item.title, item);
   }
 
   const allBuckets: FolderBucket[] = [...folders];
   if (otherBookmarks.length > 0) {
-    allBuckets.push({ title: OTHER_SECTION_TITLE, bookmarks: otherBookmarks });
+    allBuckets.push({ title: OTHER_GROUP_TITLE, bookmarks: otherBookmarks });
   }
 
-  let nextLinks: LinkItem[] = [...existingLinks];
-  let sectionsCreated = 0;
-  let sectionsMerged = 0;
+  let nextItems: WidgetItem[] = [...existingItems];
+  let groupsCreated = 0;
+  let groupsMerged = 0;
   let bookmarksImported = 0;
-  let firstNewSectionId: string | null = null;
+  let firstNewGroupId: string | null = null;
 
   for (const bucket of allBuckets) {
-    const existing = sectionByTitle.get(bucket.title);
+    const existing = groupByTitle.get(bucket.title);
     if (existing) {
       const existingUrls = new Set(existing.links.map((l) => l.url));
       const newOnes = bucket.bookmarks.filter((b) => !existingUrls.has(b.url));
       if (newOnes.length === 0) continue;
       const startIndex = existing.links.length;
-      const appended: RegularLink[] = newOnes.map((b, i) =>
+      const appended: LinkItem[] = newOnes.map((b, i) =>
         makeLink(b, existing.id, startIndex + i),
       );
-      const updatedSection: Section = { ...existing, links: [...existing.links, ...appended] };
-      nextLinks = nextLinks.map((l) => (l.id === existing.id ? updatedSection : l));
-      sectionByTitle.set(bucket.title, updatedSection);
-      sectionsMerged += 1;
+      const updatedGroup: GroupItem = { ...existing, links: [...existing.links, ...appended] };
+      nextItems = nextItems.map((l) => (l.id === existing.id ? updatedGroup : l));
+      groupByTitle.set(bucket.title, updatedGroup);
+      groupsMerged += 1;
       bookmarksImported += appended.length;
       continue;
     }
 
-    const sectionId = `section-${crypto.randomUUID()}`;
-    const links: RegularLink[] = bucket.bookmarks.map((b, i) => makeLink(b, sectionId, i));
+    const groupId = `group-${crypto.randomUUID()}`;
+    const links: LinkItem[] = bucket.bookmarks.map((b, i) => makeLink(b, groupId, i));
     // No maxRows cap: when the existing grid is full, extend downward so new
-    // sections tile in fresh space below — never stack on the same fallback slot.
-    const occupancy = occupancyOf(nextLinks);
+    // groups tile in fresh space below — never stack on the same fallback slot.
+    const occupancy = occupancyOf(nextItems);
     const maxOccupiedY = occupancy.reduce((acc, r) => Math.max(acc, r.y + r.h), 0);
-    const slot = findFirstFreeSlot(occupancy, SECTION_W, SECTION_H, MAIN_COLS) ?? {
+    const slot = findFirstFreeSlot(occupancy, GROUP_W, GROUP_H, MAIN_COLS) ?? {
       x: 0,
       y: maxOccupiedY,
     };
-    const section: Section = {
-      id: sectionId,
-      type: 'section',
+    const group: GroupItem = {
+      id: groupId,
+      type: 'group',
       title: bucket.title,
-      borderColor: DEFAULT_SECTION_BORDER,
-      cols: SECTION_DEFAULT_COLS,
+      borderColor: DEFAULT_GROUP_BORDER,
+      cols: GROUP_DEFAULT_COLS,
       links,
       x: slot.x,
       y: slot.y,
-      w: SECTION_W,
-      h: SECTION_H,
+      w: GROUP_W,
+      h: GROUP_H,
     };
-    nextLinks = [...nextLinks, section];
-    sectionByTitle.set(bucket.title, section);
-    sectionsCreated += 1;
+    nextItems = [...nextItems, group];
+    groupByTitle.set(bucket.title, group);
+    groupsCreated += 1;
     bookmarksImported += links.length;
-    if (firstNewSectionId === null) firstNewSectionId = section.id;
+    if (firstNewGroupId === null) firstNewGroupId = group.id;
   }
 
   return {
-    sectionsCreated,
-    sectionsMerged,
+    groupsCreated,
+    groupsMerged,
     bookmarksImported,
     emptyFoldersSkipped: 0,
-    firstNewSectionId,
-    links: nextLinks,
+    firstNewGroupId,
+    items: nextItems,
   };
 };
 
