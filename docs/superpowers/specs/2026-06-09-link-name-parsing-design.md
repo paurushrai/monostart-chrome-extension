@@ -11,8 +11,9 @@ The name shown on a link card is computed live in `LinkCard.tsx` by `getSiteName
 - `src/components/LinkCard.tsx:77-90` (`getSiteName`, the display name)
 - `src/components/AddLinkModal.tsx:54-56`
 - `src/components/widgets/GroupWidget.tsx:140-141`
-- `src/popup/PopupApp.tsx:119`
 - `src/components/AddWidgetModal.tsx:104` (iframe widget title)
+
+(Note: `PopupApp.tsx:119` computes `pageHost`, but that is a deliberate **raw-host** display line under the tab title, and the popup saves the link with the real browser tab title — not a crude derivation. It is left unchanged, like the GoogleSearchWidget host. See Integration.)
 
 The current logic breaks on many real inputs:
 
@@ -96,9 +97,8 @@ Returns a non-empty string; falls back to `'Link'` when nothing usable is availa
 - **`LinkCard.tsx`**: replace the local `getSiteName` with `const siteName = customName || deriveSiteName(url, title);`. Remove the inline function and its hardcoded subdomain list.
 - **`AddLinkModal.tsx`**: replace the inline `urlObj.hostname.replace('www.', '')` title derivation with `deriveSiteName(finalUrl)`.
 - **`GroupWidget.tsx`** (`handleAddLinkSubmit`): replace the inline hostname parsing with `deriveSiteName(url)`.
-- **`PopupApp.tsx:119`**: replace `new URL(tabUrl).hostname.replace(/^www\./,'')` fallback with `deriveSiteName(tabUrl, tabInfo.title)`.
-- **`AddWidgetModal.tsx:102-110`** (iframe title): replace the inline hostname parse with `deriveSiteName(embedUrl)` (keeping the `'Embed'` fallback when there is no URL — i.e. `deriveSiteName(embedUrl) ` already returns `'Link'`; pass `'Embed'` semantics by using `embedUrl ? deriveSiteName(embedUrl) : 'Embed'`).
-- **Out of scope:** `GoogleSearchWidget.tsx` host display (lines 149, 440) shows the raw host for search suggestions/history, which is intentional — do **not** change it.
+- **`AddWidgetModal.tsx:102-110`** (iframe title): replace the inline hostname parse with `embedUrl ? deriveSiteName(embedUrl) : 'Embed'` (preserves the `'Embed'` default when there is no URL).
+- **Out of scope (intentional raw-host displays, do NOT change):** `PopupApp.tsx:116-123/230` (`pageHost`, shown as a literal host under the tab title; the popup saves links with the real `tabInfo.title`), and `GoogleSearchWidget.tsx` host display (lines 149, 440) for search suggestions/history.
 
 Existing links benefit immediately: `LinkCard` derives live from `url`, so no data migration is needed.
 
