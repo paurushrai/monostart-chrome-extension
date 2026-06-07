@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   parseHsl, hslToRgb, relativeLuminance, contrastRatio,
-  normalizeAccentForContrast, shiftLightness, hexToHsl, foregroundForLuminance,
+  normalizeAccentForContrast, shiftLightness, hexToHsl, foregroundForLuminance, snapHslToIntegerRgb,
 } from '../color';
 
 describe('parseHsl', () => {
@@ -98,5 +98,56 @@ describe('foregroundForLuminance', () => {
   });
   it('should pick light text on a dark background', () => {
     expect(foregroundForLuminance(0.02)).toBe('0 0% 98%');
+  });
+});
+
+describe('snapHslToIntegerRgb', () => {
+  // Float-precision hsl→rgb (no rounding) to verify what a browser would paint.
+  const toRgbFloat = (hsl: string): [number, number, number] => {
+    const { h, s, l } = parseHsl(hsl);
+    const sN = s / 100, lN = l / 100;
+    const c = (1 - Math.abs(2 * lN - 1)) * sN;
+    const hp = (h % 360) / 60;
+    const x = c * (1 - Math.abs((hp % 2) - 1));
+    let r = 0, g = 0, b = 0;
+    if (hp < 1) { r = c; g = x; }
+    else if (hp < 2) { r = x; g = c; }
+    else if (hp < 3) { g = c; b = x; }
+    else if (hp < 4) { g = x; b = c; }
+    else if (hp < 5) { r = x; b = c; }
+    else { r = c; b = x; }
+    const m = lN - c / 2;
+    return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
+  };
+  const maxFracError = (hsl: string): number =>
+    Math.max(...toRgbFloat(hsl).map((ch) => Math.abs(ch - Math.round(ch))));
+
+  it('should_land_on_integer_rgb_when_input_is_fractional_chromatic', () => {
+    // Blue dark background: hsl(214 30% 10%) → rgb(17.85, 23.46, 33.15)
+    const snapped = snapHslToIntegerRgb('214 30% 10%');
+    expect(maxFracError(snapped)).toBeLessThan(0.01);
+  });
+
+  it('should_land_on_integer_rgb_when_input_is_fractional_achromatic', () => {
+    // Grey dark background: hsl(0 0% 14%) → rgb(35.7, 35.7, 35.7)
+    const snapped = snapHslToIntegerRgb('0 0% 14%');
+    expect(maxFracError(snapped)).toBeLessThan(0.01);
+  });
+
+  it('should_preserve_the_rounded_rgb_of_the_input', () => {
+    const original = '214 30% 10%';
+    const snapped = snapHslToIntegerRgb(original);
+    expect(hslToRgb(parseHsl(snapped))).toEqual(hslToRgb(parseHsl(original)));
+  });
+
+  it('should_keep_already_integer_colors_equivalent', () => {
+    // Default dark background: hsl(0 0% 6.6667%) → exactly rgb(17,17,17)
+    const snapped = snapHslToIntegerRgb('0 0% 6.6667%');
+    expect(hslToRgb(parseHsl(snapped))).toEqual({ r: 17, g: 17, b: 17 });
+    expect(maxFracError(snapped)).toBeLessThan(0.01);
+  });
+
+  it('should_return_a_valid_app_format_hsl_string', () => {
+    expect(() => parseHsl(snapHslToIntegerRgb('45 95% 50%'))).not.toThrow();
   });
 });

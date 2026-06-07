@@ -33,6 +33,10 @@
         document.documentElement.style.setProperty('--theme-sat', sat);
         document.documentElement.style.setProperty('--theme-lum', lum + '%');
         document.documentElement.style.setProperty('--theme-sat-factor', sat === '0%' ? '0' : '1');
+        // Note: useTheme's applyAccent additionally snaps --background to
+        // integer sRGB once React mounts (see snapHslToIntegerRgb). The
+        // pre-React frame paints in a single pass, so the unsnapped CSS calc
+        // value (<1/255 off) is fine here.
         if (typeof themeColor === 'string') {
             document.documentElement.style.setProperty('--primary', themeColor);
             document.documentElement.style.setProperty('--ring', themeColor);
