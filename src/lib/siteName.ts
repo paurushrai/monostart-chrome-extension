@@ -34,19 +34,21 @@ const deriveFromTitle = (title: string | undefined): string => {
 
 // Resolve the registrable domain's main label, stripping all subdomains and
 // accounting for second-level public suffixes (e.g. bbc.co.uk -> "bbc").
-const registrableLabel = (host: string): string => {
-  const labels = host.split('.');
+const registrableLabel = (domain: string): string => {
+  const labels = domain.split('.');
   if (labels.length >= 3 && SECOND_LEVEL_SUFFIXES.has(labels[labels.length - 2] ?? '')) {
-    return labels[labels.length - 3] ?? host;
+    return labels[labels.length - 3] ?? domain;
   }
-  if (labels.length >= 2) return labels[labels.length - 2] ?? host;
-  return labels[0] ?? host;
+  if (labels.length >= 2) return labels[labels.length - 2] ?? domain;
+  return labels[0] ?? domain;
 };
 
 const parseUrl = (raw: string): URL | null => {
   try {
     return new URL(raw);
   } catch {
+    // Scheme-less input (e.g. "example.com") throws on first parse; retry
+    // with an https:// prefix before giving up.
     try {
       return new URL(`https://${raw}`);
     } catch {
