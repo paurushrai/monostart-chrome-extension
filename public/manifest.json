@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MonoStart",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A customizable new-tab dashboard for Chrome: search, links, notes, timers, and reminders in one clean, private start page.",
   "permissions": ["storage", "unlimitedStorage", "activeTab", "tabs", "history", "alarms", "notifications", "offscreen", "favicon"],
   "host_permissions": ["*://suggestqueries.google.com/*"],
