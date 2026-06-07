@@ -34,7 +34,7 @@ export const processImageUpload = async (file: File): Promise<UploadResult> => {
     return { value: await putImage(blob) };
   } catch {
     if (file.size > FALLBACK_MAX_BYTES) {
-      throw new Error('Image must be smaller than 1.5MB.');
+      throw new Error("Couldn't save this image. Try one smaller than 1.5MB.");
     }
     return { value: await readAsDataUrl(file) };
   }

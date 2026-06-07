@@ -36,4 +36,22 @@ describe('processImageUpload', () => {
     vi.mocked(downscaleImage).mockRejectedValue(new Error('no canvas'));
     await expect(processImageUpload(fileOfSize(3 * 1024 * 1024))).rejects.toThrow(/1.5MB/);
   });
+
+  it('falls back to a base64 data URL when downscale fails and the file is small', async () => {
+    vi.mocked(downscaleImage).mockRejectedValue(new Error('no canvas'));
+    class FakeFileReader {
+      result: string | null = null;
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      error: unknown = null;
+      readAsDataURL(): void {
+        this.result = 'data:image/png;base64,AAAA';
+        this.onload?.();
+      }
+    }
+    vi.stubGlobal('FileReader', FakeFileReader);
+    const result = await processImageUpload(fileOfSize(500_000));
+    expect(result.value).toBe('data:image/png;base64,AAAA');
+    vi.unstubAllGlobals();
+  });
 });
