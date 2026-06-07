@@ -86,9 +86,12 @@ export function useTheme(): UseTheme {
 
   // Light/dark class + root background colour (kept in sync with the device).
   useEffect(() => {
+    // html's background comes from the `html { @apply bg-background }` rule —
+    // never snapshot a computed color onto it here: an inline copy goes stale
+    // when the theme color changes (it only re-ran on mode changes), leaving
+    // the previous theme visible wherever html shows through.
     const applyMode = (): void => {
       document.documentElement.classList.toggle('dark', resolveIsDark(settings.themeMode));
-      document.documentElement.style.backgroundColor = getComputedStyle(document.body).backgroundColor;
     };
     applyMode();
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
