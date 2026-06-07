@@ -83,6 +83,39 @@ export function normalizeAccentForContrast(accentHsl: string): { accent: string;
   return { accent: formatHsl({ h, s, l: 0 }), foreground: WHITE_FG };
 }
 
+const round4 = (n: number): number => Math.round(n * 10000) / 10000;
+
+/**
+ * Snap an HSL color so it renders as exact integer sRGB channels.
+ *
+ * HSL values like hsl(214 30% 10%) map to fractional sRGB (17.85, 23.46,
+ * 33.15). When Chrome converts those to a wide-gamut display profile (P3),
+ * different rasterization passes can quantize them differently — large
+ * surfaces show seams between two near-identical shades. Rounding to integer
+ * RGB and converting back makes quantization deterministic on any profile.
+ * (rgbToHsl below rounds h/s/l for display; this needs full precision, so the
+ * back-conversion is done inline.)
+ */
+export function snapHslToIntegerRgb(hsl: string): string {
+  const { r, g, b } = hslToRgb(parseHsl(hsl)); // hslToRgb rounds to integers
+  const rN = r / 255;
+  const gN = g / 255;
+  const bN = b / 255;
+  const max = Math.max(rN, gN, bN);
+  const min = Math.min(rN, gN, bN);
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (d === 0) return formatHsl({ h: 0, s: 0, l: round4(l * 100) });
+  const s = d / (1 - Math.abs(2 * l - 1));
+  let h: number;
+  if (max === rN) h = ((gN - bN) / d) % 6;
+  else if (max === gN) h = (bN - rN) / d + 2;
+  else h = (rN - gN) / d + 4;
+  h *= 60;
+  if (h < 0) h += 360;
+  return formatHsl({ h: round4(h), s: round4(s * 100), l: round4(l * 100) });
+}
+
 export function shiftLightness(hsl: string, deltaL: number): string {
   const { h, s, l } = parseHsl(hsl);
   const nextL = Math.max(0, Math.min(100, l + deltaL));

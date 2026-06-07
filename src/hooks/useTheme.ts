@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getSettings, saveSettings } from '../lib/storage';
-import { normalizeAccentForContrast, foregroundForLuminance, parseHsl } from '../lib/color';
+import {
+  normalizeAccentForContrast,
+  foregroundForLuminance,
+  parseHsl,
+  snapHslToIntegerRgb,
+} from '../lib/color';
 import { deriveBackgroundTheme } from '../lib/backgroundTheme';
 import { migrateLegacySeed } from '../lib/chromeThemes';
 import type { Settings } from '../types';
@@ -9,6 +14,11 @@ const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', t
 
 const DARK_TINT_SAT = '30%';
 const LIGHT_TINT_SAT = '40%';
+/* Mirrors the --background lightness ladder + --surface-shift in index.css. */
+const BG_LIGHTNESS_DARK = 10;
+const BG_LIGHTNESS_LIGHT = 94;
+const SHIFT_DIVISOR = 6;
+const SHIFT_CLAMP = 4;
 const LIGHT_HEADER_FG = '0 0% 98%';
 const SHADOW_FOR_LIGHT_TEXT = 'rgba(0,0,0,0.5)';
 const SHADOW_FOR_DARK_TEXT = 'rgba(255,255,255,0.6)';
@@ -39,6 +49,17 @@ const applyAccent = (accentHsl: string, isDark: boolean): void => {
   // grey seeds (see index.css --surface-shift).
   style.setProperty('--theme-lum', `${l}%`);
   style.setProperty('--theme-sat-factor', s === 0 ? '0' : '1');
+
+  // The dashboard background must land on exact integer sRGB channels:
+  // fractional values (e.g. hsl(214 30% 10%) → rgb 17.85, 23.46, 33.15)
+  // quantize differently between rasterization passes when Chrome converts
+  // to wide-gamut display profiles, splitting large surfaces into two
+  // near-identical shades. Compute the same color the CSS calc would and
+  // snap it (see snapHslToIntegerRgb).
+  const shift = s === 0 ? Math.max(-SHIFT_CLAMP, Math.min(SHIFT_CLAMP, (l - 50) / SHIFT_DIVISOR)) : 0;
+  const bgLightness = (isDark ? BG_LIGHTNESS_DARK : BG_LIGHTNESS_LIGHT) + shift;
+  const bgSat = parseFloat(themeSat);
+  style.setProperty('--background', snapHslToIntegerRgb(`${h} ${bgSat}% ${bgLightness}%`));
 };
 
 const clearAccent = (): void => {
@@ -51,6 +72,7 @@ const clearAccent = (): void => {
     '--theme-sat',
     '--theme-lum',
     '--theme-sat-factor',
+    '--background',
   ]) {
     style.removeProperty(prop);
   }
