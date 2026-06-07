@@ -206,6 +206,16 @@
   transform-origin: center center;
 }
 
+/* Footer-guide pointer: Tailwind's animate-bounce translates up, which would
+   overlap the card above the arrow — nudge downward (toward the footer) instead. */
+@keyframes footerGuideNudgeDown {
+  0%, 100% { transform: translateY(0); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+  50% { transform: translateY(25%); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+}
+.footer-guide-nudge-down {
+  animation: footerGuideNudgeDown 1s infinite;
+}
+
 /* Make pasted embed snippets (iframe / blockquote) fill the widget regardless of their hardcoded dimensions */
 .embed-html-container {
   position: relative;
