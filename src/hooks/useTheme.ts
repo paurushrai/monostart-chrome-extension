@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { getSettings, saveSettings } from '../lib/storage';
 import { normalizeAccentForContrast, foregroundForLuminance, parseHsl } from '../lib/color';
 import { deriveBackgroundTheme } from '../lib/backgroundTheme';
+import { migrateLegacySeed } from '../lib/chromeThemes';
 import type { Settings } from '../types';
 
-const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '220 9% 46%' };
+const DEFAULT_SETTINGS: Settings = { openInNewTab: false, themeMode: 'device', themeColor: '0 0% 30%' };
 
 const DARK_TINT_SAT = '30%';
 const LIGHT_TINT_SAT = '40%';
@@ -25,7 +26,7 @@ const resolveIsDark = (mode: Settings['themeMode'] | undefined): boolean =>
 const applyAccent = (accentHsl: string, isDark: boolean): void => {
   const { style } = document.documentElement;
   const { accent, foreground } = normalizeAccentForContrast(accentHsl);
-  const { h, s } = parseHsl(accent);
+  const { h, s, l } = parseHsl(accent);
   let themeSat = LIGHT_TINT_SAT;
   if (s === 0) themeSat = '0%';
   else if (isDark) themeSat = DARK_TINT_SAT;
@@ -34,11 +35,23 @@ const applyAccent = (accentHsl: string, isDark: boolean): void => {
   style.setProperty('--primary-foreground', foreground);
   style.setProperty('--theme-hue', String(h));
   style.setProperty('--theme-sat', themeSat);
+  // Seed lightness + achromatic flag drive the surface-lightness shift for
+  // grey seeds (see index.css --surface-shift).
+  style.setProperty('--theme-lum', `${l}%`);
+  style.setProperty('--theme-sat-factor', s === 0 ? '0' : '1');
 };
 
 const clearAccent = (): void => {
   const { style } = document.documentElement;
-  for (const prop of ['--primary', '--ring', '--primary-foreground', '--theme-hue', '--theme-sat']) {
+  for (const prop of [
+    '--primary',
+    '--ring',
+    '--primary-foreground',
+    '--theme-hue',
+    '--theme-sat',
+    '--theme-lum',
+    '--theme-sat-factor',
+  ]) {
     style.removeProperty(prop);
   }
 };
@@ -61,7 +74,14 @@ export function useTheme(): UseTheme {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
-    getSettings().then((s) => setSettings({ ...DEFAULT_SETTINGS, ...s }));
+    getSettings().then((s) => {
+      const migratedColor = migrateLegacySeed(s.themeColor) ?? DEFAULT_SETTINGS.themeColor;
+      const next = { ...DEFAULT_SETTINGS, ...s, themeColor: migratedColor };
+      setSettings(next);
+      // Persist legacy-seed migrations so theme-init.js paints the right
+      // pre-React frame on every subsequent load.
+      if (migratedColor !== s.themeColor) saveSettings(next);
+    });
   }, []);
 
   // Light/dark class + root background colour (kept in sync with the device).
