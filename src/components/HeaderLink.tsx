@@ -13,6 +13,7 @@ import {
 import { Button } from './ui/button';
 import { MoreHorizontal, Trash2, FolderInput, Home, Folder, Edit2, Link2, Eye, Image as ImageIcon, Type, Check } from 'lucide-react';
 import { siteFaviconUrl } from '../lib/favicon';
+import { deriveSiteName } from '../lib/siteName';
 import Favicon from './Favicon';
 import type { LinkItem, GridSlot } from '../types';
 
@@ -59,7 +60,7 @@ const HeaderLink = ({
   const skipRenameBlurRef = useRef(false);
   const renameRequestedRef = useRef(false);
 
-  const siteName = item.customName || item.title || 'Link';
+  const siteName = item.customName || deriveSiteName(item.url, item.title);
   const url = item.url;
 
   const showAsText = item.viewMode === 'text';
