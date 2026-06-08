@@ -178,7 +178,7 @@ const ImageWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props
       <div className="flex-1 relative min-h-0 w-full h-full bg-gray-50/50 dark:bg-black/5 flex flex-col items-center justify-center rounded-b-xl overflow-hidden">
 
         {isEditing && showConfig ? (
-          <div className="w-full h-full p-3 flex flex-col overflow-y-auto z-20 bg-background/95 backdrop-blur-sm">
+          <div className="w-full h-full px-3 py-1 flex flex-col overflow-y-auto z-20 bg-background/95 backdrop-blur-sm">
             <div className="my-auto w-full space-y-2">
             <p className="text-xs font-medium text-foreground text-center shrink-0">Configure Widget Image</p>
 
