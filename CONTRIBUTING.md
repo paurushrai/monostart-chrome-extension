@@ -5,10 +5,31 @@ bug reports, feature ideas, docs, and code — are welcome.
 
 > [!IMPORTANT]
 > **Licensing of contributions.** MonoStart is **source-available** under the
-> [PolyForm Noncommercial License 1.0.0](LICENSE). By submitting a contribution
-> (issue, pull request, or otherwise), you agree that your contribution is provided
-> under the same license and that the project maintainer may use it under those terms.
-> Contributions are accepted for **noncommercial** improvement of the project.
+> [PolyForm Noncommercial License 1.0.0](LICENSE). By submitting a contribution — an
+> issue, pull request, code, documentation, or any other material — you agree to **all**
+> of the following:
+>
+> 1. **Project license.** Your contribution is licensed to the public, as part of
+>    MonoStart, under the PolyForm Noncommercial License 1.0.0 (or any later version of
+>    that license the project adopts).
+> 2. **Grant to the maintainer.** You **additionally** grant **Paurush Rai** (the
+>    copyright holder and project maintainer) a perpetual, worldwide, non-exclusive,
+>    royalty-free, irrevocable, sublicensable, and transferable license to use, reproduce,
+>    modify, distribute, publicly display and perform, and otherwise exploit your
+>    contribution **for any purpose, including commercial purposes**, and to relicense it
+>    under different terms. This lets MonoStart be offered commercially or under
+>    alternative licenses without having to track down every contributor.
+> 3. **You keep your rights.** You retain copyright in your contribution and remain free
+>    to use it elsewhere however you wish. The grant above is **in addition to** — not
+>    instead of — your own rights.
+> 4. **Originality & authority.** You confirm the contribution is your original work (or
+>    that you otherwise have the right to submit it under these terms), and that, to your
+>    knowledge, it does not infringe any third party's rights. If your employer holds
+>    rights to work you create, you confirm you have permission to contribute it.
+>
+> If you cannot agree to these terms, please do not submit a contribution. These terms
+> keep the project free for noncommercial use while preserving the maintainer's ability
+> to sustain it commercially.
 
 ## Code of conduct
 
@@ -109,5 +130,7 @@ are blocked. All changes land through a pull request from a fork.
 3. Ensure all [quality gates](#quality-gates) pass.
 4. Open the PR with a clear description of **what** changed, **why**, and **how to test** it.
 5. Link any related issue (e.g. `Closes #12`).
+6. Confirm you agree to the [contribution terms](#contributing-to-monostart) above
+   (project license + grant to the maintainer). Opening a PR is taken as your agreement.
 
 A maintainer will review as soon as possible. Thanks for contributing! 🙌
