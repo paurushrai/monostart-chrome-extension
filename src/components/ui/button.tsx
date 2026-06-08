@@ -10,7 +10,7 @@ const buttonVariants = cva(
       variant: {
         default: "bg-ink text-white hover:bg-ink/90 dark:bg-ink-dark dark:text-dark-bg-primary dark:hover:bg-ink-dark/90",
         destructive: "bg-red-500 text-white hover:bg-red-500/90",
-        outline: "border border-border bg-bg-primary hover:bg-bg-hover hover:text-ink dark:border-border-dark dark:bg-dark-bg-primary dark:hover:bg-dark-bg-hover",
+        outline: "border border-border bg-bg-primary text-ink hover:bg-bg-hover dark:border-border-dark dark:bg-dark-bg-primary dark:text-ink-dark dark:hover:bg-dark-bg-hover",
         secondary: "bg-bg-hover text-ink hover:bg-bg-hover/80 dark:bg-dark-bg-hover dark:text-ink-dark",
         ghost: "hover:bg-bg-hover hover:text-ink dark:hover:bg-dark-bg-hover dark:hover:text-ink-dark",
         link: "text-ink underline-offset-4 hover:underline dark:text-ink-dark",
