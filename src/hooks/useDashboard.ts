@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Layout } from 'react-grid-layout/legacy';
-import { getItems, getItemsSync, saveItems } from '../lib/storage';
+import { getItems, getItemsSync, saveItems, getSettings } from '../lib/storage';
+import { deleteImage, sweepOrphanImages } from '../lib/imageStore';
+import { collectReferencedRefs, isIdbRef } from '../lib/imageRef';
 import { saveItem } from '../lib/itemRepository';
 import type { NewItemInput } from '../lib/itemRepository';
 import { RESIZABLE_TYPES, WidgetType, getWidgetLayout } from '../lib/widgetCatalog';
@@ -84,6 +86,9 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
       });
       const liveIds = new Set<string>(migrated.map((l) => l.id));
       cleanupOrphanedWidgetData(liveIds).catch(() => { /* empty */ });
+      getSettings().then((settings) => {
+        sweepOrphanImages(collectReferencedRefs(migrated, settings.background)).catch(() => { /* empty */ });
+      }).catch(() => { /* empty */ });
     });
 
     if (typeof chrome !== 'undefined' && chrome.storage) {
@@ -156,6 +161,10 @@ export function useDashboard(opts: UseDashboardOptions = {}): UseDashboard {
         });
     };
     setLinks((prev) => {
+      const removed = prev.find((item) => item.id === id);
+      if (removed?.type === 'image' && isIdbRef(removed.url)) {
+        deleteImage(removed.url).catch(() => { /* best-effort cleanup */ });
+      }
       const next = deleteNested(prev);
       saveItems(next);
       removeWidgetDataForId(id);
