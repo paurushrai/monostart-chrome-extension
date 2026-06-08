@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Favicon from './Favicon';
 import type { LinkItem, GridSlot } from '../types';
+import { deriveSiteName } from '../lib/siteName';
 
 interface GroupRef {
   id: string;
@@ -74,22 +75,7 @@ const LinkCard = ({
     }
   }, [isRenaming]);
 
-  const getSiteName = (urlString: string | undefined) => {
-    if (!urlString) return title ? title.split(' - ')[0] : 'Link';
-    try {
-      const hostname = new URL(urlString).hostname.replace(/^www\./, '');
-      const parts = hostname.split('.');
-      let name = parts[0] ?? hostname;
-      if (parts.length >= 3 && ['app', 'docs', 'blog', 'mail', 'm', 'web', 'my', 'api', 'dev', 'shop'].includes(name.toLowerCase())) {
-        name = parts[1] ?? name;
-      }
-      return name.charAt(0).toUpperCase() + name.slice(1);
-    } catch {
-      return title ? title.split(' - ')[0] : 'Link';
-    }
-  };
-
-  const siteName = customName || getSiteName(url);
+  const siteName = customName || deriveSiteName(url, title);
   const listMode = displayMode === 'list';
   const isIconOnly = listMode ? false : item.w === 1;
   const isLarge = listMode ? false : ((item.w && item.w > 2) || (item.h && item.h > 1));
