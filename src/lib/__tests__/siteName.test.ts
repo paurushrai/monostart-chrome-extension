@@ -51,6 +51,9 @@ describe('deriveSiteName — title fallback', () => {
     expect(deriveSiteName('file:///Users/x/a.pdf', 'a.pdf — Reader')).toBe('a.pdf');
     expect(deriveSiteName('data:text/plain,hi')).toBe('Link');
   });
+  it('uses a non-empty title for non-http schemes with no host', () => {
+    expect(deriveSiteName('data:text/plain,hi', 'My Title')).toBe('My Title');
+  });
   it('splits the title on the first known separator', () => {
     expect(deriveSiteName(undefined, 'GitHub · Build software')).toBe('GitHub');
     expect(deriveSiteName(undefined, 'Docs | Example')).toBe('Docs');
@@ -60,5 +63,12 @@ describe('deriveSiteName — title fallback', () => {
     expect(deriveSiteName(undefined, '   ')).toBe('Link');
     expect(deriveSiteName(undefined)).toBe('Link');
     expect(deriveSiteName('')).toBe('Link');
+  });
+});
+
+describe('deriveSiteName — suffix-set boundary', () => {
+  it('treats a TLD outside the second-level set as a normal two-part domain', () => {
+    expect(deriveSiteName('https://example.io')).toBe('Example');
+    expect(deriveSiteName('https://blog.example.io')).toBe('Example');
   });
 });
