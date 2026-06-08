@@ -9,6 +9,7 @@ import { useGroupDragOut } from '../../hooks/useGroupDragOut';
 import { HEADER_LINK_DRAG_TYPE } from '../../hooks/useHeaderDrag';
 import { findFirstFreeSlot } from '../../lib/grid';
 import { siteFaviconUrl } from '../../lib/favicon';
+import { deriveSiteName } from '../../lib/siteName';
 import type { GroupItem, LinkItem, WidgetItem, DragCoords, GridSlot } from '../../types';
 
 const PRESET_COLORS = [
@@ -134,14 +135,12 @@ const GroupWidget = ({
       url = 'https://' + url;
     }
 
-    let linkTitle = '';
+    const linkTitle = deriveSiteName(url);
     let favicon = '';
     try {
-      const urlObj = new URL(url);
-      linkTitle = urlObj.hostname.replace('www.', '');
       favicon = siteFaviconUrl(url);
     } catch {
-      linkTitle = url;
+      /* favicon is best-effort */
     }
 
     const currentCols = cols;
