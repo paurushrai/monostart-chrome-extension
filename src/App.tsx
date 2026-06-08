@@ -9,7 +9,6 @@ import ClearDashboardModal from './components/ClearDashboardModal';
 import FooterGuide from './components/FooterGuide';
 import Toast from './components/Toast';
 import { useDashboard } from './hooks/useDashboard';
-import { getImageWidgetSize } from './hooks/useGridDimensions';
 import { useTheme } from './hooks/useTheme';
 import { useHeaderDrag } from './hooks/useHeaderDrag';
 import { useToast } from './hooks/useToast';
@@ -127,10 +126,7 @@ function App() {
       return;
     }
     if (!isEditing) preAddSnapshotRef.current = getItemsSync();
-    const sized = widget.type === 'image'
-      ? { ...widget, defaults: { ...widget.defaults, ...getImageWidgetSize() } }
-      : widget;
-    const saved = await addWidget(sized);
+    const saved = await addWidget(widget);
     if (!saved) {
       preAddSnapshotRef.current = null;
       showToast('No room for this widget. Resize or remove something to make space.');

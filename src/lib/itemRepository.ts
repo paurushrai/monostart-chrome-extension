@@ -12,13 +12,16 @@ export const saveItem = async (
   const currentLinks = await getItems();
 
   const id = newLink.id || `${newLink.type || WidgetType.LINK}-${Date.now()}`;
-  const w = newLink.w || (newLink.type === WidgetType.GROUP ? 6 : 2);
-  const h = newLink.h || (newLink.type === WidgetType.GROUP ? 4 : 2);
+  // Universal rule: every widget is created at or above its registered minimum
+  // size, so nothing can be added smaller than it is allowed to be resized to.
+  const { minW, minH } = getMinSize(newLink.type);
+  const w = Math.max(minW, newLink.w || (newLink.type === WidgetType.GROUP ? 6 : 2));
+  const h = Math.max(minH, newLink.h || (newLink.type === WidgetType.GROUP ? 4 : 2));
 
   const linkWithId: NewItemInput & { id: string; i: string; w: number; h: number } = {
+    ...newLink,
     w,
     h,
-    ...newLink,
     id,
     i: id,
   };
