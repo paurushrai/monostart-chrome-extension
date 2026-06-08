@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { deriveBackgroundTheme } from '../backgroundTheme';
+
+vi.mock('../imageStore', () => ({
+  getObjectUrl: vi.fn(() => Promise.reject(new Error('missing'))),
+}));
 
 describe('deriveBackgroundTheme', () => {
   it('should return null when there is no background', async () => {
@@ -28,6 +32,10 @@ describe('deriveBackgroundTheme', () => {
 
   it('should return null for a gradient with no parseable colors', async () => {
     expect(await deriveBackgroundTheme({ type: 'gradient', value: 'linear-gradient(var(--x),var(--y))' })).toBeNull();
+  });
+
+  it('should return null when an idb image ref cannot be resolved', async () => {
+    expect(await deriveBackgroundTheme({ type: 'image', value: 'idb:does-not-exist' })).toBeNull();
   });
 
   it('should reduce luminance as the dim overlay increases', async () => {

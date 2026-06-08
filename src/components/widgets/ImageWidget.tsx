@@ -22,18 +22,21 @@ interface Props {
   isEditing: boolean;
 }
 
+const toEditableUrl = (value: string): string =>
+  value && !value.startsWith('data:') && !isIdbRef(value) ? value : '';
+
 const ImageWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props>) => {
   const { title = 'Image', url = '', fit = 'cover' } = item;
   const { src: resolvedSrc, status: imageStatus } = useImageSrc(url);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [showConfig, setShowConfig] = useState(!url);
-  const [inputUrl, setInputUrl] = useState(url);
+  const [inputUrl, setInputUrl] = useState(toEditableUrl(url));
   const [uploadError, setUploadError] = useState("");
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    setInputUrl(url);
+    setInputUrl(toEditableUrl(url));
     setShowConfig(!url);
   }, [url]);
 
