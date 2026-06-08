@@ -6,6 +6,9 @@ import { Sun, Moon, Monitor, Upload } from 'lucide-react';
 import type { Settings, DashboardBackground } from '../types';
 import ThemeSwatch from './ThemeSwatch';
 import { CHROME_THEMES } from '../lib/chromeThemes';
+import { processImageUpload } from '../lib/processImageUpload';
+import { deleteImage } from '../lib/imageStore';
+import { isIdbRef } from '../lib/imageRef';
 
 const bgColors = ['#0f172a', '#111827', '#1e293b', '#18181b', '#1e3a8a', '#3730a3', '#0b3b2e', '#7f1d1d'];
 const bgGradients = [
@@ -61,26 +64,29 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
 
   const chooseType = (t: DashboardBackground['type']) => {
     setBgError('');
+    if (t !== 'image' && bg.type === 'image' && isIdbRef(bg.value)) {
+      deleteImage(bg.value).catch(() => { /* best-effort cleanup */ });
+    }
     if (t === 'color') setBg({ type: 'color', value: bg.type === 'color' && bg.value ? bg.value : bgColors[0] });
     else if (t === 'gradient') setBg({ type: 'gradient', value: bg.type === 'gradient' && bg.value ? bg.value : bgGradients[0]!.value });
     else if (t === 'image') setBg({ type: 'image', value: bg.type === 'image' ? bg.value : '' });
     else setBg({ type: 'none' });
   };
 
-  const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 1.5 * 1024 * 1024) {
-      setBgError('Image must be under 1.5 MB.');
-      return;
+    setBgError('');
+    try {
+      const previous = bg.type === 'image' ? bg.value : undefined;
+      const { value } = await processImageUpload(file);
+      if (isIdbRef(previous) && previous !== value) {
+        deleteImage(previous).catch(() => { /* best-effort cleanup */ });
+      }
+      setBg({ type: 'image', value });
+    } catch (err) {
+      setBgError(err instanceof Error ? err.message : 'Failed to read file.');
     }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = ev.target?.result;
-      if (typeof result === 'string') { setBg({ type: 'image', value: result }); setBgError(''); }
-    };
-    reader.onerror = () => setBgError('Failed to read file.');
-    reader.readAsDataURL(file);
   };
 
   return (
@@ -274,7 +280,7 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
                 <Input
                   type="text"
                   placeholder="Paste image URL..."
-                  value={bg.value && !bg.value.startsWith('data:') ? bg.value : ''}
+                  value={bg.value && !bg.value.startsWith('data:') && !isIdbRef(bg.value) ? bg.value : ''}
                   onChange={(e) => setBg({ value: e.target.value })}
                 />
                 <input type="file" accept="image/*" ref={fileRef} onChange={handleBgUpload} className="hidden" />
@@ -286,7 +292,7 @@ export default function ThemeSettingsModal({ open, onOpenChange, settings, updat
                 >
                   <Upload size={12} /> Upload Image
                 </Button>
-                {bg.value?.startsWith('data:') && (
+                {(bg.value?.startsWith('data:') || isIdbRef(bg.value)) && (
                   <p className="text-2xs text-muted-foreground text-center">Custom image uploaded.</p>
                 )}
                 {bgError && <p className="text-2xs text-red-500 text-center">{bgError}</p>}
