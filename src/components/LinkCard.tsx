@@ -1,4 +1,4 @@
-import { useState, type FocusEvent, type KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, type FocusEvent, type KeyboardEvent } from 'react';
 import {
   ExternalLink,
   Check,
@@ -60,6 +60,19 @@ const LinkCard = ({
 }: Readonly<Props>) => {
   const { url, title, customName } = item;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  const renameInputRef = useRef<HTMLInputElement>(null);
+  const skipRenameBlurRef = useRef(false);
+  const renameRequestedRef = useRef(false);
+
+  useEffect(() => {
+    if (isRenaming) {
+      const input = renameInputRef.current;
+      input?.focus();
+      input?.select();
+    }
+  }, [isRenaming]);
 
   const getSiteName = (urlString: string | undefined) => {
     if (!urlString) return title ? title.split(' - ')[0] : 'Link';
@@ -88,13 +101,44 @@ const LinkCard = ({
     }
   };
 
-  const handleRename = () => {
-    const next = window.prompt('Rename link:', siteName);
-    if (next !== null) {
-      const trimmed = next.trim();
-      if (trimmed) onUpdateItem(item.id, { customName: trimmed });
-    }
+  const startRename = () => {
+    skipRenameBlurRef.current = false;
+    renameRequestedRef.current = true;
+    setDraftName(siteName ?? '');
+    setIsRenaming(true);
     setIsMenuOpen(false);
+  };
+
+  const commitRename = () => {
+    const trimmed = draftName.trim();
+    if (trimmed && trimmed !== siteName) {
+      onUpdateItem(item.id, { customName: trimmed });
+    }
+    setIsRenaming(false);
+  };
+
+  const cancelRename = () => {
+    skipRenameBlurRef.current = true;
+    setIsRenaming(false);
+  };
+
+  const handleRenameKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      skipRenameBlurRef.current = true;
+      commitRename();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelRename();
+    }
+  };
+
+  const handleRenameBlur = () => {
+    if (skipRenameBlurRef.current) {
+      skipRenameBlurRef.current = false;
+      return;
+    }
+    commitRename();
   };
 
   const handleDescBlur = (e: FocusEvent<HTMLSpanElement>) => {
@@ -133,8 +177,18 @@ const LinkCard = ({
                 <MoreHorizontal size={12} className="text-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48" onMouseDown={(e) => e.stopPropagation()}>
-              <DropdownMenuItem onClick={handleRename} className="flex items-center gap-2">
+            <DropdownMenuContent
+              align="end"
+              className="w-48"
+              onMouseDown={(e) => e.stopPropagation()}
+              onCloseAutoFocus={(e) => {
+                if (renameRequestedRef.current) {
+                  e.preventDefault();
+                  renameRequestedRef.current = false;
+                }
+              }}
+            >
+              <DropdownMenuItem onClick={startRename} className="flex items-center gap-2">
                 <Pencil size={13} className="text-muted-foreground" />
                 <span>Rename</span>
               </DropdownMenuItem>
@@ -276,16 +330,29 @@ const LinkCard = ({
 
         {!isIconOnly && (
           <div className="text-left flex flex-col justify-center flex-1 min-w-0 overflow-hidden">
-            <h4
-              contentEditable={isEditing && !listMode}
-              suppressContentEditableWarning
-              onBlur={handleNameBlur}
-              onKeyDown={handleKeyDown}
-              onMouseDown={(e) => isEditing && !listMode && e.stopPropagation()}
-              className={`m-0 font-medium text-foreground truncate leading-tight ${listMode ? 'text-xs' : 'text-sm'} ${isLarge ? 'mb-0.5' : ''} ${isEditing && !listMode ? 'cursor-text outline-none hover:bg-secondary focus:bg-secondary rounded px-1 -ml-1 transition-colors' : ''}`}
-            >
-              {siteName}
-            </h4>
+            {isRenaming ? (
+              <input
+                ref={renameInputRef}
+                value={draftName}
+                onChange={(e) => setDraftName(e.target.value)}
+                onBlur={handleRenameBlur}
+                onKeyDown={handleRenameKeyDown}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                className={`m-0 w-full font-medium text-foreground bg-secondary truncate leading-tight rounded px-1 -ml-1 outline-none ${listMode ? 'text-xs' : 'text-sm'} ${isLarge ? 'mb-0.5' : ''}`}
+              />
+            ) : (
+              <h4
+                contentEditable={isEditing && !listMode}
+                suppressContentEditableWarning
+                onBlur={handleNameBlur}
+                onKeyDown={handleKeyDown}
+                onMouseDown={(e) => isEditing && !listMode && e.stopPropagation()}
+                className={`m-0 font-medium text-foreground truncate leading-tight ${listMode ? 'text-xs' : 'text-sm'} ${isLarge ? 'mb-0.5' : ''} ${isEditing && !listMode ? 'cursor-text outline-none hover:bg-secondary focus:bg-secondary rounded px-1 -ml-1 transition-colors' : ''}`}
+              >
+                {siteName}
+              </h4>
+            )}
             {isLarge && (
               <span
                 contentEditable={isEditing}
@@ -301,11 +368,26 @@ const LinkCard = ({
           </div>
         )}
 
-        {isIconOnly && !isEditing && (
+        {isIconOnly && !isEditing && !isRenaming && (
           <div className="absolute inset-0 bg-background/70 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center p-2 z-10 pointer-events-none">
             <span className="text-2xs font-semibold text-foreground text-center truncate w-full drop-shadow-sm">
               {siteName}
             </span>
+          </div>
+        )}
+
+        {isIconOnly && isRenaming && (
+          <div className="absolute inset-0 bg-background/70 backdrop-blur-md flex items-center justify-center p-2 z-20">
+            <input
+              ref={renameInputRef}
+              value={draftName}
+              onChange={(e) => setDraftName(e.target.value)}
+              onBlur={handleRenameBlur}
+              onKeyDown={handleRenameKeyDown}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              className="text-2xs font-semibold text-foreground text-center w-full bg-transparent outline-none"
+            />
           </div>
         )}
       </a>
