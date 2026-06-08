@@ -42,6 +42,7 @@ Thumbs.db
 .claude/
 .aider*
 .cursor/
+.agents/
 
 # Graphify outputs
 graphify-out/
