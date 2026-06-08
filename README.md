@@ -29,6 +29,7 @@ no servers, no accounts, and no tracking.
 ## Table of contents
 
 - [Features](#features)
+- [User guide](#user-guide)
 - [Privacy](#privacy)
 - [Screenshots](#screenshots)
 - [Install](#install)
@@ -67,6 +68,12 @@ no servers, no accounts, and no tracking.
 | 🖼️ **Photo / Image** | Add an image from a URL or upload |
 | 🔤 **Text Labels** | Add clean headers to style and section your grid |
 | 🌐 **Embedded Pages** | Pin any website as a live widget |
+
+## User guide
+
+New to MonoStart? The **[User Guide](docs/USER_GUIDE.md)** is a complete, feature-by-feature
+walkthrough — edit mode, links, groups, search, every widget, the toolbar popup, themes,
+wallpapers, and a quick-reference table — written for end users.
 
 ## Privacy
 
