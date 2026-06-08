@@ -13,6 +13,7 @@ import {
 import { ChevronDown, Check, LayoutGrid, Bookmark, Folder } from 'lucide-react';
 import { saveItem } from '../lib/itemRepository';
 import { siteFaviconUrl } from '../lib/favicon';
+import { deriveSiteName } from '../lib/siteName';
 
 interface GroupRef {
   id: string;
@@ -51,14 +52,11 @@ const AddLinkModal = ({ open, onClose, onAfterAdd, groups = [] }: Readonly<Props
     let finalTitle = title.trim();
     let faviconUrl = '';
     try {
-      const urlObj = new URL(finalUrl);
-      if (!finalTitle) {
-        finalTitle = urlObj.hostname.replace('www.', '');
-      }
       faviconUrl = siteFaviconUrl(finalUrl);
     } catch {
-      if (!finalTitle) finalTitle = finalUrl;
+      /* favicon is best-effort */
     }
+    if (!finalTitle) finalTitle = deriveSiteName(finalUrl);
 
     setIsSubmitting(true);
 
