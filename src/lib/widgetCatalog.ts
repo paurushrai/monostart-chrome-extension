@@ -104,8 +104,8 @@ const WIDGETS = [
     name: 'Image',
     description: 'Add an image from a URL or upload a local file.',
     icon: Image,
-    defaults: { w: 4, h: 4, title: 'Image', url: '', fit: 'cover' },
-    layout: { minW: 4, minH: 4, resizable: true },
+    defaults: { w: 4, h: 3, title: 'Image', url: '', fit: 'cover' },
+    layout: { minW: 4, minH: 3, resizable: true },
   },
   {
     type: WidgetType.LABEL,
