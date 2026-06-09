@@ -1,5 +1,5 @@
-import type { RefObject, MouseEvent as ReactMouseEvent } from 'react';
-import GridLayout, { WidthProvider } from 'react-grid-layout/legacy';
+import { useLayoutEffect, useState, type RefObject, type MouseEvent as ReactMouseEvent } from 'react';
+import GridLayout from 'react-grid-layout/legacy';
 import type { Layout } from 'react-grid-layout/legacy';
 import { Folder } from 'lucide-react';
 import LinkCard from '../../LinkCard';
@@ -8,7 +8,14 @@ import { findFirstFreeSlot } from '../../../lib/grid';
 import type { LinkItem, DragPlaceholder, DragCoords, WidgetItem, GridSlot } from '../../../types';
 import type { UseGroupDragOut } from '../../../hooks/useGroupDragOut';
 
-const ReactGridLayout = WidthProvider(GridLayout);
+// Use GridLayout directly instead of WidthProvider. WidthProvider initializes
+// width to a hardcoded 1280 and only corrects to the real container width one
+// frame AFTER mount (via a post-paint ResizeObserver), so inner items render at
+// 1280-grid positions on first paint and then visibly slide to their real spots
+// — the load glitch. Instead we measure the container width synchronously in
+// useLayoutEffect (pre-paint) and gate the grid on it, so items paint once at
+// the correct width. Mirrors the top-level DashboardGrid fix.
+const ReactGridLayout = GridLayout;
 
 interface GroupRef {
   id: string;
@@ -84,6 +91,22 @@ export default function GroupInnerGrid({
   const rowPx = isList ? 25 : 50;
   const rowMarginY = isList ? 6 : 8;
   const rowPitch = rowPx + rowMarginY;
+
+  // Measure the scroll container's width synchronously before paint so the grid
+  // renders once at the correct width (see ReactGridLayout comment above).
+  const [gridWidth, setGridWidth] = useState(0);
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const measure = () => {
+      const w = el.clientWidth;
+      if (w > 0) setGridWidth((prev) => (prev === w ? prev : w));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [containerRef]);
   type RowItem = LinkItem | DragPlaceholder;
   const displayLinks: RowItem[] = [...links];
 
@@ -209,9 +232,10 @@ export default function GroupInnerGrid({
             </Button>
           )}
         </div>
-      ) : (
+      ) : gridWidth > 0 ? (
         <ReactGridLayout
           className="layout inner-grid-layout"
+          width={gridWidth}
           layout={layout}
           cols={gridCols}
           rowHeight={rowPx}
@@ -221,7 +245,6 @@ export default function GroupInnerGrid({
           isDraggable={isEditing}
           isResizable={isEditing && !isList}
           draggableHandle=".inner-drag-handle"
-          measureBeforeMount={true}
           onLayoutChange={onInnerLayoutChange}
           onDragStart={onRglDragStart}
           onDrag={onRglDrag}
@@ -257,7 +280,7 @@ export default function GroupInnerGrid({
             </div>
           ))}
         </ReactGridLayout>
-      )}
+      ) : null}
     </div>
   );
 }

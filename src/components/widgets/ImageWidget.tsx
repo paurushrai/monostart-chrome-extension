@@ -10,6 +10,10 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import type { ImageItem } from '../../types';
+import { processImageUpload } from '../../lib/processImageUpload';
+import { deleteImage } from '../../lib/imageStore';
+import { isIdbRef } from '../../lib/imageRef';
+import { useImageSrc } from '../../hooks/useImageSrc';
 
 interface Props {
   item: ImageItem;
@@ -18,17 +22,21 @@ interface Props {
   isEditing: boolean;
 }
 
+const toEditableUrl = (value: string): string =>
+  value && !value.startsWith('data:') && !isIdbRef(value) ? value : '';
+
 const ImageWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props>) => {
   const { title = 'Image', url = '', fit = 'cover' } = item;
+  const { src: resolvedSrc, status: imageStatus } = useImageSrc(url);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [showConfig, setShowConfig] = useState(!url);
-  const [inputUrl, setInputUrl] = useState(url);
+  const [inputUrl, setInputUrl] = useState(toEditableUrl(url));
   const [uploadError, setUploadError] = useState("");
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    setInputUrl(url);
+    setInputUrl(toEditableUrl(url));
     setShowConfig(!url);
   }, [url]);
 
@@ -51,28 +59,21 @@ const ImageWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props
     setShowConfig(false);
   };
 
-  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > 1.5 * 1024 * 1024) {
-      setUploadError("Image must be smaller than 1.5MB to optimize storage.");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (uploadEvent) => {
-      const base64 = uploadEvent.target?.result;
-      if (typeof base64 === 'string') {
-        onUpdateItem(item.id, { url: base64 });
-        setShowConfig(false);
-        setUploadError("");
+    setUploadError("");
+    try {
+      const previous = item.url;
+      const { value } = await processImageUpload(file);
+      if (isIdbRef(previous) && previous !== value) {
+        deleteImage(previous).catch(() => { /* best-effort cleanup */ });
       }
-    };
-    reader.onerror = () => {
-      setUploadError("Failed to read file.");
-    };
-    reader.readAsDataURL(file);
+      onUpdateItem(item.id, { url: value });
+      setShowConfig(false);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Failed to read file.");
+    }
   };
 
   const fitClass = fit === 'contain'
@@ -178,7 +179,7 @@ const ImageWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props
       <div className="flex-1 relative min-h-0 w-full h-full bg-gray-50/50 dark:bg-black/5 flex flex-col items-center justify-center rounded-b-xl overflow-hidden">
 
         {isEditing && showConfig ? (
-          <div className="w-full h-full p-3 flex flex-col overflow-y-auto z-20 bg-background/95 backdrop-blur-sm">
+          <div className="w-full h-full px-3 py-1 flex flex-col overflow-y-auto z-20 bg-background/95 backdrop-blur-sm">
             <div className="my-auto w-full space-y-2">
             <p className="text-xs font-medium text-foreground text-center shrink-0">Configure Widget Image</p>
 
@@ -241,17 +242,23 @@ const ImageWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props
             )}
             </div>
           </div>
-        ) : url ? (
+        ) : url && imageStatus !== 'error' ? (
           <div className="w-full h-full relative select-none">
-            <img
-              src={url}
-              alt={title}
-              className={`w-full h-full pointer-events-none select-none rounded-b-xl ${fitClass}`}
-              onError={() => {
-                setUploadError("Image failed to load. The URL might be broken or blocked.");
-                setShowConfig(true);
-              }}
-            />
+            {imageStatus === 'loading' ? (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground/25">
+                <ImageIcon size={32} aria-hidden="true" />
+              </div>
+            ) : (
+              <img
+                src={resolvedSrc}
+                alt={title}
+                className={`w-full h-full pointer-events-none select-none rounded-b-xl ${fitClass}`}
+                onError={() => {
+                  setUploadError("Image failed to load. The URL might be broken or blocked.");
+                  setShowConfig(true);
+                }}
+              />
+            )}
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground/25 select-none">

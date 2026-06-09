@@ -42,9 +42,13 @@ Thumbs.db
 .claude/
 .aider*
 .cursor/
+.agents/
 
 # Graphify outputs
 graphify-out/
+
+# Internal design docs (specs/plans) — kept local, not in the public repo
+docs/superpowers/
 
 # Extension icons — override the global `Icon?` rule so regenerated PNGs
 # are tracked and show up in `git status` (no more `git add -f`).

@@ -135,28 +135,26 @@ export function useTheme(): UseTheme {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [settings.themeMode]);
 
-  // Accent + header foreground. When a background is set the accent is derived
-  // from the wallpaper (Material You style); otherwise the user's picked accent
-  // is used and the header falls back to the theme foreground.
+  // The primary accent ALWAYS follows the user's picked themeColor — a wallpaper
+  // never overrides it, so choosing the primary color always takes effect. The
+  // background only drives header-text readability (foreground luminance), so
+  // the header stays legible over a wallpaper. (deriveBackgroundTheme still
+  // returns an accent; it is intentionally ignored here.)
   const bgType = settings.background?.type;
   const bgValue = settings.background?.value;
   const bgDim = settings.background?.dim;
   useEffect(() => {
     let cancelled = false;
     const isDark = resolveIsDark(settings.themeMode);
+
+    if (settings.themeColor) applyAccent(settings.themeColor, isDark);
+    else clearAccent();
+
     const run = async (): Promise<void> => {
       const derived = await deriveBackgroundTheme(settings.background ?? { type: 'none' });
       if (cancelled) return;
-      if (derived) {
-        applyAccent(derived.accent, isDark);
-        applyHeaderForeground(derived.luminance);
-      } else if (settings.themeColor) {
-        applyAccent(settings.themeColor, isDark);
-        clearHeaderForeground();
-      } else {
-        clearAccent();
-        clearHeaderForeground();
-      }
+      if (derived) applyHeaderForeground(derived.luminance);
+      else clearHeaderForeground();
     };
     void run();
     return () => { cancelled = true; };

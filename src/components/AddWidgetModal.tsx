@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Mic, Camera } from "lucide-react";
 import { isEmbedCode, extractEmbedSrc, extractEmbedTitle, sanitizeEmbed, rewriteToEmbedUrl } from '@/lib/embedSanitizer';
 import type { WidgetItem } from '../types';
+import { deriveSiteName } from '../lib/siteName';
 
 const PreviewLogo = () => (
   <span
@@ -99,15 +100,11 @@ const AddWidgetModal = ({ open, onClose, onSelect }: Readonly<Props>) => {
       } as Partial<WidgetItem>;
     } else {
       const embedUrl = rewriteToEmbedUrl(trimmed);
-      let hostname = 'Embed';
-      try {
-        if (embedUrl) hostname = new URL(embedUrl).hostname.replace(/^www\./, '');
-      } catch { /* empty */ }
       defaults = {
         ...selectedWidget.defaults,
         mode: 'url',
         url: embedUrl ?? undefined,
-        title: hostname,
+        title: embedUrl ? deriveSiteName(embedUrl) : 'Embed',
       } as Partial<WidgetItem>;
     }
 

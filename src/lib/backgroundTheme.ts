@@ -1,5 +1,7 @@
 import type { DashboardBackground } from '../types';
 import { hexToRgb, rgbToHsl, relativeLuminance, type Rgb } from './color';
+import { isIdbRef } from './imageRef';
+import { getObjectUrl } from './imageStore';
 
 export interface BackgroundTheme {
   /** Vivid accent HSL ("H S% L%") derived from the background's dominant hue. */
@@ -36,7 +38,7 @@ function themeFromRgb(rgb: Rgb, dim: number): BackgroundTheme {
 async function sampleImageRgb(url: string): Promise<Rgb | null> {
   return new Promise<Rgb | null>((resolve) => {
     const img = new Image();
-    if (!url.startsWith('data:')) img.crossOrigin = 'anonymous';
+    if (!url.startsWith('data:') && !url.startsWith('blob:')) img.crossOrigin = 'anonymous';
     img.onload = () => {
       try {
         const canvas = document.createElement('canvas');
@@ -88,7 +90,13 @@ export async function deriveBackgroundTheme(bg: DashboardBackground): Promise<Ba
   }
 
   if (bg.type === 'image' && bg.value) {
-    const rgb = await sampleImageRgb(bg.value);
+    let src: string;
+    if (isIdbRef(bg.value)) {
+      try { src = await getObjectUrl(bg.value); } catch { return null; }
+    } else {
+      src = bg.value;
+    }
+    const rgb = await sampleImageRgb(src);
     return rgb === null ? null : themeFromRgb(rgb, dim);
   }
 

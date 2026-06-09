@@ -114,7 +114,7 @@ describe('getMinSize', () => {
     ['timer', { minW: 3, minH: 3 }],
     ['iframe', { minW: 3, minH: 3 }],
     ['note', { minW: 3, minH: 3 }],
-    ['image', { minW: 4, minH: 4 }],
+    ['image', { minW: 4, minH: 3 }],
     ['label', { minW: 2, minH: 1 }],
     ['link', { minW: 1, minH: 1 }],
   ])('returns correct min size for %s', (type, expected) => {

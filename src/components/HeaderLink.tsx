@@ -1,4 +1,4 @@
-import { useState, type DragEvent, type MouseEvent } from 'react';
+import { useState, useRef, useEffect, type DragEvent, type MouseEvent, type KeyboardEvent } from 'react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -13,6 +13,7 @@ import {
 import { Button } from './ui/button';
 import { MoreHorizontal, Trash2, FolderInput, Home, Folder, Edit2, Link2, Eye, Image as ImageIcon, Type, Check } from 'lucide-react';
 import { siteFaviconUrl } from '../lib/favicon';
+import { deriveSiteName } from '../lib/siteName';
 import Favicon from './Favicon';
 import type { LinkItem, GridSlot } from '../types';
 
@@ -53,22 +54,64 @@ const HeaderLink = ({
   onDragEnd,
 }: Readonly<Props>) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  const renameInputRef = useRef<HTMLInputElement>(null);
+  const skipRenameBlurRef = useRef(false);
+  const renameRequestedRef = useRef(false);
 
-  const siteName = item.customName || item.title || 'Link';
+  const siteName = item.customName || deriveSiteName(item.url, item.title);
   const url = item.url;
 
   const showAsText = item.viewMode === 'text';
 
-  const handleRename = (e: MouseEvent) => {
-    e.stopPropagation();
-    const newName = prompt('Rename link:', siteName);
-    if (newName !== null) {
-      const trimmed = newName.trim();
-      if (trimmed) {
-        onUpdateItem(item.id, { customName: trimmed });
-      }
+  useEffect(() => {
+    if (isRenaming) {
+      const input = renameInputRef.current;
+      input?.focus();
+      input?.select();
     }
+  }, [isRenaming]);
+
+  const startRename = (e: MouseEvent) => {
+    e.stopPropagation();
+    skipRenameBlurRef.current = false;
+    renameRequestedRef.current = true;
+    setDraftName(siteName);
+    setIsRenaming(true);
     setIsMenuOpen(false);
+  };
+
+  const commitRename = () => {
+    const trimmed = draftName.trim();
+    if (trimmed && trimmed !== siteName) {
+      onUpdateItem(item.id, { customName: trimmed });
+    }
+    setIsRenaming(false);
+  };
+
+  const cancelRename = () => {
+    skipRenameBlurRef.current = true;
+    setIsRenaming(false);
+  };
+
+  const handleRenameKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      skipRenameBlurRef.current = true;
+      commitRename();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelRename();
+    }
+  };
+
+  const handleRenameBlur = () => {
+    if (skipRenameBlurRef.current) {
+      skipRenameBlurRef.current = false;
+      return;
+    }
+    commitRename();
   };
 
   const handleChangeUrl = (e: MouseEvent) => {
@@ -90,7 +133,20 @@ const HeaderLink = ({
   const isDragOver = dragOverHeaderLinkId === item.id;
 
   let linkContent: React.ReactNode;
-  if (showAsText) {
+  if (isRenaming) {
+    linkContent = (
+      <input
+        ref={renameInputRef}
+        value={draftName}
+        onChange={(e) => setDraftName(e.target.value)}
+        onBlur={handleRenameBlur}
+        onKeyDown={handleRenameKeyDown}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+        className="text-xs font-medium text-foreground bg-secondary rounded px-1 w-full min-w-0 outline-none"
+      />
+    );
+  } else if (showAsText) {
     linkContent = (
       <span className="text-xs font-medium text-foreground truncate pointer-events-none px-0.5">
         {siteName}
@@ -113,12 +169,12 @@ const HeaderLink = ({
   return (
     <li
       className={`relative group rounded transition-all duration-150 flex items-center justify-center h-7
-        ${showAsText ? 'min-w-[40px] max-w-[160px] px-2' : 'w-7'}
+        ${showAsText || isRenaming ? 'min-w-[40px] max-w-[160px] px-2' : 'w-7'}
         ${isEditing ? 'cursor-grab active:cursor-grabbing hover:bg-secondary/70 border border-dashed border-border' : 'hover:bg-secondary/50'}
         ${isDragOver ? 'ring-2 ring-primary' : ''}
         ${isDragging ? 'opacity-30 scale-95' : ''}
       `}
-      draggable={isEditing}
+      draggable={isEditing && !isRenaming}
       onDragStart={(e) => onDragStart(item.id, e)}
       onDragOver={(e) => onDragOver(e, item.id)}
       onDrop={() => onDrop(item.id)}
@@ -155,9 +211,19 @@ const HeaderLink = ({
                 <MoreHorizontal size={10} className="text-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="w-48" onMouseDown={(e) => e.stopPropagation()}>
+            <DropdownMenuContent
+              align="center"
+              className="w-48"
+              onMouseDown={(e) => e.stopPropagation()}
+              onCloseAutoFocus={(e) => {
+                if (renameRequestedRef.current) {
+                  e.preventDefault();
+                  renameRequestedRef.current = false;
+                }
+              }}
+            >
               <DropdownMenuItem
-                onClick={handleRename}
+                onClick={startRename}
                 className="flex items-center gap-2 cursor-pointer"
               >
                 <Edit2 size={13} className="text-muted-foreground" />
