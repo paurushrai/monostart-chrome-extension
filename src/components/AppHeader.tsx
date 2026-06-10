@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Edit2, Check, Settings, Link as LinkIcon, Palette, AppWindow, LayoutGrid, Trash2 } from 'lucide-react';
-import MonoStartLogo from './MonoStartLogo';
+import HeaderBranding from './HeaderBranding';
 import type { WidgetItem, LinkItem, GroupItem, Settings as AppSettings, GridSlot } from '../types';
 import type { UseHeaderDrag } from '../hooks/useHeaderDrag';
 
@@ -65,25 +65,7 @@ export default function AppHeader({
       style={{ color: 'var(--header-fg, hsl(var(--foreground)))' }}
       className={`grid grid-cols-3 items-center px-4 py-2 border-b border-border relative transition-colors ${onWallpaper ? 'header-on-wallpaper' : ''} ${isDropTarget ? 'bg-primary/10 ring-2 ring-primary/40 ring-inset' : ''}`}
     >
-      <div className="flex items-center gap-3 w-fit">
-        <MonoStartLogo size={36} />
-        <div className="flex flex-col">
-          <h1 className="text-lg font-bold tracking-tight leading-none m-0">
-            MonoStart
-          </h1>
-          <span className="text-[11px] font-medium opacity-60 mt-0.5">
-            by{' '}
-            <a
-              href="https://www.paurushrai.in"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline hover:opacity-100 transition-all"
-            >
-              Paurush Rai
-            </a>
-          </span>
-        </div>
-      </div>
+      <HeaderBranding />
 
       <nav aria-label="Header links" className="flex justify-center items-center gap-2 overflow-x-auto max-w-full no-scrollbar py-2.5 -my-2.5">
         {headerLinks.map(link => (
