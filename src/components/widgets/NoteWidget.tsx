@@ -31,13 +31,17 @@ interface Props {
 const NoteWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props>) => {
   const { title = 'Note', content = '', noteColor = 'default' } = item;
   const [text, setText] = useState(content);
+  const [prevContent, setPrevContent] = useState(content);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
+  // Resync the draft when the stored content changes — a render-phase adjustment
+  // (per React docs) rather than an effect, to avoid a cascading re-render.
+  if (content !== prevContent) {
+    setPrevContent(content);
     setText(content);
-  }, [content]);
+  }
 
   useEffect(() => {
     return () => {
