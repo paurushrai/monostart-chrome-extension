@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Type, Trash2, Settings, AlignLeft, AlignCenter, AlignRight, Check, Bold, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
@@ -68,11 +68,15 @@ const LabelWidget = ({ item, onDelete, onUpdateItem, isEditing }: Readonly<Props
 
   const [isEditingText, setIsEditingText] = useState(false);
   const [inputText, setInputText] = useState(text);
+  const [prevText, setPrevText] = useState(text);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
+  // Resync the draft when the stored text changes — a render-phase adjustment
+  // (per React docs) rather than an effect, to avoid a cascading re-render.
+  if (text !== prevText) {
+    setPrevText(text);
     setInputText(text);
-  }, [text]);
+  }
 
   const handleTextClick = () => {
     if (isEditing) {
